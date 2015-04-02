@@ -81,6 +81,16 @@
 #define INST_SYNC_WRITE 0x83
 #define INST_SYNC_REG_WRITE 0x84
 
+
+//----Konstanter-Inverskinematik----
+#define a1 50 
+#define a2 67
+#define a3 130
+#define a1Square 2500 
+#define a2Square 4489
+#define a3Square 16900
+#define PI 3.141592
+
 void USART0RecieveMode() 
 {
 	PORTD = (0<<PORTD2);
@@ -129,7 +139,7 @@ void USARTSendInstruction0(int ID, int instruction)
 	
 	// sätt USART till sändläge
 	USART0SendMode();
-	
+	UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
 	USARTWriteChar(0xFF);
 	USARTWriteChar(0xFF);
 	USARTWriteChar(ID);
@@ -151,7 +161,7 @@ void USARTSendInstruction1(int ID, int instruction, int parameter0)
 {
 	// sätt USART till sändläge
 	USART0SendMode();
-	
+	UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
 	USARTWriteChar(0xFF);
 	USARTWriteChar(0xFF);
 	USARTWriteChar(ID);
@@ -173,7 +183,7 @@ void USARTSendInstruction2(int ID, int instruction, int parameter0, int paramete
 {
 	// sätt USART till sändläge
 	USART0SendMode();
-	
+	UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
 	USARTWriteChar(0xFF);
 	USARTWriteChar(0xFF);
 	USARTWriteChar(ID);
@@ -196,7 +206,7 @@ void USARTSendInstruction3(int ID, int instruction, int parameter0, int paramete
 {
 	// sätt USART till sändläge
 	USART0SendMode();
-	
+	UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
 	USARTWriteChar(0xFF);
 	USARTWriteChar(0xFF);
 	USARTWriteChar(ID);
@@ -220,7 +230,7 @@ void USARTSendInstruction4(int ID, int instruction, int parameter0, int paramete
 {
 	// sätt USART till sändläge
 	USART0SendMode();
-	
+	UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
 	USARTWriteChar(0xFF);
 	USARTWriteChar(0xFF);
 	USARTWriteChar(ID);
@@ -244,7 +254,7 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
 {
 	// sätt USART till sändläge
 	USART0SendMode();
-	UCSR0A = UCSR0A | (0 << 6); 
+	UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
 	USARTWriteChar(0xFF);
 	USARTWriteChar(0xFF);
 	USARTWriteChar(ID);
@@ -333,7 +343,96 @@ void MoveDynamixel(int ID,long int Degree,long int Velocity)
 	
 		USARTSendInstruction5(ID,INST_WRITE,P_GOAL_POSITION_L,LowGoalPosition ,HighGoalPosition, LowAngleVelocity, HighAngleVelocity);
 	}
+	return;
 }
+
+void MoveFrontLeftLeg(float x, float y, float z, int speed)
+{
+	long int theta1 = atan2f(-x,y)*180/PI;
+	long int theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) + 
+		acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+	
+	long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+
+	long int ActuatorAngle1 =  theta1 + 105;
+	long int ActuatorAngle2 =  theta2 + 60;
+	long int ActuatorAngle3 =  theta3 + 1;
+	
+	
+	MoveDynamixel(2,ActuatorAngle1,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(4,ActuatorAngle2,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(6,ActuatorAngle3,speed);
+	USARTReadStatusPacket();
+	return;
+}
+
+void MoveFrontRightLeg(float x, float y, float z, int speed)
+{
+	long int theta1 = atan2f(x,y)*180/PI;
+	long int theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+	acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+	
+	long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+
+	long int ActuatorAngle1 =  theta1 + 105;
+	long int ActuatorAngle2 =  theta2 + 60;
+	long int ActuatorAngle3 =  theta3 + 1;
+	
+	
+	MoveDynamixel(8,ActuatorAngle1,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(10,ActuatorAngle2,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(12,ActuatorAngle3,speed);
+	USARTReadStatusPacket();	
+	return;
+}
+void MoveRearLeftLeg(float x, float y, float z, int speed)
+{
+	long int theta1 = atan2f(-x,y)*180/PI;
+	long int theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+	acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+	
+	long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+
+	long int ActuatorAngle1 =  theta1 + 105;
+	long int ActuatorAngle2 =  theta2 + 60;
+	long int ActuatorAngle3 =  theta3 + 1;
+	
+	
+	MoveDynamixel(1,ActuatorAngle1,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(5,ActuatorAngle3,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(3,ActuatorAngle2,speed);
+	USARTReadStatusPacket();
+	return;
+}
+void MoveRearRightLeg(float x, float y, float z, int speed)
+{
+	long int theta1 = atan2f(x,y)*180/PI;
+	long int theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+	acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+	
+	long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+
+	long int ActuatorAngle1 =  theta1 + 105;
+	long int ActuatorAngle2 =  theta2 + 60;
+	long int ActuatorAngle3 =  theta3 + 1;
+	
+	
+	MoveDynamixel(1,ActuatorAngle1,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(5,ActuatorAngle3,speed);
+	USARTReadStatusPacket();
+	MoveDynamixel(3,ActuatorAngle2,speed);
+	USARTReadStatusPacket();
+	return;
+}
+
+
 
 int main(void)
 {
@@ -361,7 +460,7 @@ int main(void)
 			//USARTSendInstruction2(5,INST_READ,0x12,0x01);
 			//DDRB = 0xFF;
 			//PORTB = USARTReadStatusPacket();
-			MoveDynamixel(6,200,15);
+		/*	MoveDynamixel(6,200,15);
 			USARTReadStatusPacket();
 			MoveDynamixel(12,200,15); 
 			USARTReadStatusPacket();
@@ -386,12 +485,31 @@ int main(void)
 			USARTReadStatusPacket();
 			MoveDynamixel(8,100,15);
 			USARTReadStatusPacket();
-		/*}
+		*//*}
 		else 
 		{
 			send = 1;
 		}
 	}*/
+		/*
+		int theta1 = 90;
+		int theta2 = 155;
+		int theta3 = 76;
+	long int ActuatorAngle1 =  theta1 + 105;
+	long int ActuatorAngle2 =  theta2 + 60;
+	long int ActuatorAngle3 =  theta3 + 1;
+	
+	MoveDynamixel(2,ActuatorAngle1,10);
+	USARTReadStatusPacket();
+	MoveDynamixel(4,ActuatorAngle2,10);
+	USARTReadStatusPacket();
+	MoveDynamixel(6,ActuatorAngle3,10);
+	*/	
+	MoveFrontLeftLeg(-120,120,-100,10);
+	MoveFrontRightLeg(-120,120,-100,10);
+	MoveRearLeftLeg(-120,120,-100,10);
+	MoveRearRightLeg(-120,120,-100,10);
+//	MoveDynamixel(6,90,10);
 }
 
 
