@@ -24,6 +24,8 @@ void Bluetooth_init()
 	UCSRC = (1<<URSEL)|(3<<UCSZ0)|(0<<UPM1)|(0<<UPM0); //Sätt 8-bit meddelanden samt ingen paritet
 	DDRA = (0<<DDA1)|(1<<DDA0); //Definiera en input och en output
 	PORTA = (0<<PORTA0)|(1<<PORTA1); //Skicka ut clear to send
+	
+	PORTA = (1<<PORTA2); //TESTAR
 }
 
 void SPI_init(void)
@@ -39,6 +41,7 @@ void Send(unsigned char data)
 {
 	while ( !( UCSRA & (1<<UDRE)));
 	UDR = data;
+	
 }
 
 unsigned char Recieve(void)
@@ -64,7 +67,7 @@ int main(void)
 	SPI_init();
 	sei();
 	unsigned char test;
-	PORTA = (1 << PINA1);
+	PORTA = (1 << PINA2); 
 	
 	while(1)
 	{
@@ -82,16 +85,16 @@ ISR(USART_RXC_vect)
 
 ISR(SPISTC_vect)
 {
-	PORTA = (1 << PINA1);
+	//PORTA = (1 << PINA1);
 	MCUCR = (0<<SE);
 	SPIinbuffer = SPDR;
-	//spiwrite(0x46); //Skicka över inkommet meddelande till SPDR.
+	//spiwrite(SPIinbuffer); //Skicka över inkommet meddelande till SPDR.
 	SPDR = 0b01100110;
 	BTinbuffer = 0;
-	/*if(SPIinbuffer != 0)
-	{
+	//if(SPIinbuffer != 0)
+	//{
 	Send(SPIinbuffer);
-	}
-	*/
+	//}
+	
 }
 //Kommer att behöva en lista där indata kan sparas tillfälligt.
