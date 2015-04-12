@@ -10,7 +10,8 @@ unsigned char trash;
 
 void spi_init(void)
 {
-	DDRA = (1<<PORTA2);
+	DDRA = (1<<PORTA2)|(1<<PORTA0);
+	PORTA = (1<<PORTA0);
 	PORTA = (1<<PORTA2); //Ha ingen slav vald
 	DDRB = (1<<PORTB5)|(1<<PORTB7)|(1<<PORTB4); //Definiera outputs
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0); //Sätt enhet till master, enable spi, klockfrekvens
@@ -27,6 +28,7 @@ int main(void)
 {
 	spi_init();
 	//PORTA = (0<<PORTA2); //Slave select
+	//PORTA = (1<<PORTA0);
 	while(1)
 	{
 	_delay_ms(500);
