@@ -3,27 +3,25 @@ Kommunikationsenhet.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         00000180  00000000  00000000  00000074  2**1
+  0 .text         00000134  00000000  00000000  00000054  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .bss          00000004  00800060  00800060  000001f4  2**0
-                  ALLOC
-  2 .comment      00000030  00000000  00000000  000001f4  2**0
+  1 .comment      00000030  00000000  00000000  00000188  2**0
                   CONTENTS, READONLY
-  3 .debug_aranges 00000060  00000000  00000000  00000224  2**0
+  2 .debug_aranges 00000060  00000000  00000000  000001b8  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   000001e8  00000000  00000000  00000284  2**0
+  3 .debug_info   000001e9  00000000  00000000  00000218  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 00000109  00000000  00000000  0000046c  2**0
+  4 .debug_abbrev 0000012e  00000000  00000000  00000401  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   00000168  00000000  00000000  00000575  2**0
+  5 .debug_line   0000015f  00000000  00000000  0000052f  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000134  00000000  00000000  000006e0  2**2
+  6 .debug_frame  000000fc  00000000  00000000  00000690  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    000001c4  00000000  00000000  00000814  2**0
+  7 .debug_str    000001bf  00000000  00000000  0000078c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    00000196  00000000  00000000  000009d8  2**0
+  8 .debug_loc    00000107  00000000  00000000  0000094b  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000050  00000000  00000000  00000b6e  2**0
+  9 .debug_ranges 00000050  00000000  00000000  00000a52  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -39,8 +37,8 @@ Disassembly of section .text:
   1c:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   20:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   24:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
-  28:	0c 94 90 00 	jmp	0x120	; 0x120 <__vector_10>
-  2c:	0c 94 69 00 	jmp	0xd2	; 0xd2 <__vector_11>
+  28:	0c 94 70 00 	jmp	0xe0	; 0xe0 <__vector_10>
+  2c:	0c 94 61 00 	jmp	0xc2	; 0xc2 <__vector_11>
   30:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   34:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
   38:	0c 94 3c 00 	jmp	0x78	; 0x78 <__bad_interrupt>
@@ -69,11 +67,11 @@ Disassembly of section .text:
   68:	1d 92       	st	X+, r1
 
 0000006a <.do_clear_bss_start>:
-  6a:	a4 36       	cpi	r26, 0x64	; 100
+  6a:	a0 36       	cpi	r26, 0x60	; 96
   6c:	b2 07       	cpc	r27, r18
   6e:	e1 f7       	brne	.-8      	; 0x68 <.do_clear_bss_loop>
-  70:	0e 94 58 00 	call	0xb0	; 0xb0 <main>
-  74:	0c 94 be 00 	jmp	0x17c	; 0x17c <_exit>
+  70:	0e 94 52 00 	call	0xa4	; 0xa4 <main>
+  74:	0c 94 98 00 	jmp	0x130	; 0x130 <_exit>
 
 00000078 <__bad_interrupt>:
   78:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
@@ -99,193 +97,151 @@ void Bluetooth_init()
 	PORTA = (0<<PORTA0)|(1<<PORTA1); //Skicka ut clear to send
   8c:	82 e0       	ldi	r24, 0x02	; 2
   8e:	8b bb       	out	0x1b, r24	; 27
-	
-	PORTA = (1<<PORTA2); //TESTAR
-  90:	84 e0       	ldi	r24, 0x04	; 4
-  92:	8b bb       	out	0x1b, r24	; 27
-  94:	08 95       	ret
+  90:	08 95       	ret
 
-00000096 <SPI_init>:
+00000092 <SPI_init>:
 }
 
 void SPI_init(void)
 {
 	DDRB = (1<<PORTB6); //Alla utom MISO ska vara ingångar.
-  96:	80 e4       	ldi	r24, 0x40	; 64
-  98:	87 bb       	out	0x17, r24	; 23
+  92:	80 e4       	ldi	r24, 0x40	; 64
+  94:	87 bb       	out	0x17, r24	; 23
 	SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI
-  9a:	80 ec       	ldi	r24, 0xC0	; 192
-  9c:	8d b9       	out	0x0d, r24	; 13
-  9e:	08 95       	ret
+  96:	80 ec       	ldi	r24, 0xC0	; 192
+  98:	8d b9       	out	0x0d, r24	; 13
+  9a:	08 95       	ret
 
-000000a0 <Send>:
+0000009c <Send>:
 }
 
 void Send(unsigned char data)
 
 {
 	while ( !( UCSRA & (1<<UDRE)));
-  a0:	5d 9b       	sbis	0x0b, 5	; 11
-  a2:	fe cf       	rjmp	.-4      	; 0xa0 <Send>
+  9c:	5d 9b       	sbis	0x0b, 5	; 11
+  9e:	fe cf       	rjmp	.-4      	; 0x9c <Send>
 	UDR = data;
-  a4:	8c b9       	out	0x0c, r24	; 12
-  a6:	08 95       	ret
+  a0:	8c b9       	out	0x0c, r24	; 12
+  a2:	08 95       	ret
 
-000000a8 <Recieve>:
-	
-}
-
-unsigned char Recieve(void)
-{
-	while ( !(UCSRA & (1<<RXC)) );
-  a8:	5f 9b       	sbis	0x0b, 7	; 11
-  aa:	fe cf       	rjmp	.-4      	; 0xa8 <Recieve>
-	return UDR;
-  ac:	8c b1       	in	r24, 0x0c	; 12
-}
-  ae:	08 95       	ret
-
-000000b0 <main>:
+000000a4 <main>:
 	SPDR = data;
 }
 
 int main(void)
 {
 	Bluetooth_init();
-  b0:	0e 94 3e 00 	call	0x7c	; 0x7c <Bluetooth_init>
+  a4:	0e 94 3e 00 	call	0x7c	; 0x7c <Bluetooth_init>
 	SPI_init();
-  b4:	0e 94 4b 00 	call	0x96	; 0x96 <SPI_init>
+  a8:	0e 94 49 00 	call	0x92	; 0x92 <SPI_init>
 	sei();
-  b8:	78 94       	sei
-	unsigned char test;
-	PORTA = (1 << PINA2); 
-  ba:	84 e0       	ldi	r24, 0x04	; 4
-  bc:	8b bb       	out	0x1b, r24	; 27
+  ac:	78 94       	sei
+	//unsigned char test;
 	
 	while(1)
 	{
 	MCUCR = (1<<SE); //Sleep enable
-  be:	90 e4       	ldi	r25, 0x40	; 64
-  c0:	95 bf       	out	0x35, r25	; 53
+  ae:	90 e4       	ldi	r25, 0x40	; 64
+  b0:	95 bf       	out	0x35, r25	; 53
 	sleep_mode();
-  c2:	85 b7       	in	r24, 0x35	; 53
-  c4:	80 64       	ori	r24, 0x40	; 64
-  c6:	85 bf       	out	0x35, r24	; 53
-  c8:	88 95       	sleep
-  ca:	85 b7       	in	r24, 0x35	; 53
-  cc:	8f 7b       	andi	r24, 0xBF	; 191
-  ce:	85 bf       	out	0x35, r24	; 53
-  d0:	f7 cf       	rjmp	.-18     	; 0xc0 <main+0x10>
+  b2:	85 b7       	in	r24, 0x35	; 53
+  b4:	80 64       	ori	r24, 0x40	; 64
+  b6:	85 bf       	out	0x35, r24	; 53
+  b8:	88 95       	sleep
+  ba:	85 b7       	in	r24, 0x35	; 53
+  bc:	8f 7b       	andi	r24, 0xBF	; 191
+  be:	85 bf       	out	0x35, r24	; 53
+  c0:	f7 cf       	rjmp	.-18     	; 0xb0 <main+0xc>
 
-000000d2 <__vector_11>:
+000000c2 <__vector_11>:
 	}
 
 }
 
-ISR(USART_RXC_vect)
+ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
 {
-  d2:	1f 92       	push	r1
-  d4:	0f 92       	push	r0
-  d6:	0f b6       	in	r0, 0x3f	; 63
-  d8:	0f 92       	push	r0
-  da:	11 24       	eor	r1, r1
-  dc:	2f 93       	push	r18
-  de:	3f 93       	push	r19
-  e0:	4f 93       	push	r20
-  e2:	5f 93       	push	r21
-  e4:	6f 93       	push	r22
-  e6:	7f 93       	push	r23
-  e8:	8f 93       	push	r24
-  ea:	9f 93       	push	r25
-  ec:	af 93       	push	r26
-  ee:	bf 93       	push	r27
-  f0:	ef 93       	push	r30
-  f2:	ff 93       	push	r31
+  c2:	1f 92       	push	r1
+  c4:	0f 92       	push	r0
+  c6:	0f b6       	in	r0, 0x3f	; 63
+  c8:	0f 92       	push	r0
+  ca:	11 24       	eor	r1, r1
+  cc:	8f 93       	push	r24
 	MCUCR = (0<<SE);
-  f4:	15 be       	out	0x35, r1	; 53
-	BTinbuffer = Recieve(); //Vi kommer förlora information om meddelanden skickas i snabb följd
-  f6:	0e 94 54 00 	call	0xa8	; 0xa8 <Recieve>
-  fa:	80 93 61 00 	sts	0x0061, r24
+  ce:	15 be       	out	0x35, r1	; 53
+	UDR = data;
 }
-  fe:	ff 91       	pop	r31
- 100:	ef 91       	pop	r30
- 102:	bf 91       	pop	r27
- 104:	af 91       	pop	r26
- 106:	9f 91       	pop	r25
- 108:	8f 91       	pop	r24
- 10a:	7f 91       	pop	r23
- 10c:	6f 91       	pop	r22
- 10e:	5f 91       	pop	r21
- 110:	4f 91       	pop	r20
- 112:	3f 91       	pop	r19
- 114:	2f 91       	pop	r18
- 116:	0f 90       	pop	r0
- 118:	0f be       	out	0x3f, r0	; 63
- 11a:	0f 90       	pop	r0
- 11c:	1f 90       	pop	r1
- 11e:	18 95       	reti
 
-00000120 <__vector_10>:
-
-ISR(SPISTC_vect)
+unsigned char Recieve(void)
 {
- 120:	1f 92       	push	r1
- 122:	0f 92       	push	r0
- 124:	0f b6       	in	r0, 0x3f	; 63
- 126:	0f 92       	push	r0
- 128:	11 24       	eor	r1, r1
- 12a:	2f 93       	push	r18
- 12c:	3f 93       	push	r19
- 12e:	4f 93       	push	r20
- 130:	5f 93       	push	r21
- 132:	6f 93       	push	r22
- 134:	7f 93       	push	r23
- 136:	8f 93       	push	r24
- 138:	9f 93       	push	r25
- 13a:	af 93       	push	r26
- 13c:	bf 93       	push	r27
- 13e:	ef 93       	push	r30
- 140:	ff 93       	push	r31
-	//PORTA = (1 << PINA1);
+	return UDR;
+  d0:	8c b1       	in	r24, 0x0c	; 12
+}
+
+ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
+{
 	MCUCR = (0<<SE);
- 142:	15 be       	out	0x35, r1	; 53
-	SPIinbuffer = SPDR;
- 144:	8f b1       	in	r24, 0x0f	; 15
- 146:	80 93 62 00 	sts	0x0062, r24
-	//spiwrite(SPIinbuffer); //Skicka över inkommet meddelande till SPDR.
-	SPDR = 0b01100110;
- 14a:	86 e6       	ldi	r24, 0x66	; 102
- 14c:	8f b9       	out	0x0f, r24	; 15
-	BTinbuffer = 0;
- 14e:	10 92 61 00 	sts	0x0061, r1
-	//if(SPIinbuffer != 0)
-	//{
-	Send(SPIinbuffer);
- 152:	80 91 62 00 	lds	r24, 0x0062
- 156:	0e 94 50 00 	call	0xa0	; 0xa0 <Send>
-	//}
+	SPDR = Recieve(); //Information som ska skickas överförs direkt till SPDR, där det är redo att föras över till masterenheten.
+  d2:	8f b9       	out	0x0f, r24	; 15
+}
+  d4:	8f 91       	pop	r24
+  d6:	0f 90       	pop	r0
+  d8:	0f be       	out	0x3f, r0	; 63
+  da:	0f 90       	pop	r0
+  dc:	1f 90       	pop	r1
+  de:	18 95       	reti
+
+000000e0 <__vector_10>:
+
+ISR(SPISTC_vect)//SPI-överföring klar
+{
+  e0:	1f 92       	push	r1
+  e2:	0f 92       	push	r0
+  e4:	0f b6       	in	r0, 0x3f	; 63
+  e6:	0f 92       	push	r0
+  e8:	11 24       	eor	r1, r1
+  ea:	2f 93       	push	r18
+  ec:	3f 93       	push	r19
+  ee:	4f 93       	push	r20
+  f0:	5f 93       	push	r21
+  f2:	6f 93       	push	r22
+  f4:	7f 93       	push	r23
+  f6:	8f 93       	push	r24
+  f8:	9f 93       	push	r25
+  fa:	af 93       	push	r26
+  fc:	bf 93       	push	r27
+  fe:	ef 93       	push	r30
+ 100:	ff 93       	push	r31
+	MCUCR = (0<<SE);
+ 102:	15 be       	out	0x35, r1	; 53
+	Send(SPDR);
+ 104:	8f b1       	in	r24, 0x0f	; 15
+ 106:	0e 94 4e 00 	call	0x9c	; 0x9c <Send>
+	SPDR = 0x44; //Återställ SPDR.
+ 10a:	84 e4       	ldi	r24, 0x44	; 68
+ 10c:	8f b9       	out	0x0f, r24	; 15
 	
 }
- 15a:	ff 91       	pop	r31
- 15c:	ef 91       	pop	r30
- 15e:	bf 91       	pop	r27
- 160:	af 91       	pop	r26
- 162:	9f 91       	pop	r25
- 164:	8f 91       	pop	r24
- 166:	7f 91       	pop	r23
- 168:	6f 91       	pop	r22
- 16a:	5f 91       	pop	r21
- 16c:	4f 91       	pop	r20
- 16e:	3f 91       	pop	r19
- 170:	2f 91       	pop	r18
- 172:	0f 90       	pop	r0
- 174:	0f be       	out	0x3f, r0	; 63
- 176:	0f 90       	pop	r0
- 178:	1f 90       	pop	r1
- 17a:	18 95       	reti
+ 10e:	ff 91       	pop	r31
+ 110:	ef 91       	pop	r30
+ 112:	bf 91       	pop	r27
+ 114:	af 91       	pop	r26
+ 116:	9f 91       	pop	r25
+ 118:	8f 91       	pop	r24
+ 11a:	7f 91       	pop	r23
+ 11c:	6f 91       	pop	r22
+ 11e:	5f 91       	pop	r21
+ 120:	4f 91       	pop	r20
+ 122:	3f 91       	pop	r19
+ 124:	2f 91       	pop	r18
+ 126:	0f 90       	pop	r0
+ 128:	0f be       	out	0x3f, r0	; 63
+ 12a:	0f 90       	pop	r0
+ 12c:	1f 90       	pop	r1
+ 12e:	18 95       	reti
 
-0000017c <_exit>:
- 17c:	f8 94       	cli
+00000130 <_exit>:
+ 130:	f8 94       	cli
 
-0000017e <__stop_program>:
- 17e:	ff cf       	rjmp	.-2      	; 0x17e <__stop_program>
+00000132 <__stop_program>:
+ 132:	ff cf       	rjmp	.-2      	; 0x132 <__stop_program>
