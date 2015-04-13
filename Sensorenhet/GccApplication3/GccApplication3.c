@@ -11,7 +11,6 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <avr/pgmspace.h>
-//#include <time.h>
 
 int tempReading;
 
@@ -77,7 +76,7 @@ int sideDistance4; // Beror på sensor 7 och 8
 //int angleTable[] = {0, (180/3.141592)*asin(1/(sqrt(1 + 15*15))), (180/3.141592)*asin(2/(sqrt(4 + 15*15))), (180/3.141592)*asin(3/(sqrt(9 + 15*15))), (180/3.141592)*asin(4/(sqrt(16 + 15*15))), (180/3.141592)*asin(5/(sqrt(25 + 15*15))), (180/3.141592)*asin(6/(sqrt(36 + 15*15))), (180/3.141592)*asin(7/(sqrt(49 + 15*15))), (180/3.141592)*asin(8/(sqrt(64 + 15*15))), (180/3.141592)*asin(9/(sqrt(81 + 15*15))), (180/3.141592)*asin(10/(sqrt(100 + 15*15))), (180/3.141592)*asin(11/(sqrt(121 + 15*15))), (180/3.141592)*asin(12/(sqrt(144 + 15*15))), (180/3.141592)*asin(13/(sqrt(169 + 15*15))), (180/3.141592)*asin(14/(sqrt(196 + 15*15)))};
 
 #define differentAngles 150 // Hur många vinklar som finns i look-up-table
-#define sidelenght	175		// Sidan mellan två sensorer, 175 millimeter
+#define sidelenght	175U	// Sidan mellan två sensorer, 175 millimeter, U för att undvika overflow för värden större än 46
 #define displayE	PORTB1	// E på displayen
 #define displayRS	PORTB0	// RS på displayen
 #define ADC_notComplete	!(ADCSRA & (1<<ADIF)) // Boolvariabel för ADC complete
@@ -91,7 +90,8 @@ void makeAngleTable() // Skapar angleTable med 150 element som motsvarar differe
 	int i;
 	for (i=0; i<differentAngles; i++)
 	{
-		angleTable[i]=10*(180/pi)*asin(i/(sqrt(i*i+sidelenght*sidelenght))); // En decimal
+		double tempAngleValue = 10*(180/pi)*asin(i/(sqrt(i*i+sidelenght*sidelenght)));
+		angleTable[i]=ceil(tempAngleValue); // En decimal
 	}
 }
 
@@ -146,20 +146,20 @@ void writeSensor(int whatSensor)
 		int number3;
 		if (whatSensor >= 0)
 		{
-			writeDisplay(20);
+			writeDisplay(20); // Skriver ut mellanslag
 		}
 		else
 		{
-			writeDisplay(45);
+			writeDisplay(45); // Skriver ut minustecken om talet negativt
 			
 		}
 		
 		whatSensor = abs(whatSensor);
 		
-		number3 = (whatSensor % 100) % 10; // Entalet
-		number2 = ((whatSensor % 100) - number3) / 10; // Tiotalet
+		number3 = (whatSensor % 100) % 10;                       // Entalet
+		number2 = ((whatSensor % 100) - number3) / 10;           // Tiotalet
 		number1 = (whatSensor - (number2 * 10) - number3) / 100; // Hundratalet
-		writeDisplay(number1 + 48); // Plussar på 48 för att omvandla till ascii
+		writeDisplay(number1 + 48);                              // Plussar på 48 för att omvandla till ascii
 	 	writeDisplay(number2 + 48);
 		writeDisplay(number3 + 48);
 }
@@ -225,7 +225,7 @@ int sideValue(int firstSensor, int secondSensor)
 int getAngle(int firstLength, int secondLength)
 {
 	int diffLength = firstLength - secondLength;
-	if (firstLength < 300 && secondLength < 300 && abs(diffLength) < 150)
+	if (firstLength < 300 && secondLength < 300 && abs(diffLength) < 150) // Om skillnaden i längd är för stor antas något vara fel och vinkel mäts ej
 	{
 		if (diffLength >= 0)
 		{
@@ -251,16 +251,58 @@ void waitForConversionComplete()
 	ADCSRA = (1<<ADIF); // Clearar ADIF
 }
 
+int convertADtoDistance(int ADreading, int sensorNumber)
+{
+	if (ADreading > 160) // Returnerar ungefärligt värde om AD-omvandlat värde hamnar utanför tabell, i praktiken borde inget komma så nära sensorn
+	{
+		return 80;
+	}
+	else
+	{
+		switch (sensorNumber) // Beroende på sensorns nummer hämtas avståndet som motsvarar AD-omvandlat värde ur rätt tabell
+		{
+			case 1:
+				return pgm_read_word(&(distanceTable1[ADreading])); 
+				break;
+			case 2:
+				return pgm_read_word(&(distanceTable2[ADreading]));
+				break;
+			case 3:
+				return pgm_read_word(&(distanceTable3[ADreading]));
+				break;
+			case 4:
+				return pgm_read_word(&(distanceTable4[ADreading]));
+				break;
+			case 5:
+				return pgm_read_word(&(distanceTable5[ADreading]));
+				break;
+			case 6:
+				return pgm_read_word(&(distanceTable6[ADreading]));
+				break;
+			case 7:
+				return pgm_read_word(&(distanceTable7[ADreading]));
+				break;
+			case 8:
+				return pgm_read_word(&(distanceTable8[ADreading]));
+				break;
+			default:
+				return 0;
+				break;
+		}
+	}
+}
+
 void calculateAvarageDistance() // Räknar ut medelvärdet av 5 senaste mätningarna och avståndet från varje sida
 {
-			averageDistance1 = pgm_read_word(&(distanceTable1[average(sensor1)]));
-			averageDistance2 = pgm_read_word(&(distanceTable2[average(sensor2)]));
-			averageDistance3 = pgm_read_word(&(distanceTable1[average(sensor3)]));
-			averageDistance4 = pgm_read_word(&(distanceTable1[average(sensor4)]));
-			averageDistance5 = pgm_read_word(&(distanceTable1[average(sensor5)]));
-			averageDistance6 = pgm_read_word(&(distanceTable1[average(sensor6)]));
-			averageDistance7 = pgm_read_word(&(distanceTable1[average(sensor7)]));
-			averageDistance8 = pgm_read_word(&(distanceTable1[average(sensor8)]));
+	
+			averageDistance1 = convertADtoDistance(average(sensor1),1); // Tar genomsnitt av senaste 5 värdena och omvandlar till avstånd
+			averageDistance2 = convertADtoDistance(average(sensor2),2);
+			averageDistance3 = convertADtoDistance(average(sensor3),3);
+			averageDistance4 = convertADtoDistance(average(sensor4),4);
+			averageDistance5 = convertADtoDistance(average(sensor5),5);
+			averageDistance6 = convertADtoDistance(average(sensor6),6);
+			averageDistance7 = convertADtoDistance(average(sensor7),7);
+			averageDistance8 = convertADtoDistance(average(sensor8),8);
 			
 			sideDistance1 = sideValue(averageDistance1, averageDistance2);
 			sideDistance2 = sideValue(averageDistance3, averageDistance4);
@@ -323,6 +365,11 @@ int main(void)
 	
 	makeAngleTable();
 	
+	
+	//Ta bort när du är klar!!!
+	int testValue = 10*(180/pi)*asin(60/(sqrt(60U*60+sidelenght*sidelenght)));
+	//int testValue = ceil(testValue1);
+	
     while(1)
     {
 		leakFound = leakBit;
@@ -370,7 +417,6 @@ int main(void)
 		
 		if (iteration == 4)
 		{
-			//clock_t beginCalculations = clock(); // Startar klocka för att beräkna tiden uträkning och utskrift tar
 			
 			calculateAvarageDistance();
 			
@@ -387,7 +433,7 @@ int main(void)
 			
 			writeSensor(totalAngle);
 			writeSensor(leakFound);
-			writeSensor(sideAngle1);
+			writeSensor(testValue);
 			writeSensor(sideAngle2);
 		
 			PORTB = (1<<displayE);
@@ -395,13 +441,12 @@ int main(void)
 			PORTB = (0<<displayE);
 			_delay_ms(1);
 
-			//clock_t calculationsComplete = clock(); // Avslutar klocka, drar av denna tid från väntetid
 
-			_delay_ms(40 /*- (beginCalculations - calculationsComplete)*/); // Väntar på att sensorerna uppdateras
+			_delay_ms(6); // Väntar på att sensorerna uppdateras, väntar bara i 6 ms eftersom delayer för utskrift summeras till 34 ms
 		}
 		else
 		{
-			_delay_ms(40); // Väntar på att sensorerna uppdateras
+			_delay_ms(40); // Väntar på att sensorerna uppdateras vilket tar ca 40 ms.
 		}
 	}
 }
