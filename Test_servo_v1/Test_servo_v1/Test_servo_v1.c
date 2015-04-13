@@ -91,6 +91,12 @@
 #define a3Square 16900
 #define PI 3.141592
 
+#define FRONT_LEFT_LEG 1
+#define FRONT_RIGHT_LEG 2
+#define REAR_LEFT_LEG 3
+#define REAR_RIGHT_LEG 4
+
+
 void USART0RecieveMode() 
 {
 	PORTD = (0<<PORTD2);
@@ -423,15 +429,77 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
 	long int ActuatorAngle3 =  theta3 + 1;
 	
 	
-	MoveDynamixel(1,ActuatorAngle1,speed);
+	MoveDynamixel(7,ActuatorAngle1,speed);
 	USARTReadStatusPacket();
-	MoveDynamixel(5,ActuatorAngle3,speed);
+	MoveDynamixel(9,ActuatorAngle3,speed);
 	USARTReadStatusPacket();
-	MoveDynamixel(3,ActuatorAngle2,speed);
+	MoveDynamixel(11,ActuatorAngle2,speed);
 	USARTReadStatusPacket();
 	return;
 }
 
+
+
+// Rader representerar olika ben. Kolumnerna innehåller positioner
+long int actuatorPositions_g [12][20];
+int currentPos_g = 0;
+
+
+typedef struct leg leg;
+struct leg {
+    int legNumber,
+        coxaJoint,
+        femurJoint,
+        tibiaJoint;
+};
+
+leg frontLeftLeg = {FRONT_LEFT_LEG, 2, 4, 6};
+leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
+leg rearLeftLeg = {REAR_LEFT_LEG, 1, 5, 3};
+leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
+
+
+
+
+void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1, float z1, float x2, float y2, float z2)
+{
+    long int theta1;
+    long int theta2;
+    long int theta3;
+    if ((currentLeg.legNumber == FRONT_LEFT_LEG) | (currentLeg.legNumber == REAR_LEFT_LEG))
+    {
+        x1 *= -1;
+        x2 *= -1;
+    }
+    
+    float deltaX = (x2 - x1) / numberOfPositions;
+    float deltaY = (y2 - y1) / numberOfPositions;
+    float deltaZ = (z2 - z1) / numberOfPositions;
+    
+    float x,y,z;
+    
+    for (int i = 0; i < numberOfPositions; i++)
+    {
+        x = x1 + (i + 1) * deltaX;
+        y = y1 + (i + 1) * deltaY;
+        z = z1 + (i + 1) * deltaZ;
+        printf("x=%f\ny=%f\nz=%f\n", x,y,z);
+        // lös inverskinematik för lederna.
+        theta1 = atan2f(x,y)*180/PI;
+        theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+                                  acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+        
+        theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+        
+        // spara resultatet i global array
+        actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+        actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 60;
+        actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
+        
+        
+        
+    }
+}
 
 
 int main(void)
