@@ -10,12 +10,38 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 
+#include <stdlib.h> //för länkad lista
+
 #define F_CPU 14745600UL
 
 unsigned char BTinbuffer;
 unsigned char BTutbuffer;
 unsigned char SPIinbuffer;
 unsigned char SPIutbuffer;
+
+struct node
+{
+	unsigned char data_;
+	struct node* next_ = NULL;
+};
+
+void appendList (unsigned char data)
+{
+	struct node* temp = malloc(sizeof(struct node));
+	assert(temp != NULL)
+	
+	temp->data_ = data;
+	
+	if (firstPtr_g == NULL) // Om listan är tom
+	{
+		firstPtr_g = temp;
+	}
+	else // Om listan inte är tom
+	{
+		last_Ptr_g->next_ = temp;
+	}
+	last_Ptr_g = temp;	
+}
 
 void Bluetooth_init()
 {
@@ -58,6 +84,11 @@ void spiwrite(unsigned char data)
 
 int main(void)
 {
+	struct node* firstPtr_g;
+	firstPtr_g = 0;
+	struct node* lastPtr_g;
+	lastPtr_g = firstPtr_g;
+	
 	Bluetooth_init();
 	SPI_init();
 	sei();
@@ -80,7 +111,8 @@ ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
 ISR(SPISTC_vect)//SPI-överföring klar
 {
 	MCUCR = (0<<SE);
-	Send(SPDR);
+	//Send(SPDR); Lägg in i lista istället!
+	appendList(SPDR);
 	SPDR = 0x44; //Återställ SPDR.
 	
 }
