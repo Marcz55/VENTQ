@@ -11,6 +11,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <avr/pgmspace.h>
+#include <math.h>
 
 int tempReading;
 
@@ -90,8 +91,8 @@ void makeAngleTable() // Skapar angleTable med 150 element som motsvarar differe
 	int i;
 	for (i=0; i<differentAngles; i++)
 	{
-		double tempAngleValue = 10*(180/pi)*asin(i/(sqrt(i*i+sidelenght*sidelenght)));
-		angleTable[i]=ceil(tempAngleValue); // En decimal
+		double tempAngleValue = 10*(180/pi)*asin(i/(sqrt(i*i+sidelenght*sidelenght))); 
+		angleTable[i]=round(tempAngleValue); // En decimal
 	}
 }
 
@@ -146,7 +147,7 @@ void writeSensor(int whatSensor)
 		int number3;
 		if (whatSensor >= 0)
 		{
-			writeDisplay(20); // Skriver ut mellanslag
+			writeDisplay(32); // Skriver ut mellanslag
 		}
 		else
 		{
@@ -169,13 +170,13 @@ int compareFunction (const void * firstValue, const void * secondValue)
    return ( *(int*)firstValue - *(int*)secondValue ); // Sorterar i stigande ordning
 }
 
-
-
+/*
 int median(int medianSensor[5])
 {
 	qsort(medianSensor, 5, sizeof(int), compareFunction); // Sorterar alla sensorvärden
 	return medianSensor[2]; // Returnerar medianen
 }
+*/
 
 int average(int averageSensor[5])
 {
@@ -204,7 +205,7 @@ void startAD(int muxBit2, int muxBit1, int muxBit0)
 
 int sideValue(int firstSensor, int secondSensor)
 {
-	if (abs(firstSensor - secondSensor) > 10) // Om differensen mellan sensorerna är större än 10 returneras kortaste avståndet
+	if (abs(firstSensor - secondSensor) > 100) // Om differensen mellan sensorerna är större än 10 returneras kortaste avståndet
 	{
 		if (firstSensor < secondSensor)
 		{
@@ -364,12 +365,8 @@ int main(void)
 	int iteration = 0; // Iterator för vilken avläsning på sensorn som görs
 	
 	makeAngleTable();
-	
-	
-	//Ta bort när du är klar!!!
-	int testValue = 10*(180/pi)*asin(60/(sqrt(60U*60+sidelenght*sidelenght)));
-	//int testValue = ceil(testValue1);
-	
+
+
     while(1)
     {
 		leakFound = leakBit;
@@ -433,7 +430,7 @@ int main(void)
 			
 			writeSensor(totalAngle);
 			writeSensor(leakFound);
-			writeSensor(testValue);
+			writeSensor(sideAngle1);
 			writeSensor(sideAngle2);
 		
 			PORTB = (1<<displayE);
