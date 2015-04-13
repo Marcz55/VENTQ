@@ -91,6 +91,12 @@
 #define a3Square 16900
 #define PI 3.141592
 
+#define FRONT_LEFT_LEG 1
+#define FRONT_RIGHT_LEG 2
+#define REAR_LEFT_LEG 3
+#define REAR_RIGHT_LEG 4
+
+
 void USART0RecieveMode() 
 {
 	PORTD = (0<<PORTD2);
@@ -106,7 +112,7 @@ void USART0SendMode()
 void initUSART()
 {
 	DDRD = (1<<PORTD2); // Styrsignal för sändning/mottagning, PD2
-	DDRA = (0<<PORTA0); // Signal från extern knapp, kan användas till diverse saker
+//	DDRA = (0<<PORTA0); // Signal från extern knapp, kan användas till diverse saker
 	USART0RecieveMode();
 	UBRR0H = 0x00;
 	UBRR0L = 0x00; // Sätter baudraten till fosc/16(UBRR0 + 1) = 1Mhz
@@ -273,7 +279,7 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
 	}
 	;
 	USART0RecieveMode();
- 	char test1 = RXD0_DATA; // För att läsa det som är i reciever bufferten, används nu för att readchar ska funka
+ 	//char test1 = RXD0_DATA; // För att läsa det som är i reciever bufferten, används nu för att readchar ska funka
 	sei(); // Tillåt interrupts igen
 	
 }
@@ -294,12 +300,10 @@ int USARTReadStatusPacket()
 	int ValueOfParameters = 0;
 	//if ((USARTReadChar() == 0xFF) & (USARTReadChar() == 0xFF)) // Kollar om två startbitar
 	//{
-		DDRA = 0xff;
 		//char test = USARTReadChar();
 		char Start1 = USARTReadChar();
 		char Start2 = USARTReadChar();
 		char ID = USARTReadChar();
-		PORTA = ID;
 		char Length = USARTReadChar();
 		char Error = USARTReadChar();
 		int HelpVariable = 0;
@@ -307,7 +311,6 @@ int USARTReadStatusPacket()
 		while (Length > 2) 
 		{
 			ValueOfParameters = ValueOfParameters + (USARTReadChar() << (8*HelpVariable));
-	//		PORTA = PORTA | (1 << HelpVariable);
 			HelpVariable = HelpVariable + 1;
 			Length = Length - 1;
 		}
@@ -376,9 +379,9 @@ void MoveFrontRightLeg(float x, float y, float z, int speed)
 	
 	long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
 
-	long int ActuatorAngle1 =  theta1 + 105;
-	long int ActuatorAngle2 =  theta2 + 60;
-	long int ActuatorAngle3 =  theta3 + 1;
+	long int ActuatorAngle1 =  theta1 + 173;
+	long int ActuatorAngle2 =  theta2 + 75;
+	long int ActuatorAngle3 =  theta3 + 3;
 	
 	
 	MoveDynamixel(8,ActuatorAngle1,speed);
@@ -423,92 +426,127 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
 	long int ActuatorAngle3 =  theta3 + 1;
 	
 	
-	MoveDynamixel(1,ActuatorAngle1,speed);
+	MoveDynamixel(7,ActuatorAngle1,speed);
 	USARTReadStatusPacket();
-	MoveDynamixel(5,ActuatorAngle3,speed);
+	MoveDynamixel(9,ActuatorAngle3,speed);
 	USARTReadStatusPacket();
-	MoveDynamixel(3,ActuatorAngle2,speed);
+	MoveDynamixel(11,ActuatorAngle2,speed);
 	USARTReadStatusPacket();
 	return;
 }
 
+// Rader representerar olika ben. Kolumnerna innehåller positioner
+long int actuatorPositions_g [12][20];
+int currentPos_g = 0;
+
+
+typedef struct leg leg;
+struct leg {
+    int legNumber,
+        coxaJoint,
+        femurJoint,
+        tibiaJoint;
+};
+
+leg frontLeftLeg = {FRONT_LEFT_LEG, 2, 4, 6};
+leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
+leg rearLeftLeg = {REAR_LEFT_LEG, 1, 5, 3};
+leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
+
+
+ISR(INT1_vect)
+{	
+	MoveDynamixel(frontLeftLeg.coxaJoint, actuatorPositions_g[frontLeftLeg.coxaJoint][currentPos_g],10);
+	USARTReadStatusPacket();
+	MoveDynamixel(frontLeftLeg.femurJoint, actuatorPositions_g[frontLeftLeg.femurJoint][currentPos_g],10);
+	USARTReadStatusPacket();
+	MoveDynamixel(frontLeftLeg.tibiaJoint, actuatorPositions_g[frontLeftLeg.tibiaJoint][currentPos_g],10);
+	USARTReadStatusPacket();
+	currentPos_g++;
+}
+
+
+
+
+
+
+void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1, float z1, float x2, float y2, float z2)
+{
+    long int theta1;
+    long int theta2;
+    long int theta3;
+    if ((currentLeg.legNumber == FRONT_LEFT_LEG) | (currentLeg.legNumber == REAR_LEFT_LEG))
+    {
+        x1 *= -1;
+        x2 *= -1;
+    }
+    
+    float deltaX = (x2 - x1) / numberOfPositions;
+    float deltaY = (y2 - y1) / numberOfPositions;
+    float deltaZ = (z2 - z1) / numberOfPositions;
+    
+    float x,y,z;
+    
+    for (int i = 0; i < numberOfPositions; i++)
+    {
+        x = x1 + (i + 1) * deltaX;
+        y = y1 + (i + 1) * deltaY;
+        z = z1 + (i + 1) * deltaZ;
+      
+        // lös inverskinematik för lederna.
+        theta1 = atan2f(x,y)*180/PI;
+        theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+                                  acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+        
+        theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+        
+        // spara resultatet i global array
+		switch(currentLeg.legNumber)
+		{
+			case(FRONT_LEFT_LEG):
+			{
+				actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 60;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
+			}
+			case(FRONT_RIGHT_LEG):
+			{
+				actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
+			}
+		}
+		
+        
+        
+        
+    }
+}
 
 
 int main(void)
 {
 	initUSART();
-	//USARTSendInstruction5(5,INST_WRITE,P_GOAL_POSITION_L,0x54,0x02,0x00,0x01);
-	//USARTWriteChar(0xFF);
-	/*while(1)
+	cli();
+	EICRA = 0b1100; // Stigande flank på INT1 genererar avbrott
+	EIMSK = (EIMSK | 2); // Möjliggör externa avbrott på INT0, pinne 40  
+	DDRA = 0;
+	// MCUCR = (MCUCR | (1 << PUD)); Något som testades för att se om det gjorde något
+	//PORTA |= (1 << PORTA0);
+	 // Möjliggör globala avbrott
+	sei();
+	MoveFrontLeftLeg(0,120,-85,30);
+	MoveFrontRightLeg(0,120,-85,30);
+	/*MoveDynamixel(8,193,10);
+	MoveDynamixel(10,75, 10);
+	MoveDynamixel(12,183,10);
+	*/
+	//CalcStraightPath(frontLeftLeg,10,-120,120,-85,100,150,-85);
+	while(1)
 	{
-		if (PINA & (1<<PINA0) ) // knapp nedtryckt
-		{*/
-			/*
-			USART0SendMode();
-			USARTWriteChar(0x11);
-			while(!TXD0_READY) //UDRE0 sätts till 1 när buffern är tom
-			{
-				// Vänta tills den sänt klart det sista
-			}
-			USART0RecieveMode();
-			*/
-			
-		//	USARTSendInstruction5(5,INST_WRITE,P_GOAL_POSITION_L, 0x03, 0x03, 0x00, 0x02);//ID, instruction, parameters
+		
+	}
 	
-			//USARTSendInstruction2(3,INST_READ,0x12,0x01);
-			//USARTSendInstruction0(1,INST_PING);//ID, instruction, parameters
-			//USARTSendInstruction2(5,INST_READ,0x12,0x01);
-			//DDRB = 0xFF;
-			//PORTB = USARTReadStatusPacket();
-		/*	MoveDynamixel(6,200,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(12,200,15); 
-			USARTReadStatusPacket();
-			MoveDynamixel(5,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(11,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(3,200,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(4,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(10,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(9,200,15);
-			USARTReadStatusPacket();
-			_delay_ms(10000);
-			MoveDynamixel(1,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(2,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(7,100,15);
-			USARTReadStatusPacket();
-			MoveDynamixel(8,100,15);
-			USARTReadStatusPacket();
-		*//*}
-		else 
-		{
-			send = 1;
-		}
-	}*/
-		/*
-		int theta1 = 90;
-		int theta2 = 155;
-		int theta3 = 76;
-	long int ActuatorAngle1 =  theta1 + 105;
-	long int ActuatorAngle2 =  theta2 + 60;
-	long int ActuatorAngle3 =  theta3 + 1;
-	
-	MoveDynamixel(2,ActuatorAngle1,10);
-	USARTReadStatusPacket();
-	MoveDynamixel(4,ActuatorAngle2,10);
-	USARTReadStatusPacket();
-	MoveDynamixel(6,ActuatorAngle3,10);
-	*/	
-	MoveFrontLeftLeg(-120,120,-100,10);
-	MoveFrontRightLeg(-120,120,-100,10);
-	MoveRearLeftLeg(-120,120,-100,10);
-	MoveRearRightLeg(-120,120,-100,10);
 //	MoveDynamixel(6,90,10);
 }
 
