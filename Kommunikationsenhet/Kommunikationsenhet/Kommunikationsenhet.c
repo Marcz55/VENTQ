@@ -11,6 +11,7 @@
 #include <avr/sleep.h>
 
 #include <stdlib.h> //för länkad lista
+#include <assert.h>
 
 #define F_CPU 14745600UL
 
@@ -19,18 +20,22 @@ unsigned char BTutbuffer;
 unsigned char SPIinbuffer;
 unsigned char SPIutbuffer;
 
+struct node* firstPtr_g;
+struct node* lastPtr_g;
+
 struct node
 {
 	unsigned char data_;
-	struct node* next_ = NULL;
+	struct node* next_;
 };
 
 void appendList (unsigned char data)
 {
+	// Härifrån skapas en ny nod som sedan initialiseras
 	struct node* temp = malloc(sizeof(struct node));
-	assert(temp != NULL)
-	
+	assert(temp != NULL);
 	temp->data_ = data;
+	temp->next_ = NULL; // ...till hit
 	
 	if (firstPtr_g == NULL) // Om listan är tom
 	{
@@ -38,9 +43,9 @@ void appendList (unsigned char data)
 	}
 	else // Om listan inte är tom
 	{
-		last_Ptr_g->next_ = temp;
+		lastPtr_g->next_ = temp;
 	}
-	last_Ptr_g = temp;	
+	lastPtr_g = temp;	
 }
 
 void Bluetooth_init()
@@ -84,11 +89,8 @@ void spiwrite(unsigned char data)
 
 int main(void)
 {
-	struct node* firstPtr_g;
-	firstPtr_g = 0;
-	struct node* lastPtr_g;
-	lastPtr_g = firstPtr_g;
-	
+	firstPtr_g = NULL;
+	lastPtr_g = NULL;
 	Bluetooth_init();
 	SPI_init();
 	sei();
