@@ -107,7 +107,32 @@ void USART0SendMode()
 	PORTD = (1<<PORTD2);
 }
 
+volatile uint8_t totOverflow_g;
 
+// klockfrekvensen är 16MHz. Önskad avbrottsfrekvens: 100ms
+void timer0Init()
+{
+    // prescaler 256
+    TCCR0B |= (1 << CS02);
+    
+    // initiera counter
+    TCNT0 = 0;
+    
+    // tillåt timer0 overflow interrupt
+    
+    TIMSK0 |= (1 << TOIE0);
+    
+    sei();
+    
+    totOverflow_g = 0;
+
+}
+
+ISR(TIMER0_OVF_vect)
+{
+    // räkna antalet avbrott som skett
+    totOverflow_g++;
+}
 
 void initUSART()
 {
@@ -462,31 +487,32 @@ ISR(INT1_vect)
 	USARTReadStatusPacket();
 	MoveDynamixel(frontLeftLeg.tibiaJoint, actuatorPositions_g[frontLeftLeg.tibiaJoint][currentPos_g],20);
 	USARTReadStatusPacket();
-    
-    MoveDynamixel(frontRightLeg.coxaJoint, actuatorPositions_g[frontLeftLeg.coxaJoint][currentPos_g],20);
+    /*
+    MoveDynamixel(frontRightLeg.coxaJoint, actuatorPositions_g[frontRightLeg.coxaJoint][currentPos_g],20);
 	USARTReadStatusPacket();
-	MoveDynamixel(frontRightLeg.femurJoint, actuatorPositions_g[frontLeftLeg.femurJoint][currentPos_g],20);
+	MoveDynamixel(frontRightLeg.femurJoint, actuatorPositions_g[frontRightLeg.femurJoint][currentPos_g],20);
 	USARTReadStatusPacket();
-	MoveDynamixel(frontRightLeg.tibiaJoint, actuatorPositions_g[frontLeftLeg.tibiaJoint][currentPos_g],20);
-	USARTReadStatusPacket();
-    
-    MoveDynamixel(rearRightLeg.coxaJoint, actuatorPositions_g[frontLeftLeg.coxaJoint][currentPos_g],20);
-	USARTReadStatusPacket();
-	MoveDynamixel(rearRightLeg.femurJoint, actuatorPositions_g[frontLeftLeg.femurJoint][currentPos_g],20);
-	USARTReadStatusPacket();
-	MoveDynamixel(rearRightLeg.tibiaJoint, actuatorPositions_g[frontLeftLeg.tibiaJoint][currentPos_g],20);
+	MoveDynamixel(frontRightLeg.tibiaJoint, actuatorPositions_g[frontRightLeg.tibiaJoint][currentPos_g],20);
 	USARTReadStatusPacket();
     
-    MoveDynamixel(rearLeftLeg.coxaJoint, actuatorPositions_g[frontLeftLeg.coxaJoint][currentPos_g],20);
+    MoveDynamixel(rearRightLeg.coxaJoint, actuatorPositions_g[rearRightLeg.coxaJoint][currentPos_g],20);
 	USARTReadStatusPacket();
-	MoveDynamixel(rearLeftLeg.femurJoint, actuatorPositions_g[frontLeftLeg.femurJoint][currentPos_g],20);
+	MoveDynamixel(rearRightLeg.femurJoint, actuatorPositions_g[rearRightLeg.femurJoint][currentPos_g],20);
 	USARTReadStatusPacket();
-	MoveDynamixel(rearLeftLeg.tibiaJoint, actuatorPositions_g[frontLeftLeg.tibiaJoint][currentPos_g],20);
+	MoveDynamixel(rearRightLeg.tibiaJoint, actuatorPositions_g[rearRightLeg.tibiaJoint][currentPos_g],20);
 	USARTReadStatusPacket();
     
+    MoveDynamixel(rearLeftLeg.coxaJoint, actuatorPositions_g[rearLeftLeg.coxaJoint][currentPos_g],20);
+	USARTReadStatusPacket();
+	MoveDynamixel(rearLeftLeg.femurJoint, actuatorPositions_g[rearLeftLeg.femurJoint][currentPos_g],20);
+	USARTReadStatusPacket();
+	MoveDynamixel(rearLeftLeg.tibiaJoint, actuatorPositions_g[rearLeftLeg.tibiaJoint][currentPos_g],20);
+	USARTReadStatusPacket();
+    */
 	if (currentPos_g > 8)
-    {
+    {   
         currentPos_g = 0;
+        return;
     }
     currentPos_g++;
 } 
@@ -569,6 +595,164 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1,
     }
 }
 
+void CalcCurvedPath(leg currentLeg, int numberOfPositions, float x1, float y1, float z1, float x2, float y2, float z2)
+{
+    long int theta1;
+    long int theta2;
+    long int theta3;
+    if ((currentLeg.legNumber == FRONT_LEFT_LEG) | (currentLeg.legNumber == FRONT_RIGHT_LEG))
+    {
+        x1 *= -1;
+        x2 *= -1;
+    }
+    if ((currentLeg.legNumber == REAR_RIGHT_LEG) | (currentLeg.legNumber == REAR_LEFT_LEG))
+    {
+        y1 *= -1;
+        y2 *= -1;
+    }
+    float deltaX = (x2 - x1) / numberOfPositions;
+    float deltaY = (y2 - y1) / numberOfPositions;
+    float deltaZBegin = (40 + z2 - z1) / (numberOfPositions / 2); // första halvan av sträckan ska benet röra sig mot en position 4cm över slutpositionen
+    float deltaZEnd = (z2 - z1 - 40) / (numberOfPositions / 2); // andra halvan av sträckan ska benet röra sig mot en position 4cm under slutpositionen -> benet får en triangelbana
+    float x = x1;
+    float y = y1;
+    float z = z1;
+    
+    
+    // första halvan av rörelsen
+    for (int i = 0; i < numberOfPositions / 2; i++)
+    {
+        x = x + deltaX;
+        y = y + deltaY;
+        z = z + deltaZBegin;
+      
+        // lös inverskinematik för lederna.
+        theta1 = atan2f(x,y)*180/PI;
+        theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+                                  acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+        
+        theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+        
+        // spara resultatet i global array
+		switch(currentLeg.legNumber)
+		{
+			case FRONT_LEFT_LEG:
+			{
+				actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
+                break;
+			}
+			case FRONT_RIGHT_LEG:
+			{
+				actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
+                break;
+			}
+            case REAR_LEFT_LEG:
+            {
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 195;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                break;
+            }
+            case REAR_RIGHT_LEG:
+            {
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                break;
+            }                
+		}         
+    }
+    
+    for (int i = numberOfPositions/2; i < numberOfPositions; i++)
+    {
+        x = x + deltaX;
+        y = y + deltaY;
+        z = z + deltaZEnd;
+      
+        // lös inverskinematik för lederna.
+        theta1 = atan2f(x,y)*180/PI;
+        theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
+                                  acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
+        
+        theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
+        
+        // spara resultatet i global array
+		switch(currentLeg.legNumber)
+		{
+			case FRONT_LEFT_LEG:
+			{
+				actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
+                break;
+			}
+			case FRONT_RIGHT_LEG:
+			{
+				actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
+                break;
+			}
+            case REAR_LEFT_LEG:
+            {
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 195;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                break;
+            }
+            case REAR_RIGHT_LEG:
+            {
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+				actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
+				actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                break;
+            }                
+		}         
+    }
+}
+
+void move()
+{
+    
+    MoveDynamixel(frontLeftLeg.coxaJoint, actuatorPositions_g[frontLeftLeg.coxaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(frontLeftLeg.femurJoint, actuatorPositions_g[frontLeftLeg.femurJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(frontLeftLeg.tibiaJoint, actuatorPositions_g[frontLeftLeg.tibiaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    /*
+    MoveDynamixel(frontRightLeg.coxaJoint, actuatorPositions_g[frontRightLeg.coxaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(frontRightLeg.femurJoint, actuatorPositions_g[frontRightLeg.femurJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(frontRightLeg.tibiaJoint, actuatorPositions_g[frontRightLeg.tibiaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    
+    MoveDynamixel(rearRightLeg.coxaJoint, actuatorPositions_g[rearRightLeg.coxaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(rearRightLeg.femurJoint, actuatorPositions_g[rearRightLeg.femurJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(rearRightLeg.tibiaJoint, actuatorPositions_g[rearRightLeg.tibiaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    
+    MoveDynamixel(rearLeftLeg.coxaJoint, actuatorPositions_g[rearLeftLeg.coxaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(rearLeftLeg.femurJoint, actuatorPositions_g[rearLeftLeg.femurJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    MoveDynamixel(rearLeftLeg.tibiaJoint, actuatorPositions_g[rearLeftLeg.tibiaJoint][currentPos_g],20);
+    USARTReadStatusPacket();
+    */
+    if (currentPos_g > 9)
+    {
+        currentPos_g = 0;
+    }
+    currentPos_g++;
+    return;
+}
 
 int main(void)
 {
@@ -619,19 +803,32 @@ int main(void)
 	MoveDynamixel(5,120 - 45 ,10);
 	USARTReadStatusPacket();
 	*/
+    // timer0Init();
     
     MoveFrontRightLeg(120,120,-85,10);
 	MoveFrontLeftLeg(-120,120,-85,10);
-	MoveRearLeftLeg(-120,-120,-85,10);
-	MoveRearRightLeg(120,-120,-85,10);
+	MoveRearLeftLeg(-120,-80,-85,10);
+	MoveRearRightLeg(120,-80,-85,10);
     
-	CalcStraightPath(frontLeftLeg,10,-120,120,-85,-120,80,-85);
-    CalcStraightPath(frontRightLeg,10,120,120,-85,120,80,-85);
-    CalcStraightPath(rearLeftLeg,10,-120,-120,-85,-120,-160,-85);
-    CalcStraightPath(rearRightLeg,10,120,-120,-85,120,-160,-85);
+	CalcCurvedPath(frontLeftLeg,10,-120,120,-85,-120,20,-85);
+    CalcCurvedPath(frontRightLeg,10,120,120,-85,120,20,-85);
+    CalcCurvedPath(rearLeftLeg,10,-120,-80,-85,-120,-180,-85);
+    CalcCurvedPath(rearRightLeg,10,120,-80,-85,120,-180,-85);
 	while(1)
-	{
-		
+    {
+    	/*// kolla om antalet overflows är mer än 52
+    	if (totOverflow_g >= 50)
+    	{
+        	// när detta skett ska timern räkna upp ytterligare 53 tick för att exakt 50ms ska ha passerat
+        	if (TCNT0 >= 53)
+        	{
+            	// xor-tilldelning med en etta gör att biten togglas
+            	move();
+            	TCNT0 = 0;			// Återställ räknaren
+            	totOverflow_g = 0;
+            	
+        	}
+    	}*/
 	}
 	
 //	MoveDynamixel(6,90,10);
