@@ -429,9 +429,9 @@ int main(void)
 			_delay_ms(1);
 			
 			writeSensor(totalAngle);
-			writeSensor(leakFound);
-			writeSensor(sideAngle1);
 			writeSensor(sideAngle2);
+			writeSensor(sideAngle3);
+			writeSensor(sideAngle4);
 		
 			PORTB = (1<<displayE);
 			PORTD = (1<<PORTD7); // Rad 1
