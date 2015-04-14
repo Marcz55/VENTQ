@@ -3,27 +3,27 @@ SPI-test.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         000000f0  00000000  00000000  00000074  2**1
+  0 .text         000000e8  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000002  00800060  000000f0  00000164  2**0
+  1 .data         00000002  00800060  000000e8  0000015c  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000030  00000000  00000000  00000166  2**0
+  2 .comment      00000030  00000000  00000000  0000015e  2**0
                   CONTENTS, READONLY
-  3 .debug_aranges 00000030  00000000  00000000  00000196  2**0
+  3 .debug_aranges 00000030  00000000  00000000  0000018e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   000001fe  00000000  00000000  000001c6  2**0
+  4 .debug_info   0000020f  00000000  00000000  000001be  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 0000013b  00000000  00000000  000003c4  2**0
+  5 .debug_abbrev 0000015f  00000000  00000000  000003cd  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   0000017e  00000000  00000000  000004ff  2**0
+  6 .debug_line   0000017e  00000000  00000000  0000052c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000044  00000000  00000000  00000680  2**2
+  7 .debug_frame  00000044  00000000  00000000  000006ac  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    00000198  00000000  00000000  000006c4  2**0
+  8 .debug_str    00000192  00000000  00000000  000006f0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    00000074  00000000  00000000  0000085c  2**0
+  9 .debug_loc    00000071  00000000  00000000  00000882  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000020  00000000  00000000  000008d0  2**0
+ 10 .debug_ranges 00000020  00000000  00000000  000008f3  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -63,7 +63,7 @@ Disassembly of section .text:
   60:	10 e0       	ldi	r17, 0x00	; 0
   62:	a0 e6       	ldi	r26, 0x60	; 96
   64:	b0 e0       	ldi	r27, 0x00	; 0
-  66:	e0 ef       	ldi	r30, 0xF0	; 240
+  66:	e8 ee       	ldi	r30, 0xE8	; 232
   68:	f0 e0       	ldi	r31, 0x00	; 0
   6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
   6c:	05 90       	lpm	r0, Z+
@@ -72,16 +72,16 @@ Disassembly of section .text:
   72:	b1 07       	cpc	r27, r17
   74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
   76:	0e 94 50 00 	call	0xa0	; 0xa0 <main>
-  7a:	0c 94 76 00 	jmp	0xec	; 0xec <_exit>
+  7a:	0c 94 72 00 	jmp	0xe4	; 0xe4 <_exit>
 
 0000007e <__bad_interrupt>:
   7e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
 
-00000082 <spi_init>:
+00000082 <spiInit>:
 
 unsigned char inbuffer = 0x44;
 
-void spi_init(void)
+void spiInit(void)
 {
 	DDRA = (1<<PORTA2);
   82:	84 e0       	ldi	r24, 0x04	; 4
@@ -96,16 +96,16 @@ void spi_init(void)
   8e:	8d b9       	out	0x0d, r24	; 13
   90:	08 95       	ret
 
-00000092 <spi_transmit>:
+00000092 <spiTransmit>:
 }
 
-void spi_transmit(unsigned char data)
+void spiTransmit(unsigned char data)
 {
 	 SPDR = data;
   92:	8f b9       	out	0x0f, r24	; 15
 	 while(!(SPSR & (1<<SPIF))); //Vänta på att överföring är klar
   94:	77 9b       	sbis	0x0e, 7	; 14
-  96:	fe cf       	rjmp	.-4      	; 0x94 <spi_transmit+0x2>
+  96:	fe cf       	rjmp	.-4      	; 0x94 <spiTransmit+0x2>
 	 inbuffer = SPDR;
   98:	8f b1       	in	r24, 0x0f	; 15
   9a:	80 93 60 00 	sts	0x0060, r24
@@ -116,17 +116,17 @@ void spi_transmit(unsigned char data)
 
 int main(void)
 {
-	spi_init();
-  a0:	0e 94 41 00 	call	0x82	; 0x82 <spi_init>
+	spiInit();
+  a0:	0e 94 41 00 	call	0x82	; 0x82 <spiInit>
 	PORTA = (0<<PORTA2); //Slave select
   a4:	1b ba       	out	0x1b, r1	; 27
-  a6:	c0 ea       	ldi	r28, 0xA0	; 160
-  a8:	df e0       	ldi	r29, 0x0F	; 15
-	while(p<4000)
+  a6:	c4 e6       	ldi	r28, 0x64	; 100
+  a8:	d0 e0       	ldi	r29, 0x00	; 0
+	while(p<100)
 	{
-	_delay_us(100);
+	_delay_us(5);
 	PORTA = (0<<PORTA2); //Slave select
-	spi_transmit(inbuffer);
+	spiTransmit(0x44);
 	PORTA = (1<<PORTA2); //Slave deselect
   aa:	14 e0       	ldi	r17, 0x04	; 4
 	#else
@@ -135,71 +135,69 @@ int main(void)
 	#endif
 
 	__builtin_avr_delay_cycles(__ticks_dc);
-  ac:	8f e8       	ldi	r24, 0x8F	; 143
-  ae:	91 e0       	ldi	r25, 0x01	; 1
-  b0:	01 97       	sbiw	r24, 0x01	; 1
-  b2:	f1 f7       	brne	.-4      	; 0xb0 <main+0x10>
-  b4:	00 c0       	rjmp	.+0      	; 0xb6 <main+0x16>
-  b6:	00 00       	nop
+  ac:	2a e1       	ldi	r18, 0x1A	; 26
+  ae:	2a 95       	dec	r18
+  b0:	f1 f7       	brne	.-4      	; 0xae <main+0xe>
+  b2:	00 c0       	rjmp	.+0      	; 0xb4 <main+0x14>
 	PORTA = (0<<PORTA2); //Slave select
 	int p = 0;
-	while(p<4000)
+	while(p<100)
 	{
-	_delay_us(100);
+	_delay_us(5);
 	PORTA = (0<<PORTA2); //Slave select
-  b8:	1b ba       	out	0x1b, r1	; 27
-	spi_transmit(inbuffer);
-  ba:	80 91 60 00 	lds	r24, 0x0060
-  be:	0e 94 49 00 	call	0x92	; 0x92 <spi_transmit>
+  b4:	1b ba       	out	0x1b, r1	; 27
+	spiTransmit(0x44);
+  b6:	84 e4       	ldi	r24, 0x44	; 68
+  b8:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
 	PORTA = (1<<PORTA2); //Slave deselect
-  c2:	1b bb       	out	0x1b, r17	; 27
-  c4:	21 97       	sbiw	r28, 0x01	; 1
+  bc:	1b bb       	out	0x1b, r17	; 27
+  be:	21 97       	sbiw	r28, 0x01	; 1
 int main(void)
 {
-	spi_init();
+	spiInit();
 	PORTA = (0<<PORTA2); //Slave select
 	int p = 0;
-	while(p<4000)
-  c6:	20 97       	sbiw	r28, 0x00	; 0
-  c8:	89 f7       	brne	.-30     	; 0xac <main+0xc>
+	while(p<100)
+  c0:	20 97       	sbiw	r28, 0x00	; 0
+  c2:	a1 f7       	brne	.-24     	; 0xac <main+0xc>
 	while(1)
 	{
 		_delay_ms(1000);
 		PORTA = (0<<PORTA2); //Slave select
-		spi_transmit(inbuffer);
+		spiTransmit(48);
 		PORTA = (1<<PORTA2); //Slave deselect
-  ca:	c4 e0       	ldi	r28, 0x04	; 4
+  c4:	c4 e0       	ldi	r28, 0x04	; 4
 	#else
 		//round up by default
 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
 	#endif
 
 	__builtin_avr_delay_cycles(__ticks_dc);
-  cc:	9f ef       	ldi	r25, 0xFF	; 255
-  ce:	23 ed       	ldi	r18, 0xD3	; 211
-  d0:	80 e3       	ldi	r24, 0x30	; 48
-  d2:	91 50       	subi	r25, 0x01	; 1
-  d4:	20 40       	sbci	r18, 0x00	; 0
-  d6:	80 40       	sbci	r24, 0x00	; 0
-  d8:	e1 f7       	brne	.-8      	; 0xd2 <main+0x32>
-  da:	00 c0       	rjmp	.+0      	; 0xdc <main+0x3c>
-  dc:	00 00       	nop
+  c6:	8f ef       	ldi	r24, 0xFF	; 255
+  c8:	93 ed       	ldi	r25, 0xD3	; 211
+  ca:	20 e3       	ldi	r18, 0x30	; 48
+  cc:	81 50       	subi	r24, 0x01	; 1
+  ce:	90 40       	sbci	r25, 0x00	; 0
+  d0:	20 40       	sbci	r18, 0x00	; 0
+  d2:	e1 f7       	brne	.-8      	; 0xcc <main+0x2c>
+  d4:	00 c0       	rjmp	.+0      	; 0xd6 <main+0x36>
+  d6:	00 00       	nop
 	p = p+1;
 	}
 	while(1)
 	{
 		_delay_ms(1000);
 		PORTA = (0<<PORTA2); //Slave select
-  de:	1b ba       	out	0x1b, r1	; 27
-		spi_transmit(inbuffer);
-  e0:	80 91 60 00 	lds	r24, 0x0060
-  e4:	0e 94 49 00 	call	0x92	; 0x92 <spi_transmit>
+  d8:	1b ba       	out	0x1b, r1	; 27
+		spiTransmit(48);
+  da:	80 e3       	ldi	r24, 0x30	; 48
+  dc:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
 		PORTA = (1<<PORTA2); //Slave deselect
-  e8:	cb bb       	out	0x1b, r28	; 27
-  ea:	f0 cf       	rjmp	.-32     	; 0xcc <main+0x2c>
+  e0:	cb bb       	out	0x1b, r28	; 27
+  e2:	f1 cf       	rjmp	.-30     	; 0xc6 <main+0x26>
 
-000000ec <_exit>:
-  ec:	f8 94       	cli
+000000e4 <_exit>:
+  e4:	f8 94       	cli
 
-000000ee <__stop_program>:
-  ee:	ff cf       	rjmp	.-2      	; 0xee <__stop_program>
+000000e6 <__stop_program>:
+  e6:	ff cf       	rjmp	.-2      	; 0xe6 <__stop_program>
