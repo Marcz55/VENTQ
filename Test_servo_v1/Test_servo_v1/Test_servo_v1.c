@@ -196,7 +196,7 @@ void SetLegIncrementPeriod(int newPeriod)
             timerRemainingTicks_g = 18;
             break;
         }
-        default:
+        // default:
             // Här kan man ha någon typ av felhantering om man vill
 
     }
@@ -207,7 +207,15 @@ void SetLegIncrementPeriod(int newPeriod)
 // hastighet som gör att slutpositionen uppnås på periodtiden.
 long int calcDynamixelSpeed(long int deltaAngle)
 {
-    return 1000 * deltaAngle / (6 * legIncrementPeriod_g);
+    long int calculatedSpeed = (1000 * deltaAngle) / (6 * legIncrementPeriod_g);
+    if (calculatedSpeed < 10)
+    {
+        return 10;
+    }
+    else
+    {
+        return calculatedSpeed;
+    }
 }
 
 ISR(TIMER0_OVF_vect)
@@ -471,11 +479,8 @@ void MoveFrontLeftLeg(float x, float y, float z, int speed)
     
     
     MoveDynamixel(2,ActuatorAngle1,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(4,ActuatorAngle2,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(6,ActuatorAngle3,speed);
-    USARTReadStatusPacket();
     return;
 }
 
@@ -493,11 +498,8 @@ void MoveFrontRightLeg(float x, float y, float z, int speed)
     
     
     MoveDynamixel(8,ActuatorAngle1,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(10,ActuatorAngle2,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(12,ActuatorAngle3,speed);
-    USARTReadStatusPacket();    
     return;
 }
 void MoveRearLeftLeg(float x, float y, float z, int speed)
@@ -514,11 +516,8 @@ void MoveRearLeftLeg(float x, float y, float z, int speed)
     
     
     MoveDynamixel(1,ActuatorAngle1,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(3,ActuatorAngle2,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(5,ActuatorAngle3,speed);
-    USARTReadStatusPacket();
     return;
 }
 void MoveRearRightLeg(float x, float y, float z, int speed)
@@ -535,11 +534,8 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
     
     
     MoveDynamixel(7,ActuatorAngle1,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(9,ActuatorAngle2,speed);
-    USARTReadStatusPacket();
     MoveDynamixel(11,ActuatorAngle3,speed);
-    USARTReadStatusPacket();
     return;
 }
 
@@ -836,7 +832,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
 int Direction = 0;
 
 ISR(INT1_vect)
-{   
+{   /*
     MoveDynamixel(frontLeftLeg.coxaJoint, actuatorPositions_g[frontLeftLeg.coxaJoint][currentPos_g],20);
     USARTReadStatusPacket();
     MoveDynamixel(frontLeftLeg.femurJoint, actuatorPositions_g[frontLeftLeg.femurJoint][currentPos_g],20);
@@ -864,72 +860,39 @@ ISR(INT1_vect)
     USARTReadStatusPacket();
     MoveDynamixel(rearLeftLeg.tibiaJoint, actuatorPositions_g[rearLeftLeg.tibiaJoint][currentPos_g],20);
     USARTReadStatusPacket();
-   
-   
-   
-   /*
-   
-    if (currentPos_g > 8)
-    {
-        currentPos_g = 0;
-        switch (Direction)
-        {
-            case 0:
-            {
-                CalcCurvedPath(frontLeftLeg,10,0,-160,0,-50,-160,140,-50);
-                CalcCurvedPath(frontRightLeg,10,0,160,0,-50,160,140,-50);
-                CalcCurvedPath(rearLeftLeg,10,0,-160,-140,-50,-160,0,-50);
-                CalcCurvedPath(rearRightLeg,10,0,160,-140,-50,160,0,-50);
-                
-                Direction = 1;
-                break;
-            }            
-            case 1:
-            {
-                CalcStraightPath(frontLeftLeg,10,0,-160,140,-50,-160,0,-50);
-                CalcStraightPath(frontRightLeg,10,0,160,140,-50,160,0,-50);
-                CalcStraightPath(rearLeftLeg,10,0,-160,0,-50,-160,-140,-50);
-                CalcStraightPath(rearRightLeg,10,0,160,0,-50,160,-140,-50);
-                Direction = 0;
-                break;
-            }
-        }
-        
-    }*/
-    currentPos_g++;
-    if (currentPos_g > 20)
-    {
-        currentPos_g = 1;
-    }
-    return;
+   */
+    
+    MoveLegToNextPosition(rearRightLeg);
+
+    increasePositionIndexes();  
 } 
 
-void MoveLegToNextPosition(leg leg)
+void MoveLegToNextPosition(leg Leg)
 {
     // CoxaJoint
-    long int currentAngle = actuatorPositions_g[leg.coxaJoint][currentPos_g];
-    long int nextAngle = actuatorPositions_g[leg.coxaJoint][nextPos_g];
+    long int currentAngle = actuatorPositions_g[Leg.coxaJoint][currentPos_g];
+    long int nextAngle = actuatorPositions_g[Leg.coxaJoint][nextPos_g];
     long int RPM = calcDynamixelSpeed(abs(currentAngle - nextAngle));
-    MoveDynamixel(leg.coxaJoint, nextAngle, RPM);
+    MoveDynamixel(Leg.coxaJoint, nextAngle, RPM);
     // FemurJoint
-    currentAngle = actuatorPositions_g[leg.femurJoint][currentPos_g];
-    nextAngle = actuatorPositions_g[leg.femurJoint][nextPos_g];
+    currentAngle = actuatorPositions_g[Leg.femurJoint][currentPos_g];
+    nextAngle = actuatorPositions_g[Leg.femurJoint][nextPos_g];
     RPM = calcDynamixelSpeed(abs(currentAngle - nextAngle));
-    MoveDynamixel(leg.femurJoint, nextAngle, RPM);
+    MoveDynamixel(Leg.femurJoint, nextAngle, RPM);
     // TibiaJoint
-    currentAngle = actuatorPositions_g[leg.tibiaJoint][currentPos_g];
-    nextAngle = actuatorPositions_g[leg.tibiaJoint][nextPos_g];
+    currentAngle = actuatorPositions_g[Leg.tibiaJoint][currentPos_g];
+    nextAngle = actuatorPositions_g[Leg.tibiaJoint][nextPos_g];
     RPM = calcDynamixelSpeed(abs(currentAngle - nextAngle));
-    MoveDynamixel(leg.tibiaJoint, nextAngle, RPM);
+    MoveDynamixel(Leg.tibiaJoint, nextAngle, RPM);
 
 }
 
 void move()
 {
     
-    MoveLegToNextPosition(frontLeftLeg);
-    MoveLegToNextPosition(frontRightLeg);
-    MoveLegToNextPosition(rearLeftLeg);
+    //MoveLegToNextPosition(frontLeftLeg);
+    //MoveLegToNextPosition(frontRightLeg);
+    //MoveLegToNextPosition(rearLeftLeg);
     MoveLegToNextPosition(rearRightLeg);
 
     increasePositionIndexes();  
@@ -965,8 +928,8 @@ int main(void)
      // Möjliggör globala avbrott
     sei();
     //MoveFrontRightLeg(150,150,0,30);
-    currentPos_g = 5;
-    nextPos_g = 6;
+    //currentPos_g = 5;
+    //nextPos_g = 6;
     // front right
     /*
     MoveDynamixel(8,193,10);
@@ -1031,9 +994,13 @@ int main(void)
         	}
     	}
 	}*/
-	MakeTrotGait();
-    MoveToStartPosition();
-    
+	//MakeTrotGait();
+    //MoveToStartPosition();
+    SetLegIncrementPeriod(INCREMENT_PERIOD_100);
+    CalcStraightPath(rearRightLeg,10,0,120,-120,-85,120,0,-85);
+    CalcCurvedPath(rearRightLeg,10,10,120,0,-85,120,-120,-85);
+    maxGaitCyclePos_g = 19;
+    MoveRearRightLeg(120,-120,-85,calcDynamixelSpeed(20));
     while (1)
     {
         // kolla om antalet overflows är mer än 52
@@ -1050,7 +1017,11 @@ int main(void)
         	}
     	}
     }
-    
+    /*MoveRearRightLeg(120,-120,-85,20);
+    while(1)
+    {
+        
+    }*/
 }
 
 
