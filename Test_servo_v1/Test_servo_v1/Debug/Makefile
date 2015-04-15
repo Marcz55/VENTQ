@@ -37,6 +37,7 @@ SUBDIRS :=
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../USART.c \
 ../Test_servo_v1.c
 
 
@@ -47,15 +48,19 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+USART.o \
 Test_servo_v1.o
 
 OBJS_AS_ARGS +=  \
+USART.o \
 Test_servo_v1.o
 
 C_DEPS +=  \
+USART.d \
 Test_servo_v1.d
 
 C_DEPS_AS_ARGS +=  \
+USART.d \
 Test_servo_v1.d
 
 OUTPUT_FILE_PATH +=Test_servo_v1.elf
@@ -72,6 +77,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

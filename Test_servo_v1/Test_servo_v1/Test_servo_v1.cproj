@@ -111,6 +111,9 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="USART.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Test_servo_v1.c">
       <SubType>compile</SubType>
     </Compile>

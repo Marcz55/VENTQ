@@ -96,6 +96,25 @@
 #define REAR_LEFT_LEG 3
 #define REAR_RIGHT_LEG 4
 
+#define FRONT_LEFT_LEG_X 1
+#define FRONT_LEFT_LEG_Y 2
+#define FRONT_LEFT_LEG_Z 3
+#define FRONT_RIGHT_LEG_X 4
+#define FRONT_RIGHT_LEG_Y 5
+#define FRONT_RIGHT_LEG_Z 6
+#define REAR_LEFT_LEG_X 7
+#define REAR_LEFT_LEG_Y 8
+#define REAR_LEFT_LEG_Z 9
+#define REAR_RIGHT_LEG_X 10
+#define REAR_RIGHT_LEG_Y 11
+#define REAR_RIGHT_LEG_Z 12
+
+int stepLength_g = 80;
+int startPositionX_g = 100;
+int startPositionY_g = 100;
+int startPositionZ_g = -120;
+int standardSpeed_g = 20;
+
 
 void USART0RecieveMode() 
 {
@@ -460,9 +479,19 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
 	return;
 }
 
-// Rader representerar olika ben. Kolumnerna innehåller positioner
+void MoveToStartPosition()
+{
+    MoveFrontLeftLeg(-startPositionX_g,startPositionY_g,startPositionZ_g,standardSpeed_g);
+    MoveFrontRightLeg(startPositionX_g,startPositionY_g,startPositionZ_g,standardSpeed_g);
+    MoveRearLeftLeg(-startPositionX_g,-startPositionY_g,startPositionZ_g,standardSpeed_g);
+    MoveRearRightLeg(startPositionX_g,-startPositionY_g,startPositionZ_g,standardSpeed_g);
+    return;
+}
+
+// Rader är vinklar på servon. Kolumnerna innehåller positioner
 long int actuatorPositions_g [12][20];
-int currentPos_g = 0;
+long int legPositions_g [12][20];
+int currentPos_g = 5;
 
 
 typedef struct leg leg;
@@ -479,7 +508,7 @@ leg rearLeftLeg = {REAR_LEFT_LEG, 1, 3, 5};
 leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
 
 
-void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1, float z1, float x2, float y2, float z2)
+void CalcStraightPath(leg currentLeg, int numberOfPositions, int positionStart, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
     long int theta2;
@@ -498,13 +527,18 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1,
     float deltaY = (y2 - y1) / numberOfPositions;
     float deltaZ = (z2 - z1) / numberOfPositions;
     
-    float x,y,z;
+    float x = x1;
+    float y = y1;
+    float z = z1;
+    
+  
+    
     
     for (int i = 0; i < numberOfPositions; i++)
     {
-        x = x1 + (i + 1) * deltaX;
-        y = y1 + (i + 1) * deltaY;
-        z = z1 + (i + 1) * deltaZ;
+        x = x + deltaX;
+        y = y + deltaY;
+        z = z + deltaZ;
         
         // lös inverskinematik för lederna.
         theta1 = atan2f(x,y)*180/PI;
@@ -518,30 +552,42 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1,
         {
             case FRONT_LEFT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 105;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  theta2 + 75;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  theta3 + 1;
+                legPositions_g[FRONT_LEFT_LEG_X][i+positionStart] = x;
+                legPositions_g[FRONT_LEFT_LEG_Y][i+positionStart] = y;
+                legPositions_g[FRONT_LEFT_LEG_Z][i+positionStart] = z;
                 break;
             }
             case FRONT_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 193;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  theta2 + 75;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  theta3 + 3;
+                legPositions_g[FRONT_RIGHT_LEG_X][i+positionStart] = x;
+                legPositions_g[FRONT_RIGHT_LEG_Y][i+positionStart] = y;
+                legPositions_g[FRONT_RIGHT_LEG_Z][i+positionStart] = z;
                 break;
             }
             case REAR_LEFT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 195;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 195;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  225 - theta2;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  300 - theta3;
+                legPositions_g[REAR_LEFT_LEG_X][i+positionStart] = x;
+                legPositions_g[REAR_LEFT_LEG_Y][i+positionStart] = y;
+                legPositions_g[REAR_LEFT_LEG_Z][i+positionStart] = z;
                 break;
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 105;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  225 - theta2;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  300 - theta3;
+                legPositions_g[REAR_RIGHT_LEG_X][i+positionStart] = x;
+                legPositions_g[REAR_RIGHT_LEG_Y][i+positionStart] = y;
+                legPositions_g[REAR_RIGHT_LEG_Z][i+positionStart] = z;
                 break;
             }
         }
@@ -552,7 +598,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, float x1, float y1,
     }
 }
 
-void CalcCurvedPath(leg currentLeg, int numberOfPositions, float x1, float y1, float z1, float x2, float y2, float z2)
+void CalcCurvedPath(leg currentLeg, int numberOfPositions, int positionStart, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
     long int theta2;
@@ -595,30 +641,42 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, float x1, float y1, f
         {
             case FRONT_LEFT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 105;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  theta2 + 75;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  theta3 + 1;
+                legPositions_g[FRONT_LEFT_LEG_X][i+positionStart] = x;
+                legPositions_g[FRONT_LEFT_LEG_Y][i+positionStart] = y;
+                legPositions_g[FRONT_LEFT_LEG_Z][i+positionStart] = z;
                 break;
             }
             case FRONT_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 193;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  theta2 + 75;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  theta3 + 3;
+                legPositions_g[FRONT_RIGHT_LEG_X][i+positionStart] = x;
+                legPositions_g[FRONT_RIGHT_LEG_Y][i+positionStart] = y;
+                legPositions_g[FRONT_RIGHT_LEG_Z][i+positionStart] = z;
                 break;
             }
             case REAR_LEFT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 195;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 195;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  225 - theta2;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  300 - theta3;
+                legPositions_g[REAR_LEFT_LEG_X][i+positionStart] = x;
+                legPositions_g[REAR_LEFT_LEG_Y][i+positionStart] = y;
+                legPositions_g[REAR_LEFT_LEG_Z][i+positionStart] = z;
                 break;
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
+                actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 105;
+                actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  225 - theta2;
+                actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  300 - theta3;
+                legPositions_g[REAR_RIGHT_LEG_X][i+positionStart] = x;
+                legPositions_g[REAR_RIGHT_LEG_Y][i+positionStart] = y;
+                legPositions_g[REAR_RIGHT_LEG_Z][i+positionStart] = z;
                 break;
             }
         }
@@ -638,37 +696,49 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, float x1, float y1, f
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
         // spara resultatet i global array
-        switch(currentLeg.legNumber)
-        {
-            case FRONT_LEFT_LEG:
-            {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
-                break;
-            }
-            case FRONT_RIGHT_LEG:
-            {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
-                break;
-            }
-            case REAR_LEFT_LEG:
-            {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 195;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
-                break;
-            }
-            case REAR_RIGHT_LEG:
-            {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
-                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
-                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
-                break;
-            }
-        }
+       switch(currentLeg.legNumber)
+       {
+           case FRONT_LEFT_LEG:
+           {
+               actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 105;
+               actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  theta2 + 75;
+               actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  theta3 + 1;
+               legPositions_g[FRONT_LEFT_LEG_X][i+positionStart] = x;
+               legPositions_g[FRONT_LEFT_LEG_Y][i+positionStart] = y;
+               legPositions_g[FRONT_LEFT_LEG_Z][i+positionStart] = z;
+               break;
+           }
+           case FRONT_RIGHT_LEG:
+           {
+               actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 193;
+               actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  theta2 + 75;
+               actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  theta3 + 3;
+               legPositions_g[FRONT_RIGHT_LEG_X][i+positionStart] = x;
+               legPositions_g[FRONT_RIGHT_LEG_Y][i+positionStart] = y;
+               legPositions_g[FRONT_RIGHT_LEG_Z][i+positionStart] = z;
+               break;
+           }
+           case REAR_LEFT_LEG:
+           {
+               actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 195;
+               actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  225 - theta2;
+               actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  300 - theta3;
+               legPositions_g[REAR_LEFT_LEG_X][i+positionStart] = x;
+               legPositions_g[REAR_LEFT_LEG_Y][i+positionStart] = y;
+               legPositions_g[REAR_LEFT_LEG_Z][i+positionStart] = z;
+               break;
+           }
+           case REAR_RIGHT_LEG:
+           {
+               actuatorPositions_g[currentLeg.coxaJoint][i+positionStart] = theta1 + 105;
+               actuatorPositions_g[currentLeg.femurJoint][i+positionStart] =  225 - theta2;
+               actuatorPositions_g[currentLeg.tibiaJoint][i+positionStart] =  300 - theta3;
+               legPositions_g[REAR_RIGHT_LEG_X][i+positionStart] = x;
+               legPositions_g[REAR_RIGHT_LEG_Y][i+positionStart] = y;
+               legPositions_g[REAR_RIGHT_LEG_Z][i+positionStart] = z;
+               break;
+           }
+       }
     }
 }
 
@@ -706,7 +776,7 @@ ISR(INT1_vect)
    
    
    
-   
+   /*
    
 	if (currentPos_g > 8)
     {
@@ -715,27 +785,31 @@ ISR(INT1_vect)
         {
             case 0:
             {
-                CalcCurvedPath(frontLeftLeg,10,-160,0,-50,-160,140,-50);
-                CalcCurvedPath(frontRightLeg,10,160,0,-50,160,140,-50);
-                CalcCurvedPath(rearLeftLeg,10,-160,-140,-50,-160,0,-50);
-                CalcCurvedPath(rearRightLeg,10,160,-140,-50,160,0,-50);
+                CalcCurvedPath(frontLeftLeg,10,0,-160,0,-50,-160,140,-50);
+                CalcCurvedPath(frontRightLeg,10,0,160,0,-50,160,140,-50);
+                CalcCurvedPath(rearLeftLeg,10,0,-160,-140,-50,-160,0,-50);
+                CalcCurvedPath(rearRightLeg,10,0,160,-140,-50,160,0,-50);
                 
                 Direction = 1;
                 break;
             }            
             case 1:
             {
-                CalcStraightPath(frontLeftLeg,10,-160,140,-50,-160,0,-50);
-                CalcStraightPath(frontRightLeg,10,160,140,-50,160,0,-50);
-                CalcStraightPath(rearLeftLeg,10,-160,0,-50,-160,-140,-50);
-                CalcStraightPath(rearRightLeg,10,160,0,-50,160,-140,-50);
+                CalcStraightPath(frontLeftLeg,10,0,-160,140,-50,-160,0,-50);
+                CalcStraightPath(frontRightLeg,10,0,160,140,-50,160,0,-50);
+                CalcStraightPath(rearLeftLeg,10,0,-160,0,-50,-160,-140,-50);
+                CalcStraightPath(rearRightLeg,10,0,160,0,-50,160,-140,-50);
                 Direction = 0;
                 break;
             }
         }
         
-    }
+    }*/
     currentPos_g++;
+    if (currentPos_g > 20)
+    {
+        currentPos_g = 1;
+    }
     return;
 } 
 
@@ -773,38 +847,30 @@ void move()
    
    
    
-   
-   
-	if (currentPos_g > 8)
-    {
-        currentPos_g = 0;
-        switch (Direction)
-        {
-            case 0:
-            {
-                CalcCurvedPath(frontLeftLeg,10,-160,0,-50,-160,140,-50);
-                CalcCurvedPath(frontRightLeg,10,160,0,-50,160,140,-50);
-                CalcCurvedPath(rearLeftLeg,10,-160,-140,-50,-160,0,-50);
-                CalcCurvedPath(rearRightLeg,10,160,-140,-50,160,0,-50);
-                
-                Direction = 1;
-                break;
-            }            
-            case 1:
-            {
-                CalcStraightPath(frontLeftLeg,10,-160,140,-50,-160,0,-50);
-                CalcStraightPath(frontRightLeg,10,160,140,-50,160,0,-50);
-                CalcStraightPath(rearLeftLeg,10,-160,0,-50,-160,-140,-50);
-                CalcStraightPath(rearRightLeg,10,160,0,-50,160,-140,-50);
-                Direction = 0;
-                break;
-            }
-        }
-        
-    }
     currentPos_g++;
+    if (currentPos_g > 20)
+    {
+        currentPos_g = 1;
+    }
     return;
 }
+
+MakeTrotGait()
+{
+    CalcCurvedPath(frontLeftLeg,10,1,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
+    CalcStraightPath(frontLeftLeg,10,11,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+    
+    CalcCurvedPath(rearRightLeg,10,1,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
+    CalcStraightPath(rearRightLeg,10,11,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
+    
+    CalcStraightPath(rearLeftLeg,10,1,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
+    CalcCurvedPath(rearLeftLeg,10,11,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
+    
+    CalcStraightPath(frontRightLeg,10,1,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+    CalcCurvedPath(frontRightLeg,10,11,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
+
+}
+
 
 int main(void)
 {
@@ -856,16 +922,16 @@ int main(void)
 	USARTReadStatusPacket();
 	*/
     timer0Init();
-    
+    /*
     MoveFrontRightLeg(160,140,-50,10);
 	MoveFrontLeftLeg(-160,140,-50,10);
 	MoveRearLeftLeg(-160,0,-50,10);
 	MoveRearRightLeg(160,0,-50,10);
     
-	CalcStraightPath(frontLeftLeg,10,-160,140,-50,-160,0,-50);
-    CalcStraightPath(frontRightLeg,10,160,120,-50,160,0,-50);
-    CalcStraightPath(rearLeftLeg,10,-160,0,-50,-160,-140,-50);
-    CalcStraightPath(rearRightLeg,10,160,0,-50,160,-140,-50);
+	CalcStraightPath(frontLeftLeg,10,0,-160,140,-50,-160,0,-50);
+    CalcStraightPath(frontRightLeg,10,0,160,120,-50,160,0,-50);
+    CalcStraightPath(rearLeftLeg,10,0,-160,0,-50,-160,-140,-50);
+    CalcStraightPath(rearRightLeg,10,0,160,0,-50,160,-140,-50);
 	while(1)
     {
     	// kolla om antalet overflows är mer än 52
@@ -881,8 +947,26 @@ int main(void)
             	
         	}
     	}
-	}
-	
+	}*/
+	MakeTrotGait();
+    MoveToStartPosition();
+    while (1)
+    {
+        // kolla om antalet overflows är mer än 52
+    	if (totOverflow_g >= 12)
+    	{
+        	// när detta skett ska timern räkna upp ytterligare 53 tick för att exakt 50ms ska ha passerat
+        	if (TCNT0 >= 53)
+        	{
+            	// xor-tilldelning med en etta gör att biten togglas
+            	move();
+            	TCNT0 = 0;			// Återställ räknaren
+            	totOverflow_g = 0;
+            	
+        	}
+    	}
+    }
+    
 //	MoveDynamixel(6,90,10);
 }
 
