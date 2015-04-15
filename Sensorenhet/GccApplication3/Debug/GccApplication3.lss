@@ -1764,10 +1764,10 @@ void startAD(int muxBit2, int muxBit1, int muxBit0)
     126c:	00 c0       	rjmp	.+0      	; 0x126e <main+0x18a>
     126e:	00 00       	nop
 			_delay_ms(1);
-			
-			writeSensor(sideAngle1);
-    1270:	80 91 70 00 	lds	r24, 0x0070
-    1274:	90 91 71 00 	lds	r25, 0x0071
+
+			writeSensor(totalAngle);
+    1270:	80 91 6c 00 	lds	r24, 0x006C
+    1274:	90 91 6d 00 	lds	r25, 0x006D
     1278:	0e 94 07 06 	call	0xc0e	; 0xc0e <writeSensor>
 			writeSensor(sideAngle2);
     127c:	80 91 fc 01 	lds	r24, 0x01FC

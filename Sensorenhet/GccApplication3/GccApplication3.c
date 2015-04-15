@@ -427,8 +427,8 @@ int main(void)
 			PORTD = (1<<PORTD6) | (1<<PORTD7); // Byter till rad 2 på displayen
 			PORTB = (0<<displayE);
 			_delay_ms(1);
-			
-			writeSensor(sideAngle1);
+
+			writeSensor(totalAngle);
 			writeSensor(sideAngle2);
 			writeSensor(sideAngle3);
 			writeSensor(sideAngle4);
