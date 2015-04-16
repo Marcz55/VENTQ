@@ -6,6 +6,7 @@
 
 #define false 0
 #define true  1
+
 #define maxNodes 121 // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
 #define corridor  0       // Dessa är möjliga tal i whatNode
@@ -91,7 +92,7 @@ uint8_t whatNodeType();
 
 uint8_t whatWayIn()
 {
-    return currentDirection
+    return currentDirection;
 }
 
 uint8_t whatsNextDirection()
@@ -101,7 +102,7 @@ uint8_t whatsNextDirection()
 
 uint8_t isLeakFound()
 {
-    // Sensordata som berättar om läcka är hittad
+    // Sensordata som berättar om läcka är hittad (true eller false)
 }
 
 int16_t getNorthSensor()
@@ -132,21 +133,23 @@ void updateTempDirections()
     else
         tempNorthAvailible = false;
 
+
     if (getEastSensor() > maxWallDistance)
         tempEastAvailible = true;
     else    
         tempEastAvailible = false;
+
 
     if (getSouthSensor() > maxWallDistance)
         tempSouthAvailible = true;
     else
         tempSouthAvailible = false;
 
+
     if (getWestSensor() > maxWallDistance)
         tempWestAvailible = true;
     else
         tempWestAvailible = false;
-
 }
 
 int main()
