@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Scanner;
+import javafx.scene.layout.StackPane;
 
 public class Interface implements SerialPortEventListener{
 
@@ -26,8 +27,19 @@ public class Interface implements SerialPortEventListener{
     private int[] dataBuffer = {0,0,0}; // Lagrar tre senaste hämtade bytes
     private int bufferCounter = 0; // Håller koll på var i buffern vi är
     private int combinedData = 0; // De två byten data, översatta till ett tal
+    public int[] vinklar = {0,0,0,0,0};
+    public int[] sidor = {0,0,0,0};
+    public String nod = "Korridor";
+    public String läcka = "Nej";
+    
+    GUI mainGUI;
+    
+    public Interface(GUI creatingGUI)
+    {
+        mainGUI = creatingGUI;
+    }
    
-    private void hittaport()
+    void hittaport()
     {
         System.out.println("God dag. Vilken seriell port önskas anslutas till?");
         Scanner portval = new Scanner(System.in);
@@ -54,7 +66,66 @@ public class Interface implements SerialPortEventListener{
         
     } // slut på hittaport
     
-    private void anslut()
+    void hittaportGUI(String in)
+    {
+        System.out.println("God dag. Vilken seriell port önskas anslutas till?");
+        while(true){
+        portnamn = in;
+        
+        CommPortIdentifier port; //Sätt nuvarande port till null
+        Enumeration allaportar = CommPortIdentifier.getPortIdentifiers();
+        while(allaportar.hasMoreElements())
+        {
+            port = (CommPortIdentifier)allaportar.nextElement();
+            if(port.getName().equals(portnamn)){                   //Gå igenom alla tillgängliga portar tills rätt port hittats!
+                comport = port;
+                break;
+            }
+        }
+        if(comport != null)
+        {
+            System.out.println(portnamn + " hittad.");
+            break;
+        }
+        System.out.println(portnamn + " kunde ej hittas. Försök igen.");
+        }
+        
+    } // slut på hittaport
+    
+    void anslut()
+    {
+        //Anslut till porten
+        try{
+            seriellport = (SerialPort)comport.open("V.E.N.T:Q",10000);
+            System.out.println("Seriellport öppnad.");
+            seriellport.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+        //Thread.sleep(1000);
+        } catch(Exception e) {
+            System.err.println("Kunde inte ansluta.");
+            flush();
+            System.exit(1);
+        }
+        
+        //Definiera in och utdata
+        try{
+        //Lägg till listerners som kan lyssna efter in-eller utdata
+        
+            seriellport.addEventListener(this);
+            seriellport.notifyOnDataAvailable(true);
+            seriellport.notifyOnOutputEmpty(true);
+            //Kanske vill ha med framing error här senare 
+            utdata = seriellport.getOutputStream();
+            indata = seriellport.getInputStream();
+            
+        } catch (Exception e){
+            System.err.println("Kunde inte definiera I/O.");
+            //seriellport.close();
+            flush();
+            System.exit(1);
+        }
+    }
+    
+    void anslutGUI()
     {
         //Anslut till porten
         try{
@@ -127,10 +198,127 @@ public class Interface implements SerialPortEventListener{
             case 248: return ((recievedData_ > -410) && (recievedData_ < 410 ));
             case 136: return ((recievedData_ > -410) && (recievedData_ < 410 ));
             case 144: return ((recievedData_ > -410) && (recievedData_ < 410 )); 
-            case 152: return ((recievedData_ >= 0) && (recievedData_ <= 1024 ));  // Läcka
-            case 160: return ((recievedData_ == 0) || (recievedData_ == 1));  // Nod
+            case 152: return ((recievedData_ == 0) || (recievedData_ == 1));  // Läcka
+            case 160: return ((recievedData_ >= 0) && (recievedData_ <= 16400 ));  // Nod
             default: return false;
         }
+    }
+    
+    public String getHeaderString(int header_)
+    {
+        switch (header_)
+        {
+            case 202: return "Sida 1: ";  // Sida 1 (Norr)
+            case 208: return "Sida 2: ";  // Sida 2 (Öst)
+            case 216: return "Sida 3: ";  // Sida 3 (Cyd)
+            case 224: return "Sida 4: ";  // Sida 4 (Väst)
+            case 232: return "Vinkel 1: ";  // Vinkel 1 (Norr)
+            case 240: return "Vinkel 2: ";  // Vinkel 2 (Öst)
+            case 248: return "Vinkel 3: ";  // Vinkel 3 (Cyd)
+            case 136: return "Vinkel 4: ";  // Vinkel 4 (Väst)
+            case 144: return "Vinkel total: ";  // Totalvinkel
+            case 152: return "Läcka: ";  // Läcka
+            case 160: return "Nod: ";  // Nod
+            default: return "Fel, okänd data";  // Inte en vettig header
+        }   
+    }
+    
+    public void setNodeInfo(int north_, int east_, int south_, int west_, int direction_, int nodeID_) // Identifierar nod och riktning
+    {                                                                                     //north - west är ett om roboten ser öppning, noll annars
+        int sumDirections_ = north_ + east_ + south_ + west_; // Summa av öppningar roboten ser 
+        String directionString_ = "";       // Vilken riktning roboten rör sig i
+        switch(direction_)             // 0 innebär norr, 1 innebär öst osv.
+        {
+            case 0:
+                directionString_ = "\nNorr";
+                break;
+            case 1:
+                directionString_ = "\nÖst";
+                break;
+            case 2:
+                directionString_ = "\nSyd";
+                break;
+            case 3:
+                directionString_ = "\nVäst";
+                break;             
+            default:
+                directionString_ = "";
+                break;
+        }
+        if(sumDirections_ == 3) // 3 öppningar innebär T-korsning
+        {
+            nod = "T-korsning" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
+        }
+        if(sumDirections_ == 1) // 1 öppning innebär återvändsgränd
+        {
+            nod = "Återvändsgränd" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+        }
+        if (sumDirections_ == 2) // Två öppningar betyder korridor eller sväng
+        {                        // Undersöker om öppningarna är på motsatt sida av varandra,
+            if((north_ * south_ == 1) || (east_ * west_ == 1)) //Isåfall korridor, annars sväng
+            {
+                nod = "Korridor" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
+            }
+            else
+            {
+                nod = "Sväng" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+            }
+        }
+    }
+    
+    public void setAllData(int header_, int recievedData_)
+    {
+        switch (header_)
+        {
+            case 202:
+                sidor[0] = recievedData_;  // Sida 1 (Norr)
+                break;
+            case 208:
+                sidor[1] = recievedData_;  // Sida 2 (Öst)
+                break;
+            case 216:
+                sidor[2] = recievedData_;  // Sida 3 (Cyd)
+                break;
+            case 224:
+                sidor[3] = recievedData_;  // Sida 4 (Väst)
+                break;
+            case 232:
+                vinklar[0] = recievedData_;  // Vinkel 1 (Norr)
+                break;
+            case 240:
+                vinklar[1] = recievedData_;  // Vinkel 2 (Öst)
+                break;
+            case 248:
+                vinklar[2] = recievedData_;  // Vinkel 3 (Cyd)
+                break;
+            case 136:
+                vinklar[3] = recievedData_;  // Vinkel 4 (Väst)
+                break;
+            case 144:
+                vinklar[4] = recievedData_;  // Totalvinkel
+                break;
+            case 152: // Recieved data motsvarar om läcka är sant eller falskt
+                if (recievedData_ == 1)
+                {
+                    läcka = "Ja";
+                }
+                else
+                {
+                    läcka = "Nej";
+                }
+                break;
+            case 160:
+                int northBit_ = (recievedData_ & 0b00001000)/8;
+                int eastBit_ = (recievedData_ & 0b00000100)/4;
+                int southBit_ = (recievedData_ & 0b00000010)/2;
+                int westBit_ = (recievedData_ & 0b00000001);
+                int direction_ = (recievedData_ & 0b00100000)/16 + (recievedData_ & 0b00010000)/16;
+                int IDbyte_ = (recievedData_ & 0b0011111100000000)/256;
+                setNodeInfo(northBit_,eastBit_,southBit_,westBit_,direction_,IDbyte_);  // Läcka
+                break;
+            default: ;
+        }  
+        
     }
     
     public int convertToSignedInt(int dataByte1_, int dataByte2_)
@@ -162,25 +350,25 @@ public class Interface implements SerialPortEventListener{
             
             
             dataBuffer[bufferCounter] = svar;
-            System.out.print("Mottaget: ");
-            System.out.println(svar);
             if(bufferCounter >= 2)
             {
                 bufferCounter = 0;
                 combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
                 if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
                 {
-                    System.out.print("Resultat: ");
-                    System.out.println(combinedData);
+                    setAllData(dataBuffer[0],combinedData);
+                    mainGUI.setAllText();
                 }
                 else
                 {
+                    /*
                     System.out.print("Fel, buffer innehåller: ");
                     System.out.print(dataBuffer[0]);
                     System.out.print(" ");
                     System.out.print(dataBuffer[1]);
                     System.out.print(" ");
                     System.out.println(dataBuffer[2]);
+                    */
                     
                     
                     dataBuffer[0] = dataBuffer[1];
@@ -202,36 +390,26 @@ public class Interface implements SerialPortEventListener{
         }
     }
     
-    public void skickainput()
+    public void skickainput(String dataToSend)
     {
        try{
        //String intest = "D"; //Testkörning
-           while(true)
-       {
-           String in = instruktion.next().toUpperCase(); 
-           if((in.equals("Q"))||(in.equals("QUIT")))
+           dataToSend = instruktion.next().toUpperCase(); 
+           if((dataToSend.equals("Q"))||(dataToSend.equals("QUIT")))
            {
                flush();
                System.out.println("Seriellport stängd. Ha en fortsatt trevlig dag.");
                System.exit(1);
            }
-           utdata.write(in.getBytes());
+           utdata.write(dataToSend.getBytes());
            
            //utdata.write(intest.getBytes()); //Testkörning
-       }
+       
         } catch(Exception e){
             System.err.println("Något gick fel med att skicka data.");
             //flush();
             //System.exit(1);
         }
-    }
-    
-    public static void main(String[] args) {
-        
-        Interface test = new Interface();
-        test.hittaport();
-        test.anslut();
-        test.skickainput();
     }
     
 }
