@@ -7,6 +7,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#define F_CPU 16000000UL
 #include <util/delay.h>
 
 #define TXD0_READY bit_is_set(UCSR0A,5)
@@ -124,17 +125,18 @@
 #define INCREMENT_PERIOD_400 400
 #define INCREMENT_PERIOD_500 500
 
-/*
+
 int stepLength_g = 100;
 int startPositionX_g = 100;
 int startPositionY_g = 100;
 int startPositionZ_g = -130;
 int stepHeight_g = 50;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4
-int gaitResolutionTime_g = INCREMENT_PERIOD_40;
+//int gaitResolutionTime_g = INCREMENT_PERIOD_40;
 int speedMultiplier_g = 1;
-*/
+int gaitResolutionTime_g = INCREMENT_PERIOD_100;
 
+/*
 // Joakims coola gångstil,
 int stepLength_g = 40;
 int startPositionX_g = 20;
@@ -144,6 +146,16 @@ int stepHeight_g = 20;
 int gaitResolution_g = 12;
 int gaitResolutionTime_g = INCREMENT_PERIOD_60;
 int speedMultiplier_g = 1;
+*/
+
+
+enum direction{
+	north = 1,
+	east,
+	south,
+	west
+	}; 
+enum direction currentDirection = north;
 
 
 int standardSpeed_g = 20;
@@ -941,19 +953,6 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
     }
 }
 
-// För att testa gången
-int Direction = 0;
-
-int toggleMania = 1 ;
-long int testAngle = 180;
-
-ISR(INT1_vect)
-{   
-    
-    move();
-}
-
-
 void MoveLegToNextPosition(leg Leg)
 {
     // test
@@ -977,6 +976,7 @@ void MoveLegToNextPosition(leg Leg)
 
 }
 
+
 void move()
 {
     
@@ -985,9 +985,45 @@ void move()
     MoveLegToNextPosition(rearLeftLeg);
     MoveLegToNextPosition(rearRightLeg);
 
-    increasePositionIndexes();  
+    increasePositionIndexes();
 }
 
+int directionHasChanged = 0;
+
+ISR(INT1_vect)
+{   
+    directionHasChanged = 1;
+	switch(currentDirection)
+	{
+		case north:
+		{
+		   currentDirection = east;
+		   break;
+		}
+		case east:
+		{
+			currentDirection = south;
+			break;
+		}
+		case south:
+		{
+			currentDirection = west;
+			break;
+		}
+		case west:
+		{
+			currentDirection = north;
+			break;
+		}
+	}
+   // move();
+} 
+
+
+
+
+
+// gör rörelsemönstret för travet, beror på vilken direction som är satt på currentDirection
 void MakeTrotGait(int cycleResolution)
 {
     
@@ -995,18 +1031,73 @@ void MakeTrotGait(int cycleResolution)
     int res = cycleResolution/2;
     maxGaitCyclePos_g = cycleResolution - 1;
     
-    CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
-    CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+	switch(currentDirection)
+	{		
+	// rörelsemönstret finns på ett papper (frontleft och rearright börjar alltid med curved)
+		case north:
+		{	
+			CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
+			CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+  
+			CalcCurvedPath(rearRightLeg,res,0,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
+			CalcStraightPath(rearRightLeg,res,res,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
     
-    CalcCurvedPath(rearRightLeg,res,0,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
-    CalcStraightPath(rearRightLeg,res,res,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
+			CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
+			CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
     
-    CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
-    CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
-    
-    CalcStraightPath(frontRightLeg,res,0,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
-    CalcCurvedPath(frontRightLeg,res,res,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
-
+			CalcStraightPath(frontRightLeg,res,0,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+			CalcCurvedPath(frontRightLeg,res,res,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
+			break;
+		}
+	
+		case east:
+		{
+			CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g,-startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g);
+			CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g,-startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g);
+		
+			CalcCurvedPath(rearRightLeg,res,0,startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g,startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g);
+			CalcStraightPath(rearRightLeg,res,res,startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g,startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g);
+		
+			CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g,-startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g);
+			CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g,-startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g);
+		
+			CalcStraightPath(frontRightLeg,res,0,startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g,startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g);
+			CalcCurvedPath(frontRightLeg,res,res,startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g,startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g);
+			break;
+		}
+	
+		case south:
+		{
+			CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+			CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
+		
+			CalcCurvedPath(rearRightLeg,res,0,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
+			CalcStraightPath(rearRightLeg,res,res,startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
+		
+			CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g);
+			CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g,-startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-stepLength_g/2,startPositionZ_g);
+		
+			CalcStraightPath(frontRightLeg,res,0,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
+			CalcCurvedPath(frontRightLeg,res,res,startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
+			break;
+		}
+	
+		case west:
+		{
+			CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g,-startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g);
+			CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g,-startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g);
+		
+			CalcCurvedPath(rearRightLeg,res,0,startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g,startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g);
+			CalcStraightPath(rearRightLeg,res,res,startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g,startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g);
+		
+			CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g,-startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g);
+			CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g+stepLength_g/2,-startPositionY_g,startPositionZ_g,-startPositionX_g-stepLength_g/2,-startPositionY_g,startPositionZ_g);
+		
+			CalcStraightPath(frontRightLeg,res,0,startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g,startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g);
+			CalcCurvedPath(frontRightLeg,res,res,startPositionX_g+stepLength_g/2,startPositionY_g,startPositionZ_g,startPositionX_g-stepLength_g/2,startPositionY_g,startPositionZ_g);
+			break;
+		}
+	}
 }
 
 
@@ -1038,9 +1129,10 @@ int main(void)
     MoveToStartPosition();
     //MoveFrontRightLeg(-120,120,-100,20);
     SetLegIncrementPeriod(gaitResolutionTime_g);
-    //maxGaitCyclePos_g = 3;
-    //CalcStraightPath(frontRightLeg,2,0,-120,120,-100,120,-120,-100);
-    //CalcStraightPath(frontRightLeg,2,2,120,-120,-100,-120,120,-100);
+
+	
+	int posToCalcGait = (gaitResolution_g/4 - 1);
+
     //CalcCurvedPath(rearRightLeg,10,10,120,0,-85,120,-120,-85);
     //maxGaitCyclePos_g = 19;
     //MoveRearRightLeg(120,-120,-85,calcDynamixelSpeed(20));
@@ -1054,9 +1146,12 @@ int main(void)
             	move();
             	TCNT0 = 0;			// Återställ räknaren
             	totOverflow_g = 0;
-            	
         	}
     	}
+		if ((currentPos_g == posToCalcGait) & directionHasChanged)
+		{
+			MakeTrotGait(gaitResolution_g);
+		}
     }
 }
 
