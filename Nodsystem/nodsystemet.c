@@ -7,17 +7,12 @@
 #define false 0
 #define true  1
 
-#define maxNodes 121 // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
+#define maxNodes 121        // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
-#define corridor  0       // Dessa är möjliga tal i whatNode
-#define twoWayCrossing 1
+#define corridor  0         // Dessa är möjliga tal i whatNode
+#define twoWaysCrossing 1
 #define deadEnd   2
 #define Tcrossing 3
-
-#define north 0  // Dessa är möjliga tal i wayIn och nextDirection
-#define east  1
-#define south 2
-#define west  3
 
 #define maxWallDistance 310 // Roboten bör hållas inom 310 mm från väggen
 
@@ -25,8 +20,7 @@ uint8_t tempNorthAvailible = true;
 uint8_t tempEastAvailible = false;
 uint8_t tempSouthAvailible = false;
 uint8_t tempWestAvailible = false;
-
-uint8_t currentNode = 0; // Nuvarande nod i arrayen
+uint8_t currentNode = 0;
 
 struct pathsAndNodes
 {
@@ -81,7 +75,7 @@ uint8_t whatNodeType();
         if (tempNorthAvailible == tempSouthAvailible)
             return corridor; // Detta måste vara en korridor
         else
-            return twoWayCrossing; // Detta måste vara en 2vägskorsning
+            return twoWaysCrossing; // Detta måste vara en 2vägskorsning
     }
     else if (tempNorthAvailible + tempEastAvailible + tempSouthAvailible + tempWestAvailible == 1)
     {
@@ -100,10 +94,6 @@ uint8_t whatsNextDirection()
     // Styrbeslut, väljer höger först om vägval finns (T-korsning)
 }
 
-uint8_t isLeakFound()
-{
-    // Sensordata som berättar om läcka är hittad (true eller false)
-}
 
 int16_t getNorthSensor()
 {
@@ -125,6 +115,29 @@ int16_t getWestSensor()
     // Sensordata som berättar avståndet åt väst (3siffrigt värde)
 }
 
+uint8_t getLeakInfo()
+{
+    // Sensordata som berättar om en läcka är synlig
+}
+
+uint8_t isLeakFound()
+{
+    if (getLeakInfo() == true)
+    {
+        actualLeak ++;
+        if ((actualLeak == 3) && (nodeArray[currentNode].containsLeak == false))    // Når variabeln actualLeak 3 och det inte redan finns en läcka så
+            {                                                                       // så är det en läcka
+            actualLeak = 0;
+            return true;
+            }
+    }
+    else
+    {
+        actualLeak = 0;
+    }
+
+    return false;
+}
 
 void updateTempDirections()
 {
@@ -168,8 +181,8 @@ int main()
     while(1)
     {
         updateTempDirections();
-        if (checkIfNewNode() == true)
-        {
+        if (checkIfNewNode() == true)   // Om detta är sant ska det först kontrolleras att det inte är en nod som redan finns i systemet
+        {                               // Detta är en ganska stor del
             currentNode ++;
             createNewNode();
         }
