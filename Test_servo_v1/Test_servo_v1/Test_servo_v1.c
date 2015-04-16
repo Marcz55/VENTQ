@@ -124,15 +124,30 @@
 #define INCREMENT_PERIOD_400 400
 #define INCREMENT_PERIOD_500 500
 
+/*
 int stepLength_g = 100;
-int startPositionX_g = 60;
-int startPositionY_g = 60;
-int startPositionZ_g = -170;
-int stepHeight_g = 60;
-int gaitResolution_g = 8;
-int gaitResolutionTime_g = INCREMENT_PERIOD_90;
+int startPositionX_g = 100;
+int startPositionY_g = 100;
+int startPositionZ_g = -130;
+int stepHeight_g = 50;
+int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4
+int gaitResolutionTime_g = INCREMENT_PERIOD_40;
+int speedMultiplier_g = 1;
+*/
+
+// Joakims coola gångstil,
+int stepLength_g = 40;
+int startPositionX_g = 20;
+int startPositionY_g = 140;
+int startPositionZ_g = -110;
+int stepHeight_g = 20;
+int gaitResolution_g = 12;
+int gaitResolutionTime_g = INCREMENT_PERIOD_60;
+int speedMultiplier_g = 1;
+
 
 int standardSpeed_g = 20;
+int statusPackEnabled = 0;
 
 
 //---- Globala variabler ---
@@ -142,6 +157,8 @@ int standardSpeed_g = 20;
 int legIncrementPeriod_g = 300;
 int timerOverflowMax_g = 73;
 int timerRemainingTicks_g = 62;
+
+
 
 
 
@@ -183,84 +200,98 @@ void SetLegIncrementPeriod(int newPeriod)
     {
         case INCREMENT_PERIOD_10:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 2;
             timerRemainingTicks_g = 113;
             break;
         }
         case INCREMENT_PERIOD_20:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 4;
             timerRemainingTicks_g = 226;
             break;
         }
         case INCREMENT_PERIOD_30:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 7;
             timerRemainingTicks_g = 83;
             break;
         }
         case INCREMENT_PERIOD_40:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 9;
             timerRemainingTicks_g = 196;
             break;
         }
         case INCREMENT_PERIOD_50:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 12;
             timerRemainingTicks_g = 53;
             break;
         }
         case INCREMENT_PERIOD_60:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 14;
             timerRemainingTicks_g = 166;
             break;
         }
         case INCREMENT_PERIOD_70:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 17;
             timerRemainingTicks_g = 23;
             break;
         }
         case INCREMENT_PERIOD_80:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 19;
             timerRemainingTicks_g = 136;
             break;
         }
         case INCREMENT_PERIOD_90:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 21;
             timerRemainingTicks_g = 249;
             break;
         }
         case INCREMENT_PERIOD_100:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 24;
             timerRemainingTicks_g = 106;
             break;
         }
         case INCREMENT_PERIOD_200:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 48;
             timerRemainingTicks_g = 212;
             break;
         }
         case INCREMENT_PERIOD_300:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 73;
             timerRemainingTicks_g = 62;
             break;
         }
         case INCREMENT_PERIOD_400:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 97;
             timerRemainingTicks_g = 168;
             break;
         }
         case INCREMENT_PERIOD_500:
         {
+            gaitResolutionTime_g = newPeriod;
             timerOverflowMax_g = 122;
             timerRemainingTicks_g = 18;
             break;
@@ -276,14 +307,14 @@ void SetLegIncrementPeriod(int newPeriod)
 // hastighet som gör att slutpositionen uppnås på periodtiden.
 long int calcDynamixelSpeed(long int deltaAngle)
 {
-    long int calculatedSpeed = (1000 * deltaAngle) / (6 * legIncrementPeriod_g);
-    if (calculatedSpeed < 10)
+    long int calculatedSpeed = (1000 * deltaAngle) / (6 * gaitResolutionTime_g);
+    if (calculatedSpeed < 2)
     {
-        return 10;
+        return 2;
     }
     else
     {
-        return calculatedSpeed;
+        return speedMultiplier_g * calculatedSpeed;
     }
 }
 
@@ -400,7 +431,7 @@ void USARTSendInstruction3(int ID, int instruction, int parameter0, int paramete
     USARTWriteChar(0xFF);
     USARTWriteChar(0xFF);
     USARTWriteChar(ID);
-    USARTWriteChar(5); // Paketets längd.
+    USARTWriteChar(5); // Paketets längd. 
     USARTWriteChar(instruction);
     USARTWriteChar(parameter0);
     USARTWriteChar(parameter1);
@@ -480,7 +511,8 @@ char USARTReadChar()
 }
 
 int USARTReadStatusPacket()
-{
+{   
+    PORTA = 0xff; 
     int ValueOfParameters = 0;
     //if ((USARTReadChar() == 0xFF) & (USARTReadChar() == 0xFF)) // Kollar om två startbitar
     //{
@@ -501,8 +533,18 @@ int USARTReadStatusPacket()
         
         char CheckSum = USARTReadChar();
     //}
+    PORTA = 0x0f;
     return ValueOfParameters;
     
+}
+
+void disableStatusPacketsFromActuator(int ID)
+{
+    USARTSendInstruction2(ID,INST_WRITE,P_RETURN_LEVEL,0x01);
+}
+void enableStatusPacketsFromActuator(int ID)
+{
+    USARTSendInstruction2(ID,INST_WRITE,P_RETURN_LEVEL,0x02);
 }
 
 void MoveDynamixel(int ID,long int Angle,long int RevolutionsPerMinute)
@@ -529,7 +571,7 @@ void MoveDynamixel(int ID,long int Angle,long int RevolutionsPerMinute)
         }
     
         USARTSendInstruction5(ID,INST_WRITE,P_GOAL_POSITION_L,LowGoalPosition ,HighGoalPosition, LowAngleVelocity, HighAngleVelocity);
-        USARTReadStatusPacket();
+        //USARTReadStatusPacket();
     }
     return;
 }
@@ -617,9 +659,10 @@ void MoveToStartPosition()
     return;
 }
 
-// Rader är vinklar på servon. Kolumnerna innehåller positioner
-long int actuatorPositions_g [12][20];
-long int legPositions_g [12][20];
+// Rader är vinklar på servon. Kolumnerna innehåller positioner. Allokerar en extra rad minne 
+// här i matriserna bara för att få snyggare kod. 
+long int actuatorPositions_g [13][20];
+long int legPositions_g [13][20];
 
 int currentPos_g = 0;
 int nextPos_g = 1;
@@ -719,7 +762,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
             {   
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
-                //actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
+                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
                 legPositions_g[FRONT_RIGHT_LEG_X][i] = x;
                 legPositions_g[FRONT_RIGHT_LEG_Y][i] = y;
                 legPositions_g[FRONT_RIGHT_LEG_Z][i] = z;
@@ -901,13 +944,20 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
 // För att testa gången
 int Direction = 0;
 
+int toggleMania = 1 ;
+long int testAngle = 180;
+
 ISR(INT1_vect)
 {   
+    
     move();
-} 
+}
+
 
 void MoveLegToNextPosition(leg Leg)
 {
+    // test
+    //long int speed = 32;
     // CoxaJoint
     long int currentAngle = actuatorPositions_g[Leg.coxaJoint][currentPos_g];
     long int nextAngle = actuatorPositions_g[Leg.coxaJoint][nextPos_g];
@@ -923,6 +973,7 @@ void MoveLegToNextPosition(leg Leg)
     nextAngle = actuatorPositions_g[Leg.tibiaJoint][nextPos_g];
     RPM = calcDynamixelSpeed(abs(currentAngle - nextAngle));
     MoveDynamixel(Leg.tibiaJoint, nextAngle, RPM);
+    
 
 }
 
@@ -943,6 +994,7 @@ void MakeTrotGait(int cycleResolution)
     // cycleResolution är antaletpunkter på kurvan som benen följer. Måste vara jämnt tal!
     int res = cycleResolution/2;
     maxGaitCyclePos_g = cycleResolution - 1;
+    
     CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g);
     CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+stepLength_g/2,startPositionZ_g,-startPositionX_g,startPositionY_g-stepLength_g/2,startPositionZ_g);
     
@@ -964,107 +1016,48 @@ int main(void)
     cli();
     EICRA = 0b1100; // Stigande flank på INT1 genererar avbrott
     EIMSK = (EIMSK | 2); // Möjliggör externa avbrott på INT0, pinne 40  
-    DDRA = 0;
+    DDRA = 0xff;
+    //PORTA = 0xff;
     // MCUCR = (MCUCR | (1 << PUD)); Något som testades för att se om det gjorde något
     //PORTA |= (1 << PORTA0);
      // Möjliggör globala avbrott
     sei();
     //MoveFrontRightLeg(150,150,0,30);
-    currentPos_g = 5;
-    nextPos_g = 6;
-    // front right
-    /*
-    MoveDynamixel(8,193,10);
-    USARTReadStatusPacket();
-    MoveDynamixel(10, 75 + 45, 10);
-    USARTReadStatusPacket();
-    MoveDynamixel(12,183 + 45,10);
-    USARTReadStatusPacket();
-    */
-    // front left
-    /*
-    MoveDynamixel(2,105,10);
-    USARTReadStatusPacket();
-    MoveDynamixel(4,75 + 45, 10);
-    USARTReadStatusPacket();
-    MoveDynamixel(6,181 + 45,10);
-    USARTReadStatusPacket();
-    */
-    // rear right
-    /*
-    MoveDynamixel(7,105,10);
-    USARTReadStatusPacket();
-    MoveDynamixel(9,225 -45,10);
-    USARTReadStatusPacket();
-    MoveDynamixel(11,120 -45, 10);
-    USARTReadStatusPacket();    
-    */
-    // rear left
-    /*
-    MoveDynamixel(1,195,10);
-    USARTReadStatusPacket();
-    MoveDynamixel(3,225 - 45, 10);
-    USARTReadStatusPacket();
-    MoveDynamixel(5,120 - 45 ,10);
-    USARTReadStatusPacket();
-    */
-    timer0Init();
-    /*
-    MoveFrontRightLeg(160,140,-50,10);
-    MoveFrontLeftLeg(-160,140,-50,10);
-    MoveRearLeftLeg(-160,0,-50,10);
-    MoveRearRightLeg(160,0,-50,10);
+    currentPos_g = 0;
+    nextPos_g = 1;
     
-<<<<<<< Updated upstream
-	CalcStraightPath(frontLeftLeg,10,0,-160,140,-50,-160,0,-50);
-    CalcStraightPath(frontRightLeg,10,0,160,120,-50,160,0,-50);
-    CalcStraightPath(rearLeftLeg,10,0,-160,0,-50,-160,-140,-50);
-    CalcStraightPath(rearRightLeg,10,0,160,0,-50,160,-140,-50);
-	while(1)
+    /*
+    for (int i = 1; i < 13; i++)
     {
-    	// kolla om antalet overflows är mer än 52
-    	if (totOverflow_g >= 25)
+        disableStatusPacketsFromActuator(i);
+    }*/
+    
+    timer0Init();
+
+	MakeTrotGait(gaitResolution_g);
+    MoveToStartPosition();
+    //MoveFrontRightLeg(-120,120,-100,20);
+    SetLegIncrementPeriod(gaitResolutionTime_g);
+    //maxGaitCyclePos_g = 3;
+    //CalcStraightPath(frontRightLeg,2,0,-120,120,-100,120,-120,-100);
+    //CalcStraightPath(frontRightLeg,2,2,120,-120,-100,-120,120,-100);
+    //CalcCurvedPath(rearRightLeg,10,10,120,0,-85,120,-120,-85);
+    //maxGaitCyclePos_g = 19;
+    //MoveRearRightLeg(120,-120,-85,calcDynamixelSpeed(20));
+    while (1)
+    { 
+        
+    	if (totOverflow_g >= timerOverflowMax_g)
     	{
-        	// när detta skett ska timern räkna upp ytterligare 53 tick för att exakt 50ms ska ha passerat
-        	if (TCNT0 >= 53)
+        	if (TCNT0 >= timerRemainingTicks_g)
         	{
-            	// xor-tilldelning med en etta gör att biten togglas
             	move();
             	TCNT0 = 0;			// Återställ räknaren
             	totOverflow_g = 0;
             	
         	}
     	}
-	}*/
-	MakeTrotGait(gaitResolution_g);
-    MoveToStartPosition();
-    SetLegIncrementPeriod(gaitResolutionTime_g);
-    //CalcStraightPath(rearRightLeg,10,0,120,-120,-85,120,0,-85);
-    //CalcCurvedPath(rearRightLeg,10,10,120,0,-85,120,-120,-85);
-    //maxGaitCyclePos_g = 19;
-    //MoveRearRightLeg(120,-120,-85,calcDynamixelSpeed(20));
-    while (1)
-    { /*
-        
-        // kolla om antalet overflows är mer än 52
-    	if (totOverflow_g >= timerOverflowMax_g)
-    	{
-        	// när detta skett ska timern räkna upp ytterligare 53 tick för att exakt 50ms ska ha passerat
-        	if (TCNT0 >= timerRemainingTicks_g)
-        	{
-            	// xor-tilldelning med en etta gör att biten togglas
-            	move();
-            	TCNT0 = 0;			// Återställ räknaren
-            	totOverflow_g = 0;
-            	
-        	}
-    	}*/
     }
-    /*MoveRearRightLeg(120,-120,-85,20);
-    while(1)
-    {
-        
-    }*/
 }
 
 
