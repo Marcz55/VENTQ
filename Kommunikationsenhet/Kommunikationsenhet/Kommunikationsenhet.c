@@ -120,7 +120,7 @@ int main(void)
 	spiInit();
 	sei();
 	
-	while(1)
+	/*while(1)
 	{
         while(last_p_g != NULL)   //Gå igenom listan tills den blir tom
         {
@@ -128,7 +128,13 @@ int main(void)
         }
         MCUCR = (1<<SE); //Sleep enable
 	    sleep_mode(); //Gå in i sleep mode om det inte finns något att göra
-	}
+	}*/
+    
+    while(1)
+    {
+        _delay_ms(1000);
+        bluetoothSend(0x44);
+    }
 }
 
 ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
