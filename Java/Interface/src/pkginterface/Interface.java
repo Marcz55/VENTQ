@@ -8,16 +8,19 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Scanner;
-import javafx.scene.layout.StackPane;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.scene.paint.Color;
 
 public class Interface implements SerialPortEventListener{
 
     private SerialPort seriellport;
-    private CommPortIdentifier comport = null;
+    public CommPortIdentifier comport = null;
     private static final int baud = 115200;
     private String portnamn = "Ingenting";
     private int svar;
@@ -31,6 +34,7 @@ public class Interface implements SerialPortEventListener{
     public int[] sidor = {0,0,0,0};
     public String nod = "Korridor";
     public String läcka = "Nej";
+    public String portConnected = "Ej ansluten";
     
     GUI mainGUI;
     
@@ -68,16 +72,15 @@ public class Interface implements SerialPortEventListener{
     
     void hittaportGUI(String in)
     {
-        System.out.println("God dag. Vilken seriell port önskas anslutas till?");
-        while(true){
         portnamn = in;
         
-        CommPortIdentifier port; //Sätt nuvarande port till null
+        CommPortIdentifier port = null; //Sätt nuvarande port till null
         Enumeration allaportar = CommPortIdentifier.getPortIdentifiers();
         while(allaportar.hasMoreElements())
         {
             port = (CommPortIdentifier)allaportar.nextElement();
-            if(port.getName().equals(portnamn)){                   //Gå igenom alla tillgängliga portar tills rätt port hittats!
+            if(port.getName().equals(portnamn))
+            {                   //Gå igenom alla tillgängliga portar tills rätt port hittats!
                 comport = port;
                 break;
             }
@@ -85,26 +88,38 @@ public class Interface implements SerialPortEventListener{
         if(comport != null)
         {
             System.out.println(portnamn + " hittad.");
-            break;
+            portConnected = "Ansluten";
+            mainGUI.setAllText();
         }
-        System.out.println(portnamn + " kunde ej hittas. Försök igen.");
+        else
+        {
+            System.out.println(portnamn + " kunde ej hittas. Försök igen.");
         }
+        
         
     } // slut på hittaport
     
     void anslut()
     {
         //Anslut till porten
-        try{
-            seriellport = (SerialPort)comport.open("V.E.N.T:Q",10000);
+        try
+        {
+            System.out.println(comport);
+            seriellport = (SerialPort)comport.open("V.E.N.T:Q",2000);
             System.out.println("Seriellport öppnad.");
             seriellport.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
         //Thread.sleep(1000);
-        } catch(Exception e) {
-            System.err.println("Kunde inte ansluta.");
-            flush();
-            System.exit(1);
         }
+        catch(Exception e)
+        {
+            System.err.println("Fel 1 vid anslutning:");
+            System.err.println(e.toString());
+            //flush();
+            //System.exit(1);
+        }
+        
+        
+        
         
         //Definiera in och utdata
         try{
@@ -118,14 +133,15 @@ public class Interface implements SerialPortEventListener{
             indata = seriellport.getInputStream();
             
         } catch (Exception e){
-            System.err.println("Kunde inte definiera I/O.");
+            System.err.println("Fel 2 vid anslutning:");
+            System.err.println(e.toString());
             //seriellport.close();
-            flush();
-            System.exit(1);
+            //flush();
+            //System.exit(1);
         }
     }
     
-    void anslutGUI()
+    /*void anslutGUI()
     {
         //Anslut till porten
         try{
@@ -156,13 +172,23 @@ public class Interface implements SerialPortEventListener{
             flush();
             System.exit(1);
         }
-    }
+    }*/
     
     public void flush()
     {
-        indata = null;
-        utdata = null;
-        seriellport.close();
+        try {
+            indata.close();
+            utdata.close();
+            indata = null;
+            utdata = null;
+            seriellport.close();
+            portConnected = "Ej ansluten";
+            mainGUI.setAllText();
+            System.out.println("Seriell port bortkopplad");
+            comport = null;
+        } catch (IOException ex) {
+            Logger.getLogger(Interface.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     
@@ -385,7 +411,6 @@ public class Interface implements SerialPortEventListener{
             } catch(Exception e){
                 System.err.println("Kunde inte hämta data.");
                 flush();
-                System.exit(1);
             }
         }
     }
@@ -394,7 +419,7 @@ public class Interface implements SerialPortEventListener{
     {
        try{
        //String intest = "D"; //Testkörning
-           dataToSend = instruktion.next().toUpperCase(); 
+           //dataToSend = instruktion.next().toUpperCase(); 
            if((dataToSend.equals("Q"))||(dataToSend.equals("QUIT")))
            {
                flush();
