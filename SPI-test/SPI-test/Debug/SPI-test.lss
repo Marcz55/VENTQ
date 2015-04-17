@@ -3,27 +3,27 @@ SPI-test.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         000000e8  00000000  00000000  00000074  2**1
+  0 .text         00000290  00000000  00000000  00000074  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000002  00800060  000000e8  0000015c  2**0
+  1 .data         00000002  00800060  00000290  00000304  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000030  00000000  00000000  0000015e  2**0
+  2 .comment      00000030  00000000  00000000  00000306  2**0
                   CONTENTS, READONLY
-  3 .debug_aranges 00000030  00000000  00000000  0000018e  2**0
+  3 .debug_aranges 00000038  00000000  00000000  00000336  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   0000020f  00000000  00000000  000001be  2**0
+  4 .debug_info   00000537  00000000  00000000  0000036e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 0000015f  00000000  00000000  000003cd  2**0
+  5 .debug_abbrev 00000179  00000000  00000000  000008a5  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   0000017e  00000000  00000000  0000052c  2**0
+  6 .debug_line   000001cb  00000000  00000000  00000a1e  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000044  00000000  00000000  000006ac  2**2
+  7 .debug_frame  00000060  00000000  00000000  00000bec  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    00000192  00000000  00000000  000006f0  2**0
+  8 .debug_str    000001fd  00000000  00000000  00000c4c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    00000071  00000000  00000000  00000882  2**0
+  9 .debug_loc    0000029b  00000000  00000000  00000e49  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000020  00000000  00000000  000008f3  2**0
+ 10 .debug_ranges 00000028  00000000  00000000  000010e4  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -63,16 +63,16 @@ Disassembly of section .text:
   60:	10 e0       	ldi	r17, 0x00	; 0
   62:	a0 e6       	ldi	r26, 0x60	; 96
   64:	b0 e0       	ldi	r27, 0x00	; 0
-  66:	e8 ee       	ldi	r30, 0xE8	; 232
-  68:	f0 e0       	ldi	r31, 0x00	; 0
+  66:	e0 e9       	ldi	r30, 0x90	; 144
+  68:	f2 e0       	ldi	r31, 0x02	; 2
   6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
   6c:	05 90       	lpm	r0, Z+
   6e:	0d 92       	st	X+, r0
   70:	a2 36       	cpi	r26, 0x62	; 98
   72:	b1 07       	cpc	r27, r17
   74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
-  76:	0e 94 50 00 	call	0xa0	; 0xa0 <main>
-  7a:	0c 94 72 00 	jmp	0xe4	; 0xe4 <_exit>
+  76:	0e 94 74 00 	call	0xe8	; 0xe8 <main>
+  7a:	0c 94 46 01 	jmp	0x28c	; 0x28c <_exit>
 
 0000007e <__bad_interrupt>:
   7e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
@@ -111,93 +111,421 @@ void spiTransmit(unsigned char data)
   9a:	80 93 60 00 	sts	0x0060, r24
   9e:	08 95       	ret
 
-000000a0 <main>:
+000000a0 <transmitData>:
+}
+
+
+void transmitData(int header_, int dataByte1, int dataByte2_)
+{
+  a0:	cf 93       	push	r28
+  a2:	df 93       	push	r29
+  a4:	d6 2f       	mov	r29, r22
+  a6:	c4 2f       	mov	r28, r20
+    PORTA = (0<<PORTA2); //Slave select
+  a8:	1b ba       	out	0x1b, r1	; 27
+    spiTransmit(header_);
+  aa:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
+   	PORTA = (1<<PORTA2); //Slave deselect
+  ae:	84 e0       	ldi	r24, 0x04	; 4
+  b0:	8b bb       	out	0x1b, r24	; 27
+	#else
+		//round up by default
+		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
+	#endif
+
+	__builtin_avr_delay_cycles(__ticks_dc);
+  b2:	8a e1       	ldi	r24, 0x1A	; 26
+  b4:	8a 95       	dec	r24
+  b6:	f1 f7       	brne	.-4      	; 0xb4 <transmitData+0x14>
+  b8:	00 c0       	rjmp	.+0      	; 0xba <transmitData+0x1a>
+   	_delay_us(5);
+   	PORTA = (0<<PORTA2);
+  ba:	1b ba       	out	0x1b, r1	; 27
+   	spiTransmit(dataByte1);
+  bc:	8d 2f       	mov	r24, r29
+  be:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
+    PORTA = (1<<PORTA2);
+  c2:	84 e0       	ldi	r24, 0x04	; 4
+  c4:	8b bb       	out	0x1b, r24	; 27
+  c6:	8a e1       	ldi	r24, 0x1A	; 26
+  c8:	8a 95       	dec	r24
+  ca:	f1 f7       	brne	.-4      	; 0xc8 <transmitData+0x28>
+  cc:	00 c0       	rjmp	.+0      	; 0xce <transmitData+0x2e>
+   	_delay_us(5);
+   	PORTA = (0<<PORTA2);
+  ce:	1b ba       	out	0x1b, r1	; 27
+   	spiTransmit(dataByte2_);
+  d0:	8c 2f       	mov	r24, r28
+  d2:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
+   	PORTA = (1<<PORTA2);
+  d6:	84 e0       	ldi	r24, 0x04	; 4
+  d8:	8b bb       	out	0x1b, r24	; 27
+  da:	8a e1       	ldi	r24, 0x1A	; 26
+  dc:	8a 95       	dec	r24
+  de:	f1 f7       	brne	.-4      	; 0xdc <transmitData+0x3c>
+  e0:	00 c0       	rjmp	.+0      	; 0xe2 <transmitData+0x42>
+   	_delay_us(5);
+}
+  e2:	df 91       	pop	r29
+  e4:	cf 91       	pop	r28
+  e6:	08 95       	ret
+
+000000e8 <main>:
+{
+    int dataOffset = -3;
+    int dataIterator = 0;
+    int leakTestByte = 0;
+    int nodeTestByte1 = 0b00010011;
+    int nodeTestByte2 = 0b00001100;
+  e8:	0f 2e       	mov	r0, r31
+  ea:	fc e0       	ldi	r31, 0x0C	; 12
+  ec:	2f 2e       	mov	r2, r31
+  ee:	f0 2d       	mov	r31, r0
+  f0:	31 2c       	mov	r3, r1
+int main(void)
+{
+    int dataOffset = -3;
+    int dataIterator = 0;
+    int leakTestByte = 0;
+    int nodeTestByte1 = 0b00010011;
+  f2:	0f 2e       	mov	r0, r31
+  f4:	f3 e1       	ldi	r31, 0x13	; 19
+  f6:	6f 2e       	mov	r6, r31
+  f8:	71 2c       	mov	r7, r1
+  fa:	f0 2d       	mov	r31, r0
+
+int main(void)
+{
+    int dataOffset = -3;
+    int dataIterator = 0;
+    int leakTestByte = 0;
+  fc:	41 2c       	mov	r4, r1
+  fe:	51 2c       	mov	r5, r1
 }
 
 int main(void)
 {
-	spiInit();
-  a0:	0e 94 41 00 	call	0x82	; 0x82 <spiInit>
-	PORTA = (0<<PORTA2); //Slave select
-  a4:	1b ba       	out	0x1b, r1	; 27
-  a6:	c4 e6       	ldi	r28, 0x64	; 100
-  a8:	d0 e0       	ldi	r29, 0x00	; 0
-	while(p<100)
-	{
-	_delay_us(5);
-	PORTA = (0<<PORTA2); //Slave select
-	spiTransmit(0x44);
-	PORTA = (1<<PORTA2); //Slave deselect
-  aa:	14 e0       	ldi	r17, 0x04	; 4
-	#else
-		//round up by default
-		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
-	#endif
+    int dataOffset = -3;
+    int dataIterator = 0;
+ 100:	c0 e0       	ldi	r28, 0x00	; 0
+ 102:	d0 e0       	ldi	r29, 0x00	; 0
+   	_delay_us(5);
+}
 
-	__builtin_avr_delay_cycles(__ticks_dc);
-  ac:	2a e1       	ldi	r18, 0x1A	; 26
-  ae:	2a 95       	dec	r18
-  b0:	f1 f7       	brne	.-4      	; 0xae <main+0xe>
-  b2:	00 c0       	rjmp	.+0      	; 0xb4 <main+0x14>
-	PORTA = (0<<PORTA2); //Slave select
-	int p = 0;
-	while(p<100)
-	{
-	_delay_us(5);
-	PORTA = (0<<PORTA2); //Slave select
-  b4:	1b ba       	out	0x1b, r1	; 27
-	spiTransmit(0x44);
-  b6:	84 e4       	ldi	r24, 0x44	; 68
-  b8:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
-	PORTA = (1<<PORTA2); //Slave deselect
-  bc:	1b bb       	out	0x1b, r17	; 27
-  be:	21 97       	sbiw	r28, 0x01	; 1
 int main(void)
 {
-	spiInit();
-	PORTA = (0<<PORTA2); //Slave select
-	int p = 0;
-	while(p<100)
-  c0:	20 97       	sbiw	r28, 0x00	; 0
-  c2:	a1 f7       	brne	.-24     	; 0xac <main+0xc>
-	while(1)
-	{
-		_delay_ms(1000);
-		PORTA = (0<<PORTA2); //Slave select
-		spiTransmit(48);
-		PORTA = (1<<PORTA2); //Slave deselect
-  c4:	c4 e0       	ldi	r28, 0x04	; 4
+    int dataOffset = -3;
+ 104:	0d ef       	ldi	r16, 0xFD	; 253
+ 106:	1f ef       	ldi	r17, 0xFF	; 255
+    int leakTestByte = 0;
+    int nodeTestByte1 = 0b00010011;
+    int nodeTestByte2 = 0b00001100;
+    while(1)
+    {
+	    spiInit(); 
+ 108:	0e 94 41 00 	call	0x82	; 0x82 <spiInit>
+    	PORTA = (0<<PORTA2); 
+ 10c:	1b ba       	out	0x1b, r1	; 27
+ 10e:	2a e1       	ldi	r18, 0x1A	; 26
+ 110:	2a 95       	dec	r18
+ 112:	f1 f7       	brne	.-4      	; 0x110 <main+0x28>
+ 114:	00 c0       	rjmp	.+0      	; 0x116 <main+0x2e>
+    	_delay_us(5);
+        
+        transmitData(202,0b00000001,0b01110000 + 2 * dataOffset +152); // Sida 1
+ 116:	68 01       	movw	r12, r16
+ 118:	84 e8       	ldi	r24, 0x84	; 132
+ 11a:	c8 0e       	add	r12, r24
+ 11c:	d1 1c       	adc	r13, r1
+ 11e:	cc 0c       	add	r12, r12
+ 120:	dd 1c       	adc	r13, r13
+ 122:	a6 01       	movw	r20, r12
+ 124:	61 e0       	ldi	r22, 0x01	; 1
+ 126:	70 e0       	ldi	r23, 0x00	; 0
+ 128:	8a ec       	ldi	r24, 0xCA	; 202
+ 12a:	90 e0       	ldi	r25, 0x00	; 0
+ 12c:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+
+        transmitData(232,0b10000001,0b00000111 + 2 * dataOffset + 55);// Vinkel 1
+ 130:	46 01       	movw	r8, r12
+ 132:	9a ec       	ldi	r25, 0xCA	; 202
+ 134:	89 1a       	sub	r8, r25
+ 136:	91 08       	sbc	r9, r1
+ 138:	a4 01       	movw	r20, r8
+ 13a:	61 e8       	ldi	r22, 0x81	; 129
+ 13c:	70 e0       	ldi	r23, 0x00	; 0
+ 13e:	88 ee       	ldi	r24, 0xE8	; 232
+ 140:	90 e0       	ldi	r25, 0x00	; 0
+ 142:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+        
+        
+        
+        transmitData(208,0b00000001,0b01110000 + dataOffset); // Sida 2
+ 146:	58 01       	movw	r10, r16
+ 148:	20 e7       	ldi	r18, 0x70	; 112
+ 14a:	a2 0e       	add	r10, r18
+ 14c:	b1 1c       	adc	r11, r1
+ 14e:	a5 01       	movw	r20, r10
+ 150:	61 e0       	ldi	r22, 0x01	; 1
+ 152:	70 e0       	ldi	r23, 0x00	; 0
+ 154:	80 ed       	ldi	r24, 0xD0	; 208
+ 156:	90 e0       	ldi	r25, 0x00	; 0
+ 158:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+
+    	transmitData(240,0b10000001,0b00000111 + dataOffset); // Vinkel 2
+ 15c:	78 01       	movw	r14, r16
+ 15e:	87 e0       	ldi	r24, 0x07	; 7
+ 160:	e8 0e       	add	r14, r24
+ 162:	f1 1c       	adc	r15, r1
+ 164:	a7 01       	movw	r20, r14
+ 166:	61 e8       	ldi	r22, 0x81	; 129
+ 168:	70 e0       	ldi	r23, 0x00	; 0
+ 16a:	80 ef       	ldi	r24, 0xF0	; 240
+ 16c:	90 e0       	ldi	r25, 0x00	; 0
+ 16e:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+        
+        
+        
+        transmitData(216,0b00000001,0b01110000 + 2 * dataOffset +152); // Sida 3
+ 172:	a6 01       	movw	r20, r12
+ 174:	61 e0       	ldi	r22, 0x01	; 1
+ 176:	70 e0       	ldi	r23, 0x00	; 0
+ 178:	88 ed       	ldi	r24, 0xD8	; 216
+ 17a:	90 e0       	ldi	r25, 0x00	; 0
+ 17c:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+
+        transmitData(248,0b10000001,0b00000111 + 2 * dataOffset + 55);// Vinkel 3
+ 180:	a4 01       	movw	r20, r8
+ 182:	61 e8       	ldi	r22, 0x81	; 129
+ 184:	70 e0       	ldi	r23, 0x00	; 0
+ 186:	88 ef       	ldi	r24, 0xF8	; 248
+ 188:	90 e0       	ldi	r25, 0x00	; 0
+ 18a:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+        
+        
+        
+        transmitData(224,0b00000001,0b01110000 + dataOffset); // Sida 4
+ 18e:	a5 01       	movw	r20, r10
+ 190:	61 e0       	ldi	r22, 0x01	; 1
+ 192:	70 e0       	ldi	r23, 0x00	; 0
+ 194:	80 ee       	ldi	r24, 0xE0	; 224
+ 196:	90 e0       	ldi	r25, 0x00	; 0
+ 198:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+
+        transmitData(136,0b10000001,0b00000111 + dataOffset); // Vinkel 4
+ 19c:	a7 01       	movw	r20, r14
+ 19e:	61 e8       	ldi	r22, 0x81	; 129
+ 1a0:	70 e0       	ldi	r23, 0x00	; 0
+ 1a2:	88 e8       	ldi	r24, 0x88	; 136
+ 1a4:	90 e0       	ldi	r25, 0x00	; 0
+ 1a6:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+        
+        
+        
+        transmitData(144,0b10000001,0b00000111 + dataOffset); // Vinkel total
+ 1aa:	a7 01       	movw	r20, r14
+ 1ac:	61 e8       	ldi	r22, 0x81	; 129
+ 1ae:	70 e0       	ldi	r23, 0x00	; 0
+ 1b0:	80 e9       	ldi	r24, 0x90	; 144
+ 1b2:	90 e0       	ldi	r25, 0x00	; 0
+ 1b4:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+        
+        
+        transmitData(152,0,leakTestByte);
+ 1b8:	a2 01       	movw	r20, r4
+ 1ba:	60 e0       	ldi	r22, 0x00	; 0
+ 1bc:	70 e0       	ldi	r23, 0x00	; 0
+ 1be:	88 e9       	ldi	r24, 0x98	; 152
+ 1c0:	90 e0       	ldi	r25, 0x00	; 0
+ 1c2:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 
+ 
+    	transmitData(160,nodeTestByte1,nodeTestByte2); // Nod
+ 1c6:	42 2d       	mov	r20, r2
+ 1c8:	53 2d       	mov	r21, r3
+ 1ca:	b3 01       	movw	r22, r6
+ 1cc:	80 ea       	ldi	r24, 0xA0	; 160
+ 1ce:	90 e0       	ldi	r25, 0x00	; 0
+ 1d0:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+
+        switch(dataIterator)
+ 1d4:	c2 30       	cpi	r28, 0x02	; 2
+ 1d6:	d1 05       	cpc	r29, r1
+ 1d8:	a9 f0       	breq	.+42     	; 0x204 <main+0x11c>
+ 1da:	2c f4       	brge	.+10     	; 0x1e6 <main+0xfe>
+ 1dc:	20 97       	sbiw	r28, 0x00	; 0
+ 1de:	c9 f1       	breq	.+114    	; 0x252 <main+0x16a>
+ 1e0:	21 97       	sbiw	r28, 0x01	; 1
+ 1e2:	49 f0       	breq	.+18     	; 0x1f6 <main+0x10e>
+ 1e4:	05 c0       	rjmp	.+10     	; 0x1f0 <main+0x108>
+ 1e6:	c3 30       	cpi	r28, 0x03	; 3
+ 1e8:	d1 05       	cpc	r29, r1
+ 1ea:	99 f0       	breq	.+38     	; 0x212 <main+0x12a>
+ 1ec:	24 97       	sbiw	r28, 0x04	; 4
+ 1ee:	c1 f0       	breq	.+48     	; 0x220 <main+0x138>
+                nodeTestByte1 = 0b00010011;
+                nodeTestByte2 = 0b00001100;
+            }
+            break;
+            default:
+            dataIterator = 0;
+ 1f0:	c0 e0       	ldi	r28, 0x00	; 0
+ 1f2:	d0 e0       	ldi	r29, 0x00	; 0
+ 1f4:	41 c0       	rjmp	.+130    	; 0x278 <main+0x190>
+            case 0:
+            dataIterator ++;
+            dataOffset = 3;
+            break;
+            case 1:
+            dataIterator ++;
+ 1f6:	92 e0       	ldi	r25, 0x02	; 2
+ 1f8:	c9 2f       	mov	r28, r25
+ 1fa:	20 e0       	ldi	r18, 0x00	; 0
+ 1fc:	d2 2f       	mov	r29, r18
+            dataOffset = 1;
+ 1fe:	01 e0       	ldi	r16, 0x01	; 1
+ 200:	10 e0       	ldi	r17, 0x00	; 0
+            break;
+ 202:	3a c0       	rjmp	.+116    	; 0x278 <main+0x190>
+            case 2:
+            dataIterator ++;
+ 204:	83 e0       	ldi	r24, 0x03	; 3
+ 206:	c8 2f       	mov	r28, r24
+ 208:	90 e0       	ldi	r25, 0x00	; 0
+ 20a:	d9 2f       	mov	r29, r25
+            dataOffset = -2;
+ 20c:	0e ef       	ldi	r16, 0xFE	; 254
+ 20e:	1f ef       	ldi	r17, 0xFF	; 255
+            break;
+ 210:	33 c0       	rjmp	.+102    	; 0x278 <main+0x190>
+            case 3:
+            dataIterator ++;
+ 212:	24 e0       	ldi	r18, 0x04	; 4
+ 214:	c2 2f       	mov	r28, r18
+ 216:	80 e0       	ldi	r24, 0x00	; 0
+ 218:	d8 2f       	mov	r29, r24
+            dataOffset = 0;
+ 21a:	00 e0       	ldi	r16, 0x00	; 0
+ 21c:	10 e0       	ldi	r17, 0x00	; 0
+            break;
+ 21e:	2c c0       	rjmp	.+88     	; 0x278 <main+0x190>
+            case 4:
+            dataIterator = 0;
+            dataOffset = -3;
+            if (leakTestByte == 0)
+ 220:	81 e0       	ldi	r24, 0x01	; 1
+ 222:	45 28       	or	r4, r5
+ 224:	09 f0       	breq	.+2      	; 0x228 <main+0x140>
+ 226:	80 e0       	ldi	r24, 0x00	; 0
+            {
+                leakTestByte = 1;
+ 228:	48 2e       	mov	r4, r24
+ 22a:	51 2c       	mov	r5, r1
+            }
+            else
+            {
+                leakTestByte = 0;
+            }
+            if (nodeTestByte1 == 0b00010011)
+ 22c:	93 e1       	ldi	r25, 0x13	; 19
+ 22e:	69 16       	cp	r6, r25
+ 230:	71 04       	cpc	r7, r1
+ 232:	a1 f4       	brne	.+40     	; 0x25c <main+0x174>
+            {
+                nodeTestByte1 = 0b0001100;
+                nodeTestByte2 = 0b00101000;
+ 234:	0f 2e       	mov	r0, r31
+ 236:	f8 e2       	ldi	r31, 0x28	; 40
+ 238:	2f 2e       	mov	r2, r31
+ 23a:	f0 2d       	mov	r31, r0
+ 23c:	31 2c       	mov	r3, r1
+            {
+                leakTestByte = 0;
+            }
+            if (nodeTestByte1 == 0b00010011)
+            {
+                nodeTestByte1 = 0b0001100;
+ 23e:	0f 2e       	mov	r0, r31
+ 240:	fc e0       	ldi	r31, 0x0C	; 12
+ 242:	6f 2e       	mov	r6, r31
+ 244:	f0 2d       	mov	r31, r0
+ 246:	71 2c       	mov	r7, r1
+            case 3:
+            dataIterator ++;
+            dataOffset = 0;
+            break;
+            case 4:
+            dataIterator = 0;
+ 248:	c0 e0       	ldi	r28, 0x00	; 0
+ 24a:	d0 e0       	ldi	r29, 0x00	; 0
+            dataOffset = -3;
+ 24c:	0d ef       	ldi	r16, 0xFD	; 253
+ 24e:	1f ef       	ldi	r17, 0xFF	; 255
+ 250:	13 c0       	rjmp	.+38     	; 0x278 <main+0x190>
+    	transmitData(160,nodeTestByte1,nodeTestByte2); // Nod
+
+        switch(dataIterator)
+        {
+            case 0:
+            dataIterator ++;
+ 252:	c1 e0       	ldi	r28, 0x01	; 1
+ 254:	d0 e0       	ldi	r29, 0x00	; 0
+            dataOffset = 3;
+ 256:	03 e0       	ldi	r16, 0x03	; 3
+ 258:	10 e0       	ldi	r17, 0x00	; 0
+ 25a:	0e c0       	rjmp	.+28     	; 0x278 <main+0x190>
+                nodeTestByte2 = 0b00101000;
+            }
+            else
+            {
+                nodeTestByte1 = 0b00010011;
+                nodeTestByte2 = 0b00001100;
+ 25c:	0f 2e       	mov	r0, r31
+ 25e:	fc e0       	ldi	r31, 0x0C	; 12
+ 260:	2f 2e       	mov	r2, r31
+ 262:	f0 2d       	mov	r31, r0
+ 264:	31 2c       	mov	r3, r1
+                nodeTestByte1 = 0b0001100;
+                nodeTestByte2 = 0b00101000;
+            }
+            else
+            {
+                nodeTestByte1 = 0b00010011;
+ 266:	0f 2e       	mov	r0, r31
+ 268:	f3 e1       	ldi	r31, 0x13	; 19
+ 26a:	6f 2e       	mov	r6, r31
+ 26c:	f0 2d       	mov	r31, r0
+ 26e:	71 2c       	mov	r7, r1
+            case 3:
+            dataIterator ++;
+            dataOffset = 0;
+            break;
+            case 4:
+            dataIterator = 0;
+ 270:	c0 e0       	ldi	r28, 0x00	; 0
+ 272:	d0 e0       	ldi	r29, 0x00	; 0
+            dataOffset = -3;
+ 274:	0d ef       	ldi	r16, 0xFD	; 253
+ 276:	1f ef       	ldi	r17, 0xFF	; 255
 	#else
 		//round up by default
 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
 	#endif
 
 	__builtin_avr_delay_cycles(__ticks_dc);
-  c6:	8f ef       	ldi	r24, 0xFF	; 255
-  c8:	93 ed       	ldi	r25, 0xD3	; 211
-  ca:	20 e3       	ldi	r18, 0x30	; 48
-  cc:	81 50       	subi	r24, 0x01	; 1
-  ce:	90 40       	sbci	r25, 0x00	; 0
-  d0:	20 40       	sbci	r18, 0x00	; 0
-  d2:	e1 f7       	brne	.-8      	; 0xcc <main+0x2c>
-  d4:	00 c0       	rjmp	.+0      	; 0xd6 <main+0x36>
-  d6:	00 00       	nop
-	p = p+1;
-	}
-	while(1)
-	{
-		_delay_ms(1000);
-		PORTA = (0<<PORTA2); //Slave select
-  d8:	1b ba       	out	0x1b, r1	; 27
-		spiTransmit(48);
-  da:	80 e3       	ldi	r24, 0x30	; 48
-  dc:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
-		PORTA = (1<<PORTA2); //Slave deselect
-  e0:	cb bb       	out	0x1b, r28	; 27
-  e2:	f1 cf       	rjmp	.-30     	; 0xc6 <main+0x26>
+ 278:	2f ef       	ldi	r18, 0xFF	; 255
+ 27a:	83 ec       	ldi	r24, 0xC3	; 195
+ 27c:	99 e0       	ldi	r25, 0x09	; 9
+ 27e:	21 50       	subi	r18, 0x01	; 1
+ 280:	80 40       	sbci	r24, 0x00	; 0
+ 282:	90 40       	sbci	r25, 0x00	; 0
+ 284:	e1 f7       	brne	.-8      	; 0x27e <main+0x196>
+ 286:	00 c0       	rjmp	.+0      	; 0x288 <main+0x1a0>
+ 288:	00 00       	nop
+ 28a:	3e cf       	rjmp	.-388    	; 0x108 <main+0x20>
 
-000000e4 <_exit>:
-  e4:	f8 94       	cli
+0000028c <_exit>:
+ 28c:	f8 94       	cli
 
-000000e6 <__stop_program>:
-  e6:	ff cf       	rjmp	.-2      	; 0xe6 <__stop_program>
+0000028e <__stop_program>:
+ 28e:	ff cf       	rjmp	.-2      	; 0x28e <__stop_program>
