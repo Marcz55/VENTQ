@@ -13,42 +13,123 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
         
 public class GUI extends Application
 {
-    private Interface test;
+    private Interface mainInterface;
     private boolean autonomusMode = false;
+    private int turnDirection = 0; // Vridning åt höger innebär positiv vridning
+    private int upMovement = 0; // Rörelse uppåt är positiv
+    private int rightMovement = 0; // Rörelse åt höger är positiv
     
-    Text vinkel1Text= new Text();
-    Text vinkel2Text= new Text();
-    Text vinkel3Text= new Text();
-    Text vinkel4Text= new Text();
-    Text vinkelTotalText= new Text();
-    Text sida1Text = new Text();
-    Text sida2Text = new Text();
-    Text sida3Text = new Text();
-    Text sida4Text = new Text();
-    Text läckaText = new Text();
-    Text nodText = new Text();
+    Text angle1Text= new Text();
+    Text angle2Text= new Text();
+    Text angle3Text= new Text();
+    Text angle4Text= new Text();
+    Text angleTotalText= new Text();
+    Text side1Text = new Text();
+    Text side2Text = new Text();
+    Text side3Text = new Text();
+    Text side4Text = new Text();
+    Text leakText = new Text();
+    Text nodeText = new Text();
     Text connectedText = new Text();
+    Text upArrow = new Text();
+    Text downArrow = new Text();
+    Text leftArrow = new Text();
+    Text rightArrow = new Text();
+    Text turnSymbol = new Text();
+    Text autonomusText = new Text("Autonomt läge av");
+    boolean wPressed = false;
+    boolean aPressed = false;
+    boolean sPressed = false;
+    boolean dPressed = false;
+    boolean qPressed = false;
+    boolean ePressed = false;
     
     
+    
+    
+
+    
+    void setMovement()
+    {
+        switch(upMovement)
+        {
+            case 0:
+                upArrow.setFill(Color.BLACK);
+                downArrow.setFill(Color.BLACK);
+                break;
+            case 1:
+                upArrow.setFill(Color.LAWNGREEN);
+                downArrow.setFill(Color.BLACK);
+                break;
+            case -1:
+                upArrow.setFill(Color.BLACK);
+                downArrow.setFill(Color.LAWNGREEN);
+                break;
+            default:
+                upArrow.setFill(Color.BLACK);
+                downArrow.setFill(Color.BLACK);
+                break;
+                
+        }
+        switch(rightMovement)
+        {
+            case 0:
+                rightArrow.setFill(Color.BLACK);
+                leftArrow.setFill(Color.BLACK);
+                break;
+            case 1:
+                rightArrow.setFill(Color.LAWNGREEN);
+                leftArrow.setFill(Color.BLACK);
+                break;
+            case -1:
+                rightArrow.setFill(Color.BLACK);
+                leftArrow.setFill(Color.LAWNGREEN);
+                break;
+            default:
+                rightArrow.setFill(Color.BLACK);
+                leftArrow.setFill(Color.BLACK);
+                break; 
+                
+        }
+        
+        switch(turnDirection)
+        {
+            case 0:
+                turnSymbol.setText("");
+                break;
+            case 1:
+                turnSymbol.setText("H");
+                break;
+            case -1:
+                turnSymbol.setText("V");
+                break;
+            default:
+                turnSymbol.setText("");
+                break;
+        }
+    }
         
     void setAllText()
     {
-        sida1Text.setText(Integer.toString(test.sidor[0]));
-        sida2Text.setText(Integer.toString(test.sidor[1]));
-        sida3Text.setText(Integer.toString(test.sidor[2]));
-        sida4Text.setText(Integer.toString(test.sidor[3]));
-        vinkel1Text.setText(Integer.toString(test.vinklar[0]));
-        vinkel2Text.setText(Integer.toString(test.vinklar[1]));
-        vinkel3Text.setText(Integer.toString(test.vinklar[2]));
-        vinkel4Text.setText(Integer.toString(test.vinklar[3]));
-        vinkelTotalText.setText(Integer.toString(test.vinklar[4]));
-        läckaText.setText(test.läcka);
-        nodText.setText(test.nod);
-        connectedText.setText(test.portConnected);
-        if(test.portConnected == "Ansluten")
+        side1Text.setText(Integer.toString(mainInterface.allSides[0]));
+        side2Text.setText(Integer.toString(mainInterface.allSides[1]));
+        side3Text.setText(Integer.toString(mainInterface.allSides[2]));
+        side4Text.setText(Integer.toString(mainInterface.allSides[3]));
+        angle1Text.setText(Integer.toString(mainInterface.allAngles[0]));
+        angle2Text.setText(Integer.toString(mainInterface.allAngles[1]));
+        angle3Text.setText(Integer.toString(mainInterface.allAngles[2]));
+        angle4Text.setText(Integer.toString(mainInterface.allAngles[3]));
+        angleTotalText.setText(Integer.toString(mainInterface.allAngles[4]));
+        leakText.setText(mainInterface.leak);
+        nodeText.setText(mainInterface.currentNode);
+        connectedText.setText(mainInterface.portConnected);
+        if(mainInterface.portConnected == "Ansluten")
         {
             connectedText.setFill(Color.LAWNGREEN);
         }
@@ -63,7 +144,7 @@ public class GUI extends Application
     public void start(Stage stage)
     {
         
-        test = new Interface(this);
+        mainInterface = new Interface(this);
         
         stage.setTitle("V.E.N.T:Q Control Room");
         
@@ -74,21 +155,21 @@ public class GUI extends Application
             @Override
             public void handle(ActionEvent event)
             {
-                if (test.portConnected == "Ej ansluten")
+                if (mainInterface.portConnected == "Ej ansluten")
                 {
-                    test.hittaportGUI("COM12"); // COM** är olika på olika datorer
-                    if (test.comport != null)
+                    mainInterface.hittaportGUI("COM12"); // COM** är olika på olika datorer
+                    if (mainInterface.comport != null)
                     {
-                        test.anslut();
+                        mainInterface.anslut();
                     }
-                    if(test.portConnected == "Ansluten")
+                    if(mainInterface.portConnected == "Ansluten")
                     {
                         connectButton.setText("Koppla bort");
                     }
                 }
                 else
                 {
-                    test.flush();
+                    mainInterface.flush();
                     connectButton.setText("    Anslut    ");
                 }
             }
@@ -103,67 +184,32 @@ public class GUI extends Application
             {
                 if (!autonomusMode)
                 {
-                    test.skickainput("A"); // Skickar A för autonomt
+                    mainInterface.skickainput("A"); // Skickar A för autonomt
                     System.out.println("A");
                     autonomusMode = true;
                     autonomusButton.setText("Avaktivera");
+                    autonomusText.setText("Autonomt läge på");
+                    upMovement = 0;
+                    rightMovement = 0;
+                    turnDirection = 0;
+                    wPressed = false;
+                    aPressed = false;
+                    sPressed = false;
+                    dPressed = false;
+                    qPressed = false;
+                    ePressed = false;
+                    setMovement();
                 }
                 else
                 {
-                    test.skickainput("M"); // Skickar M för manuellt
+                    mainInterface.skickainput("M"); // Skickar M för manuellt
                     System.out.println("M");
                     autonomusMode = false;
                     autonomusButton.setText(" Aktivera ");
+                    autonomusText.setText("Autonomt läge av");
                 }
             }
         });
-        
-        Button upButton = new Button();
-        upButton.setText("^");
-        upButton.setOnAction(new EventHandler<ActionEvent>()
-        {
-            @Override
-            public void handle(ActionEvent event)
-            {
-                
-            }
-        });
-        
-        Button downButton = new Button();
-        downButton.setText("v");
-        downButton.setOnAction(new EventHandler<ActionEvent>()
-        {
-            @Override
-            public void handle(ActionEvent event)
-            {
-                
-            }
-        });
-        
-        Button leftButton = new Button();
-        leftButton.setText("<");
-        leftButton.setOnAction(new EventHandler<ActionEvent>()
-        {
-            @Override
-            public void handle(ActionEvent event)
-            {
-                
-            }
-        });
-        
-        Button rightButton = new Button();
-        rightButton.setText(">");
-        rightButton.setOnAction(new EventHandler<ActionEvent>()
-        {
-            @Override
-            public void handle(ActionEvent event)
-            {
-                
-            }
-        });
-        
-        
-        
         
         Label vinkel1 = new Label("Vinkel 1:");
         Label vinkel2 = new Label("Vinkel 2:");
@@ -177,8 +223,6 @@ public class GUI extends Application
         Label läcka = new Label("Läcka:");
         Label nod = new Label("Nod:                  ");
         Label connected  = new Label("Seriell port: ");
-        Label autonomus = new Label("Autonomt läge:");
-        
         
         
         GridPane root = new GridPane();
@@ -188,6 +232,137 @@ public class GUI extends Application
         root.setPadding(new Insets(25,25,25,25));
         stage.setScene(new Scene(root,1000,500));
         stage.show();
+        
+        root.setOnKeyPressed(new EventHandler<KeyEvent>()
+        {
+            public void handle(KeyEvent e)
+            {
+                if (!autonomusMode)
+                {
+                    switch (e.getText().toLowerCase()) // toLowerCase om capslock nedtryckt
+                    {
+                        case "w":
+                            if (!wPressed)
+                            {
+                                upMovement ++;
+                                wPressed = true;
+                            }
+                            break;
+                        case "a":
+                            if (!aPressed)
+                            {
+                                rightMovement --;
+                                aPressed = true;
+                            }
+                            break;
+                        case "s":
+                            if (!sPressed)
+                            {
+                                upMovement --;
+                                sPressed = true;
+                            }
+                            break;
+                        case "d":
+                            if (!dPressed)
+                            {
+                                rightMovement ++;
+                                dPressed = true;
+                            }
+                            break;
+                        case "q":
+                            if (!qPressed)
+                            {
+                                turnDirection --;
+                                qPressed = true;
+                            }
+                            break;
+                        case "e":
+                            if (!ePressed)
+                            {
+                                turnDirection ++;
+                                ePressed = true;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    setMovement();
+                    System.out.print("Upp: ");
+                    System.out.print(upMovement);
+                    System.out.print(", Höger: ");
+                    System.out.print(rightMovement);
+                    System.out.print(" , Vridning: ");
+                    System.out.println(turnDirection);
+                }
+            }
+        });
+        
+        root.setOnKeyReleased(new EventHandler<KeyEvent>()
+        {
+            public void handle(KeyEvent e)
+            {
+                if (!autonomusMode)
+                {
+                    switch (e.getText().toLowerCase())
+                    {
+                        case "w":
+                            if (wPressed)
+                            {
+                                upMovement --;
+                                wPressed = false;
+                            }
+                            break;
+                        case "a":
+                            if (aPressed)
+                            {
+                                rightMovement ++;
+                                aPressed = false;
+                            }
+                            break;
+                        case "s":
+                            if (sPressed)
+                            {
+                                upMovement ++;
+                                sPressed = false;
+                            }
+                            break;
+                        case "d":
+                            if (dPressed)
+                            {
+                                rightMovement --;
+                                dPressed = false;
+                            }
+                            break;
+                        case "q":
+                            if (qPressed)
+                            {
+                                turnDirection ++;
+                                qPressed = false;
+                            }
+                            break;
+                        case "e":
+                            if (ePressed)
+                            {
+                                turnDirection --;
+                                ePressed = false;
+                          }
+                            break;
+                        default:
+                            break;
+                    }
+                    setMovement();
+                    System.out.print("Upp: ");
+                    System.out.print(upMovement);
+                    System.out.print(", Höger: ");
+                    System.out.print(rightMovement);
+                    System.out.print(" , Vridning: ");
+                    System.out.println(turnDirection);
+                }
+            }
+        });
+        
+        
+        
         
         root.add(sida1,2,0);
         root.add(sida2,5,4);
@@ -201,29 +376,37 @@ public class GUI extends Application
         root.add(läcka,2,4);
         root.add(nod,2,8);
         
-        root.add(sida1Text,2,1);
-        root.add(sida2Text,5,5);
-        root.add(sida3Text,3,13);
-        root.add(sida4Text,0,9);
-        root.add(vinkel1Text,3,1);
-        root.add(vinkel2Text,5,9);
-        root.add(vinkel3Text,2,13);
-        root.add(vinkel4Text,0,5);
-        root.add(vinkelTotalText,3,5);
-        root.add(läckaText,2,5);
-        root.add(nodText,2,9);
+        root.add(side1Text,2,1);
+        root.add(side2Text,5,5);
+        root.add(side3Text,3,13);
+        root.add(side4Text,0,9);
+        root.add(angle1Text,3,1);
+        root.add(angle2Text,5,9);
+        root.add(angle3Text,2,13);
+        root.add(angle4Text,0,5);
+        root.add(angleTotalText,3,5);
+        root.add(leakText,2,5);
+        root.add(nodeText,2,9);
         
         root.add(connectButton,7,13);
         root.add(connected,7,11);
         root.add(connectedText,7,12);
         
-        root.add(autonomus,7,0);
+        root.add(autonomusText,7,0);
         root.add(autonomusButton,7,1);
         
-        root.add(leftButton,8,7);
-        root.add(rightButton,10,7);
-        root.add(upButton,9,4);
-        root.add(downButton,9,9);
+        root.add(leftArrow,8,8);
+        root.add(rightArrow,10,8);
+        root.add(upArrow,9,5);
+        root.add(downArrow,9,10);
+        root.add(turnSymbol,9,8);
+        
+        upArrow.setText("^");
+        downArrow.setText("v");
+        leftArrow.setText("<");
+        rightArrow.setText(">");
+        turnSymbol.setText("");
+        
         
         setAllText();
     }

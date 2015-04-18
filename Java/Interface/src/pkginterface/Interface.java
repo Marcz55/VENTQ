@@ -30,10 +30,10 @@ public class Interface implements SerialPortEventListener{
     private int[] dataBuffer = {0,0,0}; // Lagrar tre senaste hämtade bytes
     private int bufferCounter = 0; // Håller koll på var i buffern vi är
     private int combinedData = 0; // De två byten data, översatta till ett tal
-    public int[] vinklar = {0,0,0,0,0};
-    public int[] sidor = {0,0,0,0};
-    public String nod = "Korridor";
-    public String läcka = "Nej";
+    public int[] allAngles = {0,0,0,0,0};
+    public int[] allSides = {0,0,0,0};
+    public String currentNode = "Korridor";
+    public String leak = "Nej";
     public String portConnected = "Ej ansluten";
     
     GUI mainGUI;
@@ -273,21 +273,21 @@ public class Interface implements SerialPortEventListener{
         }
         if(sumDirections_ == 3) // 3 öppningar innebär T-korsning
         {
-            nod = "T-korsning" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
+            currentNode = "T-korsning" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
         }
         if(sumDirections_ == 1) // 1 öppning innebär återvändsgränd
         {
-            nod = "Återvändsgränd" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+            currentNode = "Återvändsgränd" + directionString_ + "\nID: " + Integer.toString(nodeID_);
         }
         if (sumDirections_ == 2) // Två öppningar betyder korridor eller sväng
         {                        // Undersöker om öppningarna är på motsatt sida av varandra,
             if((north_ * south_ == 1) || (east_ * west_ == 1)) //Isåfall korridor, annars sväng
             {
-                nod = "Korridor" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
+                currentNode = "Korridor" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
             }
             else
             {
-                nod = "Sväng" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+                currentNode = "Sväng" + directionString_ + "\nID: " + Integer.toString(nodeID_);
             }
         }
     }
@@ -297,40 +297,40 @@ public class Interface implements SerialPortEventListener{
         switch (header_)
         {
             case 202:
-                sidor[0] = recievedData_;  // Sida 1 (Norr)
+                allSides[0] = recievedData_;  // Sida 1 (Norr)
                 break;
             case 208:
-                sidor[1] = recievedData_;  // Sida 2 (Öst)
+                allSides[1] = recievedData_;  // Sida 2 (Öst)
                 break;
             case 216:
-                sidor[2] = recievedData_;  // Sida 3 (Cyd)
+                allSides[2] = recievedData_;  // Sida 3 (Cyd)
                 break;
             case 224:
-                sidor[3] = recievedData_;  // Sida 4 (Väst)
+                allSides[3] = recievedData_;  // Sida 4 (Väst)
                 break;
             case 232:
-                vinklar[0] = recievedData_;  // Vinkel 1 (Norr)
+                allAngles[0] = recievedData_;  // Vinkel 1 (Norr)
                 break;
             case 240:
-                vinklar[1] = recievedData_;  // Vinkel 2 (Öst)
+                allAngles[1] = recievedData_;  // Vinkel 2 (Öst)
                 break;
             case 248:
-                vinklar[2] = recievedData_;  // Vinkel 3 (Cyd)
+                allAngles[2] = recievedData_;  // Vinkel 3 (Cyd)
                 break;
             case 136:
-                vinklar[3] = recievedData_;  // Vinkel 4 (Väst)
+                allAngles[3] = recievedData_;  // Vinkel 4 (Väst)
                 break;
             case 144:
-                vinklar[4] = recievedData_;  // Totalvinkel
+                allAngles[4] = recievedData_;  // Totalvinkel
                 break;
             case 152: // Recieved data motsvarar om läcka är sant eller falskt
                 if (recievedData_ == 1)
                 {
-                    läcka = "Ja";
+                    leak = "Ja";
                 }
                 else
                 {
-                    läcka = "Nej";
+                    leak = "Nej";
                 }
                 break;
             case 160:
