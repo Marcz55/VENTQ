@@ -12,27 +12,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
-import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.scene.paint.Color;
 
 public class Interface implements SerialPortEventListener{
 
-    private SerialPort seriellport;
-    public CommPortIdentifier comport = null;
+    private SerialPort mainSerialPort;
+    public CommPortIdentifier comPort = null;
     private static final int baud = 115200;
-    private String portnamn = "Ingenting";
-    private int svar;
-    private InputStream indata;
-    private OutputStream utdata;
-    Scanner instruktion = new Scanner(System.in);
+    private String portName = "Ingenting";
+    private int response;
+    private InputStream inputData;
+    private OutputStream outputData;
     private int[] dataBuffer = {0,0,0}; // Lagrar tre senaste hämtade bytes
     private int bufferCounter = 0; // Håller koll på var i buffern vi är
     private int combinedData = 0; // De två byten data, översatta till ett tal
-    public int[] allAngles = {0,0,0,0,0};
-    public int[] allSides = {0,0,0,0};
-    public String currentNode = "Korridor";
+    public int[] allAngles = {0,0,0,0,0}; // Sparar alla vinklar, element 0,1,2,3 lagrar vinkel från sida 1,2,3 och element 5 lagrar total vinkel
+    public int[] allSides = {0,0,0,0}; // Sparar avstånd från alla sidor, element 0,1,2,3 lagrar sida 1,2,3,4
+    public String currentNode = "Okänt\nOkänt\nID: 0";
     public String leak = "Nej";
     public String portConnected = "Ej ansluten";
     
@@ -42,161 +39,94 @@ public class Interface implements SerialPortEventListener{
     {
         mainGUI = creatingGUI;
     }
-   
-    void hittaport()
-    {
-        System.out.println("God dag. Vilken seriell port önskas anslutas till?");
-        Scanner portval = new Scanner(System.in);
-        while(true){
-        portnamn = portval.next().toUpperCase();
-        
-        CommPortIdentifier port; //Sätt nuvarande port till null
-        Enumeration allaportar = CommPortIdentifier.getPortIdentifiers();
-        while(allaportar.hasMoreElements())
-        {
-            port = (CommPortIdentifier)allaportar.nextElement();
-            if(port.getName().equals(portnamn)){                   //Gå igenom alla tillgängliga portar tills rätt port hittats!
-                comport = port;
-                break;
-            }
-        }
-        if(comport != null)
-        {
-            System.out.println(portnamn + " hittad.");
-            break;
-        }
-        System.out.println(portnamn + " kunde ej hittas. Försök igen.");
-        }
-        
-    } // slut på hittaport
     
-    void hittaportGUI(String in)
+    void findPortGUI(String in)
     {
-        portnamn = in;
+        portName = in;
         
         CommPortIdentifier port = null; //Sätt nuvarande port till null
-        Enumeration allaportar = CommPortIdentifier.getPortIdentifiers();
-        while(allaportar.hasMoreElements())
+        Enumeration allPorts = CommPortIdentifier.getPortIdentifiers();
+        while(allPorts.hasMoreElements())
         {
-            port = (CommPortIdentifier)allaportar.nextElement();
-            if(port.getName().equals(portnamn))
+            port = (CommPortIdentifier)allPorts.nextElement();
+            if(port.getName().equals(portName))
             {                   //Gå igenom alla tillgängliga portar tills rätt port hittats!
-                comport = port;
+                comPort = port;
                 break;
             }
         }
-        if(comport != null)
+        if(comPort != null)
         {
-            System.out.println(portnamn + " hittad.");
+            System.out.println(portName + " hittad.");
             portConnected = "Ansluten";
             mainGUI.setAllText();
         }
         else
         {
-            System.out.println(portnamn + " kunde ej hittas. Försök igen.");
+            System.out.println(portName + " kunde ej hittas. Försök igen.");
         }
-        
-        
     } // slut på hittaport
     
-    void anslut()
+    void connect()
     {
         //Anslut till porten
         try
         {
-            System.out.println(comport);
-            seriellport = (SerialPort)comport.open("V.E.N.T:Q",2000);
+            System.out.println(comPort);
+            mainSerialPort = (SerialPort)comPort.open("V.E.N.T:Q",2000);
             System.out.println("Seriellport öppnad.");
-            seriellport.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            mainSerialPort.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
         //Thread.sleep(1000);
         }
         catch(Exception e)
         {
             System.err.println("Fel 1 vid anslutning:");
             System.err.println(e.toString());
-            //flush();
-            //System.exit(1);
         }
-        
-        
-        
-        
         //Definiera in och utdata
-        try{
+        try
+        {
         //Lägg till listerners som kan lyssna efter in-eller utdata
-        
-            seriellport.addEventListener(this);
-            seriellport.notifyOnDataAvailable(true);
-            seriellport.notifyOnOutputEmpty(true);
+            mainSerialPort.addEventListener(this);
+            mainSerialPort.notifyOnDataAvailable(true);
+            mainSerialPort.notifyOnOutputEmpty(true);
             //Kanske vill ha med framing error här senare 
-            utdata = seriellport.getOutputStream();
-            indata = seriellport.getInputStream();
-            
-        } catch (Exception e){
+            outputData = mainSerialPort.getOutputStream();
+            inputData = mainSerialPort.getInputStream();
+        } 
+        catch (Exception e)
+        {
             System.err.println("Fel 2 vid anslutning:");
             System.err.println(e.toString());
-            //seriellport.close();
-            //flush();
-            //System.exit(1);
         }
     }
     
-    /*void anslutGUI()
+    public void flush() // Änvänds för att koppla ifrån enheten
     {
-        //Anslut till porten
-        try{
-            seriellport = (SerialPort)comport.open("V.E.N.T:Q",10000);
-            System.out.println("Seriellport öppnad.");
-            seriellport.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-        //Thread.sleep(1000);
-        } catch(Exception e) {
-            System.err.println("Kunde inte ansluta.");
-            flush();
-            System.exit(1);
-        }
-        
-        //Definiera in och utdata
-        try{
-        //Lägg till listerners som kan lyssna efter in-eller utdata
-        
-            seriellport.addEventListener(this);
-            seriellport.notifyOnDataAvailable(true);
-            seriellport.notifyOnOutputEmpty(true);
-            //Kanske vill ha med framing error här senare 
-            utdata = seriellport.getOutputStream();
-            indata = seriellport.getInputStream();
-            
-        } catch (Exception e){
-            System.err.println("Kunde inte definiera I/O.");
-            //seriellport.close();
-            flush();
-            System.exit(1);
-        }
-    }*/
-    
-    public void flush()
-    {
-        try {
-            indata.close();
-            utdata.close();
-            indata = null;
-            utdata = null;
-            seriellport.close();
+        try
+        {
+            inputData.close();
+            outputData.close();
+            inputData = null;
+            outputData = null;
+            mainSerialPort.close();
             portConnected = "Ej ansluten";
             mainGUI.setAllText();
             System.out.println("Seriell port bortkopplad");
-            comport = null;
-        } catch (IOException ex) {
+            comPort = null;
+        } 
+        catch (IOException ex) 
+        {
             Logger.getLogger(Interface.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     
-    public boolean validHeader(int headerByte_) // Boolish
-    {
+    public boolean validHeader(int headerByte_) // Tar in en header och undersöker om den är en de 
+    {                                           // headers som fördefinerats
         switch (headerByte_)
         {
-            case 202: return true;  // Sida 1 (Norr)
+            case 202: return true;  // Header för sida 1 (Norr)
             case 208: return true;  // Sida 2 (Öst)
             case 216: return true;  // Sida 3 (Cyd)
             case 224: return true;  // Sida 4 (Väst)
@@ -211,9 +141,9 @@ public class Interface implements SerialPortEventListener{
         }
     }
     
-    public boolean validData(int header_, int recievedData_)
-    {
-        switch(header_)
+    public boolean validData(int header_, int recievedData_) // Tar in en header och data och undersöker om datan
+    {                                                        // ligger innanför det intervall som är definerat för
+        switch(header_)                                      // den headern
         {
             case 202: return ((recievedData_ > 70) && (recievedData_ <= 800 ));  // Avstånd kan bara vara mellan 70 och 800 mm         
             case 208: return ((recievedData_ > 70) && (recievedData_ <= 800 ));
@@ -224,13 +154,13 @@ public class Interface implements SerialPortEventListener{
             case 248: return ((recievedData_ > -410) && (recievedData_ < 410 ));
             case 136: return ((recievedData_ > -410) && (recievedData_ < 410 ));
             case 144: return ((recievedData_ > -410) && (recievedData_ < 410 )); 
-            case 152: return ((recievedData_ == 0) || (recievedData_ == 1));  // Läcka
+            case 152: return ((recievedData_ == 0) || (recievedData_ == 1));  // Läcka kan vara 1 eller 0
             case 160: return ((recievedData_ >= 0) && (recievedData_ <= 16400 ));  // Nod
             default: return false;
         }
     }
     
-    public String getHeaderString(int header_)
+    public String getHeaderString(int header_)  // Tar in en header och returnerar vad den motsvarar i text
     {
         switch (header_)
         {
@@ -250,10 +180,10 @@ public class Interface implements SerialPortEventListener{
     }
     
     public void setNodeInfo(int north_, int east_, int south_, int west_, int direction_, int nodeID_) // Identifierar nod och riktning
-    {                                                                                     //north - west är ett om roboten ser öppning, noll annars
+    {                                                                                     //north_ - west_ är ett om roboten ser öppning, noll annars
         int sumDirections_ = north_ + east_ + south_ + west_; // Summa av öppningar roboten ser 
         String directionString_ = "";       // Vilken riktning roboten rör sig i
-        switch(direction_)             // 0 innebär norr, 1 innebär öst osv.
+        switch(direction_)                  // 0 innebär norr, 1 innebär öst osv.
         {
             case 0:
                 directionString_ = "\nNorr";
@@ -292,11 +222,11 @@ public class Interface implements SerialPortEventListener{
         }
     }
     
-    public void setAllData(int header_, int recievedData_)
-    {
+    public void setAllData(int header_, int recievedData_) // Tar in en header och data, behandlar data beroende på header
+    {                                                      // och sparar den i lämplig variabel
         switch (header_)
         {
-            case 202:
+            case 202:                         // Om avstånd eller vinkel behöver datan inte behandlas
                 allSides[0] = recievedData_;  // Sida 1 (Norr)
                 break;
             case 208:
@@ -333,27 +263,27 @@ public class Interface implements SerialPortEventListener{
                     leak = "Nej";
                 }
                 break;
-            case 160:
-                int northBit_ = (recievedData_ & 0b00001000)/8;
-                int eastBit_ = (recievedData_ & 0b00000100)/4;
+            case 160: 
+                int northBit_ = (recievedData_ & 0b00001000)/8; // Bitarna 0,1,2,3 och  visar om det finns öppningar åt 
+                int eastBit_ = (recievedData_ & 0b00000100)/4;  // väst, syd, öst respektive norr
                 int southBit_ = (recievedData_ & 0b00000010)/2;
                 int westBit_ = (recievedData_ & 0b00000001);
-                int direction_ = (recievedData_ & 0b00100000)/16 + (recievedData_ & 0b00010000)/16;
-                int IDbyte_ = (recievedData_ & 0b0011111100000000)/256;
-                setNodeInfo(northBit_,eastBit_,southBit_,westBit_,direction_,IDbyte_);  // Läcka
+                int direction_ = (recievedData_ & 0b00100000)/16 + (recievedData_ & 0b00010000)/16; // Bitarna 4 och 5 är ett tal mellan 0 och 3 som
+                                                                                                    // motsvarar åt vilket håll  roboten gick in i noden
+                int IDbyte_ = (recievedData_ & 0b0011111100000000)/256;                             // Bitarna 8 till 13 är ett tal som motsvarar nodens Id
+                setNodeInfo(northBit_,eastBit_,southBit_,westBit_,direction_,IDbyte_); // Beräknar vad det är för nod osv.
                 break;
             default: ;
         }  
         
     }
     
-    public int convertToSignedInt(int dataByte1_, int dataByte2_)
+    public int convertToSignedInt(int dataByte1_, int dataByte2_) // Konverterar 2 separata byte till en signed int
     {
         if (dataByte1_ > 127)
         {
             dataByte1_ = dataByte1_ - 128; // Nu kan byte 1 och 2 adderas
             return -(dataByte1_ * 256 + dataByte2_); // Adderar 1 för off-set
-            
         }
         else
         {
@@ -369,71 +299,49 @@ public class Interface implements SerialPortEventListener{
         if(event.getEventType() == SerialPortEvent.DATA_AVAILABLE)
         {
             //Gör det som ska göras vid inläsnign av data
-            try{
-            svar = indata.read(); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande.
-
-            //System.out.println(svar);
-            
-            
-            dataBuffer[bufferCounter] = svar;
-            if(bufferCounter >= 2)
+            try
             {
-                bufferCounter = 0;
-                combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
-                if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
+                response = inputData.read(); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande.
+                dataBuffer[bufferCounter] = response;
+                System.out.println(response);
+                if(bufferCounter >= 2)
                 {
-                    setAllData(dataBuffer[0],combinedData);
-                    mainGUI.setAllText();
-                }
-                else
-                {
-                    /*
-                    System.out.print("Fel, buffer innehåller: ");
-                    System.out.print(dataBuffer[0]);
-                    System.out.print(" ");
-                    System.out.print(dataBuffer[1]);
-                    System.out.print(" ");
-                    System.out.println(dataBuffer[2]);
-                    */
-                    
-                    
+                    bufferCounter = 0;
+                    combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
+                    if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
+                    {
+                        setAllData(dataBuffer[0],combinedData);
+                        mainGUI.setAllText();
+                    }
+                    else
+                    {
                     dataBuffer[0] = dataBuffer[1];
                     dataBuffer[1] = dataBuffer[2];
                     bufferCounter = 2;
+                    }
                 }
-            }
-            else
-            {
+                else
+                {
                 bufferCounter ++;
-            }
-            
-            
-            } catch(Exception e){
+                }
+            } 
+            catch(Exception e)
+            {
                 System.err.println("Kunde inte hämta data.");
-                flush();
             }
         }
     }
     
-    public void skickainput(String dataToSend)
+    public void sendData(byte dataByte)
     {
-       try{
-       //String intest = "D"; //Testkörning
-           //dataToSend = instruktion.next().toUpperCase(); 
-           if((dataToSend.equals("Q"))||(dataToSend.equals("QUIT")))
-           {
-               flush();
-               System.out.println("Seriellport stängd. Ha en fortsatt trevlig dag.");
-               System.exit(1);
-           }
-           utdata.write(dataToSend.getBytes());
-           
-           //utdata.write(intest.getBytes()); //Testkörning
-       
-        } catch(Exception e){
+        try
+        {
+            outputData.write(dataByte);
+            //System.out.println(dataByte);
+        } 
+        catch(Exception e)
+        {
             System.err.println("Något gick fel med att skicka data.");
-            //flush();
-            //System.exit(1);
         }
     }
     
