@@ -4,84 +4,115 @@
 
 #include <stdio.h>
 
-#define false 0
-#define true  1
+#define false uint8_t 0
+#define true  uint8_t 1
 
 #define maxNodes 121        // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
-#define corridor  0         // Dessa är möjliga tal i whatNode
-#define twoWaysCrossing 1
-#define deadEnd   2
-#define Tcrossing 3
+#define corridor uint8_t  0         // Dessa är möjliga tal i whatNode
+#define twoWaysCrossing uint8_t 1
+#define deadEnd   uint8_t 2
+#define Tcrossing uint8_t 3
+#define Zcrossing uint8_t 4
+
+
+//------------------------------------------------ Jocke har definierat dessa i sin kod
+#define north uint8_t 1
+#define east  uint8_t 2
+#define south uint8_t 3
+#define west  uint8_t 4
+//------------------------------------------------ Ta bort dessa när denna kod integreras
+
+/*
+isLeakVisible_g
+northSensor_g
+northSensor1_g
+northSensor2_g
+eastSensor_g
+eastSensor3_g
+eastSensor4_g
+... 
+             Jocke fixar dessa
+*/
 
 #define maxWallDistance 310 // Roboten bör hållas inom 310 mm från väggen
 
-uint8_t tempNorthAvailible = true;
-uint8_t tempEastAvailible = false;
-uint8_t tempSouthAvailible = false;
-uint8_t tempWestAvailible = false;
-uint8_t currentNode = 0;
+uint8_t tempNorthAvailible_g = true;
+uint8_t tempEastAvailible_g = false;
+uint8_t tempSouthAvailible_g = false;
+uint8_t tempWestAvailible_g = false;
+uint8_t currentNode_g = 0;
+uint8_t canMakeNew_g = true;
+uint8_t actualLeak_g = 0;
+uint8_t validNode_g = true;
 
 struct pathsAndNodes
 {
-    uint8_t     whatNode;        // 0 är korridor, 1 är tvåvägskorsning, 2 är återvändsgränd och 3 är vägvalsnod
+    uint8_t     whatNode;        // Alla typer av noder är definade som siffror
     uint8_t     nodeID;          // Nodens unika id
-    uint8_t     wayIn;           // Riktningen in i noden, 0=>norr, 1=>öst, 2=>cyd, 3=>väst
-    uint8_t     nextDirection;   // Riktningen ut ur noden 0=>norr, 1=>öst, 2=>cyd, 3=>väst
+    uint8_t     wayIn;
+    uint8_t     nextDirection;   // Väderstrecken är siffror som är definade
     uint8_t     northAvailible;  // Finns riktningen norr i noden?   Om sant => 1, annars 0
-    uint8_t     eastAvailible;   // Finns riktningen öst i noden?
-    uint8_t     southAvailible;  // Finns riktningen cyd i noden?
-    uint8_t     westAvailible;   // Finns riktningen väst i noden?
+    uint8_t     eastAvailible;
+    uint8_t     southAvailible;
+    uint8_t     westAvailible;
     uint8_t     containsLeak;    // Finns läcka i "noden", kan bara finnas om det är en korridor
 }
 
-struct pathsAndNodes nodeArray[maxNodes];   // Bör kanske flyttas in i main
-
 void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 {
-    nodeArray[currentNode].whatNode = whatNodeType();
-    nodeArray[currentNode].nodeID = currentNode;
-    nodeArray[currentNode].wayIn = whatWayIn();
-    nodeArray[currentNode].nextDirection = whatsNextDirection();
-    nodeArray[currentNode].northAvailible = tempNorthAvailible;
-    nodeArray[currentNode].eastAvailible = tempEastAvailible;
-    nodeArray[currentNode].southAvailible = tempSouthAvailible;
-    nodeArray[currentNode].westAvailible = tempWestAvailible;
-    nodeArray[currentNode].containsLeak = isLeakFound();
+    nodeArray[currentNode_g].whatNode = whatNodeType();
+    nodeArray[currentNode_g].nodeID = currentNode;
+    nodeArray[currentNode_g].wayIn = whatWayIn();
+    nodeArray[currentNode_g].nextDirection = whatsNextDirection();
+    nodeArray[currentNode_g].northAvailible = tempNorthAvailible_g;
+    nodeArray[currentNode_g].eastAvailible = tempEastAvailible_g;
+    nodeArray[currentNode_g].southAvailible = tempSouthAvailible_g;
+    nodeArray[currentNode_g].westAvailible = tempWestAvailible_g;
+    nodeArray[currentNode_g].containsLeak = false;                // En ny nod kan inte initieras med en läcka
 }
 
 
-uint8_t checkIfNewNode() // "Bool" returnar false om alla noder är desamma och true om någon skiljer
+uint8_t checkIfNewNode() // "Bool" returnar false om alla noder är desamma och true om någon skiljer och den har skiljt 2 ggr i rad.
 {
-    if ((nodeArray[currentNode].northAvailible == tempNorthAvailible) && (nodeArray[currentNode].eastAvailible == tempEastAvailible) &&
-        (nodeArray[currentNode].southAvailible == tempSouthAvailible) && (nodeArray[currentNode].westAvailible == tempWestAvailible)) 
+    if ((nodeArray[currentNode_g].northAvailible == tempNorthAvailible_g) && (nodeArray[currentNode_g].eastAvailible == tempEastAvailible_g) &&
+        (nodeArray[currentNode_g].southAvailible == tempSouthAvailible_g) && (nodeArray[currentNode_g].westAvailible == tempWestAvailible_g)) 
     {
         return false;
     }
     else
     {
-        return true;
+        if (validNode_g == 2)
+        {
+            validNode_g = 0;
+            return true;
+        }
+        validNode_g ++;
+        return false;
     }
 }
 
 uint8_t whatNodeType();
 {
-    if (tempNorthAvailible + tempEastAvailible + tempSouthAvailible + tempWestAvailible == 3)
+    if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)
     {
-       return Tcrossing; // Om det finns 3 vägar så är det en vägvalsnod
+       return Tcrossing;            // Om det finns 3 vägar så är det en vägvalsnod
     }
-    else if (tempNorthAvailible + tempEastAvailible + tempSouthAvailible + tempWestAvailible == 2)
+    else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 2)
     {
-        if (tempNorthAvailible == tempSouthAvailible)
-            return corridor; // Detta måste vara en korridor
+        if (tempNorthAvailible_g == tempSouthAvailible_g)
+            return corridor;        // Detta måste vara en korridor
         else
             return twoWaysCrossing; // Detta måste vara en 2vägskorsning
     }
-    else if (tempNorthAvailible + tempEastAvailible + tempSouthAvailible + tempWestAvailible == 1)
+    else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 1)
     {
-        return deadEnd;   // Detta måste vara en återvändsgränd
+        return deadEnd;             // Detta måste vara en återvändsgränd
     }
-    else 
+    else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 0)
+    {
+        return Zcrossing;           // Detta måste vara en Z-sväng (sensornenh. returnerar kortase)
+    }
 }
 
 uint8_t whatWayIn()
@@ -94,85 +125,86 @@ uint8_t whatsNextDirection()
     // Styrbeslut, väljer höger först om vägval finns (T-korsning)
 }
 
-
-int16_t getNorthSensor()
+void updateLeakInfo()
 {
-    // Sensordata som berättar avståndet åt norr (3siffrigt värde)
-}
-
-int16_t getEastSensor()
-{
-    // Sensordata som berättar avståndet åt öst (3siffrigt värde)
-}
-
-int16_t getSouthSensor()
-{
-    // Sensordata som berättar avståndet åt cyd (3siffrigt värde)
-}
-
-int16_t getWestSensor()
-{
-    // Sensordata som berättar avståndet åt väst (3siffrigt värde)
-}
-
-uint8_t getLeakInfo()
-{
-    // Sensordata som berättar om en läcka är synlig
-}
-
-uint8_t isLeakFound()
-{
-    if (getLeakInfo() == true)
+    if ((validLeak() == true) &&                              // Faktisk läcka?
+        (nodeArray[currentNode_g].containsLeak == false) &&   // Innehåller noden redan en läcka?
+        (nodeArray[currentNode_g].whatNode == corridor))      // Läckor får bara finnas i nodtypen "corridor"
     {
-        actualLeak ++;
-        if ((actualLeak == 3) && (nodeArray[currentNode].containsLeak == false))    // Når variabeln actualLeak 3 och det inte redan finns en läcka så
-            {                                                                       // så är det en läcka
-            actualLeak = 0;
+        nodeArray[currentNode_g].containsLeak = true;         // Uppdaterar att korridornoden har en läcka sig
+    }
+}
+
+uint8_t validLeak()
+{
+    if (isLeakVisible_g == true)
+    {
+        if (actualLeak_g == 3)      // Når variabeln actualLeak_g når 3
+        {                           // så är det en faktisk läcka
             return true;
-            }
+        }
+        else
+        {
+            actualLeak_g ++;
+            return false;
+        }
     }
     else
     {
-        actualLeak = 0;
+        actualLeak_g = 0;
     }
 
     return false;
 }
 
+void updateMakeNew()
+{
+    if ((nodeArray[currentNode_g].whatNode == deadEnd) && !(nodeArray[currentNode_g].whatNode == Tcrossing))
+    {
+        canMakeNew_g = false;
+    }
+    else
+    {
+        canMakeNew_g = true;
+    }
+}
+
 void updateTempDirections()
 {
-    if (getNorthSensor() > maxWallDistance) // Kan behöva ändra maxWallDistance
-        tempNorthAvailible = true;
+    if (northSensor_g() > maxWallDistance) // Kan behöva ändra maxWallDistance
+        tempNorthAvailible_g = true;
     else
-        tempNorthAvailible = false;
+        tempNorthAvailible_g = false;
 
 
-    if (getEastSensor() > maxWallDistance)
-        tempEastAvailible = true;
+    if (eastSensor_g() > maxWallDistance)
+        tempEastAvailible_g = true;
     else    
-        tempEastAvailible = false;
+        tempEastAvailible_g = false;
 
 
-    if (getSouthSensor() > maxWallDistance)
-        tempSouthAvailible = true;
+    if (southSensor_g() > maxWallDistance)
+        tempSouthAvailible_g = true;
     else
-        tempSouthAvailible = false;
+        tempSouthAvailible_g = false;
 
 
-    if (getWestSensor() > maxWallDistance)
-        tempWestAvailible = true;
+    if (westSensor_g() > maxWallDistance)
+        tempWestAvailible_g = true;
     else
-        tempWestAvailible = false;
+        tempWestAvailible_g = false;
 }
 
 int main()
 {
+    struct pathsAndNodes nodeArray[maxNodes];
+
     // Börjar i en återvändsgränd med norr som frammåt
     nodeArray[0].whatNode = deadEnd;
-    nodeArray[0].nodeID = 0;             // Nodens ID börjar på 0, för att vara samma som currentNode
+    nodeArray[0].nodeID = 0;                // Nodens ID börjar på 0, för att vara samma som currentNode_g
     nodeArray[0].wayIn = north;
     nodeArray[0].nextDirection = north;
-    nodeArray[0].northAvailible = true;
+    nodeArray[0].northAvailible = true;     // Börjar i återvändsgränd med tillgänglig rikt. norr
     nodeArray[0].eastAvailible = false;
     nodeArray[0].southAvailible = false;
     nodeArray[0].westAvailible = false;
@@ -181,9 +213,12 @@ int main()
     while(1)
     {
         updateTempDirections();
-        if (checkIfNewNode() == true)   // Om detta är sant ska det först kontrolleras att det inte är en nod som redan finns i systemet
-        {                               // Detta är en ganska stor del
-            currentNode ++;
+        updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
+        updateMakeNew();
+
+        if ((checkIfNewNode() == true) && (canMakeNew_g == true))
+        {
+            currentNode_g ++;
             createNewNode();
         }
     }
