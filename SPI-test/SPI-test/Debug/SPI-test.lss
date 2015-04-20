@@ -3,529 +3,581 @@ SPI-test.elf:     file format elf32-avr
 
 Sections:
 Idx Name          Size      VMA       LMA       File off  Algn
-  0 .text         00000290  00000000  00000000  00000074  2**1
-                  CONTENTS, ALLOC, LOAD, READONLY, CODE
-  1 .data         00000002  00800060  00000290  00000304  2**0
+  0 .data         00000002  00800100  000002aa  0000031e  2**0
                   CONTENTS, ALLOC, LOAD, DATA
-  2 .comment      00000030  00000000  00000000  00000306  2**0
+  1 .text         000002aa  00000000  00000000  00000074  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .comment      00000030  00000000  00000000  00000320  2**0
                   CONTENTS, READONLY
-  3 .debug_aranges 00000038  00000000  00000000  00000336  2**0
+  3 .debug_aranges 00000038  00000000  00000000  00000350  2**0
                   CONTENTS, READONLY, DEBUGGING
-  4 .debug_info   00000537  00000000  00000000  0000036e  2**0
+  4 .debug_info   00000537  00000000  00000000  00000388  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_abbrev 00000179  00000000  00000000  000008a5  2**0
+  5 .debug_abbrev 00000179  00000000  00000000  000008bf  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_line   000001cb  00000000  00000000  00000a1e  2**0
+  6 .debug_line   000002f1  00000000  00000000  00000a38  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_frame  00000060  00000000  00000000  00000bec  2**2
+  7 .debug_frame  00000060  00000000  00000000  00000d2c  2**2
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_str    000001fd  00000000  00000000  00000c4c  2**0
+  8 .debug_str    00000207  00000000  00000000  00000d8c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_loc    0000029b  00000000  00000000  00000e49  2**0
+  9 .debug_loc    0000029b  00000000  00000000  00000f93  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_ranges 00000028  00000000  00000000  000010e4  2**0
+ 10 .debug_ranges 00000028  00000000  00000000  0000122e  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
 
 00000000 <__vectors>:
-   0:	0c 94 2a 00 	jmp	0x54	; 0x54 <__ctors_end>
-   4:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-   8:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-   c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  10:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  14:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  18:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  1c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  20:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  24:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  28:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  2c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  30:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  34:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  38:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  3c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  40:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  44:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  48:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  4c:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
-  50:	0c 94 3f 00 	jmp	0x7e	; 0x7e <__bad_interrupt>
+   0:	45 c0       	rjmp	.+138    	; 0x8c <__ctors_end>
+   2:	00 00       	nop
+   4:	58 c0       	rjmp	.+176    	; 0xb6 <__bad_interrupt>
+   6:	00 00       	nop
+   8:	56 c0       	rjmp	.+172    	; 0xb6 <__bad_interrupt>
+   a:	00 00       	nop
+   c:	54 c0       	rjmp	.+168    	; 0xb6 <__bad_interrupt>
+   e:	00 00       	nop
+  10:	52 c0       	rjmp	.+164    	; 0xb6 <__bad_interrupt>
+  12:	00 00       	nop
+  14:	50 c0       	rjmp	.+160    	; 0xb6 <__bad_interrupt>
+  16:	00 00       	nop
+  18:	4e c0       	rjmp	.+156    	; 0xb6 <__bad_interrupt>
+  1a:	00 00       	nop
+  1c:	4c c0       	rjmp	.+152    	; 0xb6 <__bad_interrupt>
+  1e:	00 00       	nop
+  20:	4a c0       	rjmp	.+148    	; 0xb6 <__bad_interrupt>
+  22:	00 00       	nop
+  24:	48 c0       	rjmp	.+144    	; 0xb6 <__bad_interrupt>
+  26:	00 00       	nop
+  28:	46 c0       	rjmp	.+140    	; 0xb6 <__bad_interrupt>
+  2a:	00 00       	nop
+  2c:	44 c0       	rjmp	.+136    	; 0xb6 <__bad_interrupt>
+  2e:	00 00       	nop
+  30:	42 c0       	rjmp	.+132    	; 0xb6 <__bad_interrupt>
+  32:	00 00       	nop
+  34:	40 c0       	rjmp	.+128    	; 0xb6 <__bad_interrupt>
+  36:	00 00       	nop
+  38:	3e c0       	rjmp	.+124    	; 0xb6 <__bad_interrupt>
+  3a:	00 00       	nop
+  3c:	3c c0       	rjmp	.+120    	; 0xb6 <__bad_interrupt>
+  3e:	00 00       	nop
+  40:	3a c0       	rjmp	.+116    	; 0xb6 <__bad_interrupt>
+  42:	00 00       	nop
+  44:	38 c0       	rjmp	.+112    	; 0xb6 <__bad_interrupt>
+  46:	00 00       	nop
+  48:	36 c0       	rjmp	.+108    	; 0xb6 <__bad_interrupt>
+  4a:	00 00       	nop
+  4c:	34 c0       	rjmp	.+104    	; 0xb6 <__bad_interrupt>
+  4e:	00 00       	nop
+  50:	32 c0       	rjmp	.+100    	; 0xb6 <__bad_interrupt>
+  52:	00 00       	nop
+  54:	30 c0       	rjmp	.+96     	; 0xb6 <__bad_interrupt>
+  56:	00 00       	nop
+  58:	2e c0       	rjmp	.+92     	; 0xb6 <__bad_interrupt>
+  5a:	00 00       	nop
+  5c:	2c c0       	rjmp	.+88     	; 0xb6 <__bad_interrupt>
+  5e:	00 00       	nop
+  60:	2a c0       	rjmp	.+84     	; 0xb6 <__bad_interrupt>
+  62:	00 00       	nop
+  64:	28 c0       	rjmp	.+80     	; 0xb6 <__bad_interrupt>
+  66:	00 00       	nop
+  68:	26 c0       	rjmp	.+76     	; 0xb6 <__bad_interrupt>
+  6a:	00 00       	nop
+  6c:	24 c0       	rjmp	.+72     	; 0xb6 <__bad_interrupt>
+  6e:	00 00       	nop
+  70:	22 c0       	rjmp	.+68     	; 0xb6 <__bad_interrupt>
+  72:	00 00       	nop
+  74:	20 c0       	rjmp	.+64     	; 0xb6 <__bad_interrupt>
+  76:	00 00       	nop
+  78:	1e c0       	rjmp	.+60     	; 0xb6 <__bad_interrupt>
+  7a:	00 00       	nop
+  7c:	1c c0       	rjmp	.+56     	; 0xb6 <__bad_interrupt>
+  7e:	00 00       	nop
+  80:	1a c0       	rjmp	.+52     	; 0xb6 <__bad_interrupt>
+  82:	00 00       	nop
+  84:	18 c0       	rjmp	.+48     	; 0xb6 <__bad_interrupt>
+  86:	00 00       	nop
+  88:	16 c0       	rjmp	.+44     	; 0xb6 <__bad_interrupt>
+	...
 
-00000054 <__ctors_end>:
-  54:	11 24       	eor	r1, r1
-  56:	1f be       	out	0x3f, r1	; 63
-  58:	cf e5       	ldi	r28, 0x5F	; 95
-  5a:	d4 e0       	ldi	r29, 0x04	; 4
-  5c:	de bf       	out	0x3e, r29	; 62
-  5e:	cd bf       	out	0x3d, r28	; 61
+0000008c <__ctors_end>:
+  8c:	11 24       	eor	r1, r1
+  8e:	1f be       	out	0x3f, r1	; 63
+  90:	cf ef       	ldi	r28, 0xFF	; 255
+  92:	d0 e4       	ldi	r29, 0x40	; 64
+  94:	de bf       	out	0x3e, r29	; 62
+  96:	cd bf       	out	0x3d, r28	; 61
 
-00000060 <__do_copy_data>:
-  60:	10 e0       	ldi	r17, 0x00	; 0
-  62:	a0 e6       	ldi	r26, 0x60	; 96
-  64:	b0 e0       	ldi	r27, 0x00	; 0
-  66:	e0 e9       	ldi	r30, 0x90	; 144
-  68:	f2 e0       	ldi	r31, 0x02	; 2
-  6a:	02 c0       	rjmp	.+4      	; 0x70 <__do_copy_data+0x10>
-  6c:	05 90       	lpm	r0, Z+
-  6e:	0d 92       	st	X+, r0
-  70:	a2 36       	cpi	r26, 0x62	; 98
-  72:	b1 07       	cpc	r27, r17
-  74:	d9 f7       	brne	.-10     	; 0x6c <__do_copy_data+0xc>
-  76:	0e 94 74 00 	call	0xe8	; 0xe8 <main>
-  7a:	0c 94 46 01 	jmp	0x28c	; 0x28c <_exit>
+00000098 <__do_copy_data>:
+  98:	11 e0       	ldi	r17, 0x01	; 1
+  9a:	a0 e0       	ldi	r26, 0x00	; 0
+  9c:	b1 e0       	ldi	r27, 0x01	; 1
+  9e:	ea ea       	ldi	r30, 0xAA	; 170
+  a0:	f2 e0       	ldi	r31, 0x02	; 2
+  a2:	00 e0       	ldi	r16, 0x00	; 0
+  a4:	0b bf       	out	0x3b, r16	; 59
+  a6:	02 c0       	rjmp	.+4      	; 0xac <__do_copy_data+0x14>
+  a8:	07 90       	elpm	r0, Z+
+  aa:	0d 92       	st	X+, r0
+  ac:	a2 30       	cpi	r26, 0x02	; 2
+  ae:	b1 07       	cpc	r27, r17
+  b0:	d9 f7       	brne	.-10     	; 0xa8 <__do_copy_data+0x10>
+  b2:	33 d0       	rcall	.+102    	; 0x11a <main>
+  b4:	f8 c0       	rjmp	.+496    	; 0x2a6 <_exit>
 
-0000007e <__bad_interrupt>:
-  7e:	0c 94 00 00 	jmp	0	; 0x0 <__vectors>
+000000b6 <__bad_interrupt>:
+  b6:	a4 cf       	rjmp	.-184    	; 0x0 <__vectors>
 
-00000082 <spiInit>:
+000000b8 <spiInit>:
 
 unsigned char inbuffer = 0x44;
 
 void spiInit(void)
 {
-	DDRA = (1<<PORTA2);
-  82:	84 e0       	ldi	r24, 0x04	; 4
-  84:	8a bb       	out	0x1a, r24	; 26
+	DDRA = (1<<PORTA2); // Denna port skickar slave-select till en annan processor.
+  b8:	84 e0       	ldi	r24, 0x04	; 4
+  ba:	81 b9       	out	0x01, r24	; 1
 	PORTA = (1<<PORTA2); //Ha ingen slav vald
-  86:	8b bb       	out	0x1b, r24	; 27
-	DDRB = (1<<PORTB5)|(1<<PORTB7)|(1<<PORTB4); //Definiera outputs
-  88:	80 eb       	ldi	r24, 0xB0	; 176
-  8a:	87 bb       	out	0x17, r24	; 23
+  bc:	82 b9       	out	0x02, r24	; 2
+	DDRB = (1<<PORTB5)|(1<<PORTB7)|(0<<PORTB4); //Definiera outputs. PortB4 skall hållas hög på master.
+  be:	80 ea       	ldi	r24, 0xA0	; 160
+  c0:	84 b9       	out	0x04, r24	; 4
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0); //Sätt enhet till master, enable spi, klockfrekvens
-  8c:	81 e5       	ldi	r24, 0x51	; 81
-  8e:	8d b9       	out	0x0d, r24	; 13
-  90:	08 95       	ret
+  c2:	81 e5       	ldi	r24, 0x51	; 81
+  c4:	8c bd       	out	0x2c, r24	; 44
+  c6:	08 95       	ret
 
-00000092 <spiTransmit>:
+000000c8 <spiTransmit>:
 }
 
 void spiTransmit(unsigned char data)
 {
 	 SPDR = data;
-  92:	8f b9       	out	0x0f, r24	; 15
+  c8:	8e bd       	out	0x2e, r24	; 46
 	 while(!(SPSR & (1<<SPIF))); //Vänta på att överföring är klar
-  94:	77 9b       	sbis	0x0e, 7	; 14
-  96:	fe cf       	rjmp	.-4      	; 0x94 <spiTransmit+0x2>
+  ca:	0d b4       	in	r0, 0x2d	; 45
+  cc:	07 fe       	sbrs	r0, 7
+  ce:	fd cf       	rjmp	.-6      	; 0xca <spiTransmit+0x2>
 	 inbuffer = SPDR;
-  98:	8f b1       	in	r24, 0x0f	; 15
-  9a:	80 93 60 00 	sts	0x0060, r24
-  9e:	08 95       	ret
+  d0:	8e b5       	in	r24, 0x2e	; 46
+  d2:	80 93 00 01 	sts	0x0100, r24
+  d6:	08 95       	ret
 
-000000a0 <transmitData>:
+000000d8 <transmitData>:
 }
 
 
 void transmitData(int header_, int dataByte1, int dataByte2_)
 {
-  a0:	cf 93       	push	r28
-  a2:	df 93       	push	r29
-  a4:	d6 2f       	mov	r29, r22
-  a6:	c4 2f       	mov	r28, r20
+  d8:	cf 93       	push	r28
+  da:	df 93       	push	r29
+  dc:	d6 2f       	mov	r29, r22
+  de:	c4 2f       	mov	r28, r20
     PORTA = (0<<PORTA2); //Slave select
-  a8:	1b ba       	out	0x1b, r1	; 27
+  e0:	12 b8       	out	0x02, r1	; 2
     spiTransmit(header_);
-  aa:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
+  e2:	f2 df       	rcall	.-28     	; 0xc8 <spiTransmit>
    	PORTA = (1<<PORTA2); //Slave deselect
-  ae:	84 e0       	ldi	r24, 0x04	; 4
-  b0:	8b bb       	out	0x1b, r24	; 27
+  e4:	84 e0       	ldi	r24, 0x04	; 4
+  e6:	82 b9       	out	0x02, r24	; 2
 	#else
 		//round up by default
 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
 	#endif
 
 	__builtin_avr_delay_cycles(__ticks_dc);
-  b2:	8a e1       	ldi	r24, 0x1A	; 26
-  b4:	8a 95       	dec	r24
-  b6:	f1 f7       	brne	.-4      	; 0xb4 <transmitData+0x14>
-  b8:	00 c0       	rjmp	.+0      	; 0xba <transmitData+0x1a>
+  e8:	8a e1       	ldi	r24, 0x1A	; 26
+  ea:	8a 95       	dec	r24
+  ec:	f1 f7       	brne	.-4      	; 0xea <transmitData+0x12>
+  ee:	00 c0       	rjmp	.+0      	; 0xf0 <transmitData+0x18>
    	_delay_us(5);
    	PORTA = (0<<PORTA2);
-  ba:	1b ba       	out	0x1b, r1	; 27
+  f0:	12 b8       	out	0x02, r1	; 2
    	spiTransmit(dataByte1);
-  bc:	8d 2f       	mov	r24, r29
-  be:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
+  f2:	8d 2f       	mov	r24, r29
+  f4:	e9 df       	rcall	.-46     	; 0xc8 <spiTransmit>
     PORTA = (1<<PORTA2);
-  c2:	84 e0       	ldi	r24, 0x04	; 4
-  c4:	8b bb       	out	0x1b, r24	; 27
-  c6:	8a e1       	ldi	r24, 0x1A	; 26
-  c8:	8a 95       	dec	r24
-  ca:	f1 f7       	brne	.-4      	; 0xc8 <transmitData+0x28>
-  cc:	00 c0       	rjmp	.+0      	; 0xce <transmitData+0x2e>
+  f6:	84 e0       	ldi	r24, 0x04	; 4
+  f8:	82 b9       	out	0x02, r24	; 2
+  fa:	8a e1       	ldi	r24, 0x1A	; 26
+  fc:	8a 95       	dec	r24
+  fe:	f1 f7       	brne	.-4      	; 0xfc <transmitData+0x24>
+ 100:	00 c0       	rjmp	.+0      	; 0x102 <transmitData+0x2a>
    	_delay_us(5);
    	PORTA = (0<<PORTA2);
-  ce:	1b ba       	out	0x1b, r1	; 27
+ 102:	12 b8       	out	0x02, r1	; 2
    	spiTransmit(dataByte2_);
-  d0:	8c 2f       	mov	r24, r28
-  d2:	0e 94 49 00 	call	0x92	; 0x92 <spiTransmit>
+ 104:	8c 2f       	mov	r24, r28
+ 106:	e0 df       	rcall	.-64     	; 0xc8 <spiTransmit>
    	PORTA = (1<<PORTA2);
-  d6:	84 e0       	ldi	r24, 0x04	; 4
-  d8:	8b bb       	out	0x1b, r24	; 27
-  da:	8a e1       	ldi	r24, 0x1A	; 26
-  dc:	8a 95       	dec	r24
-  de:	f1 f7       	brne	.-4      	; 0xdc <transmitData+0x3c>
-  e0:	00 c0       	rjmp	.+0      	; 0xe2 <transmitData+0x42>
+ 108:	84 e0       	ldi	r24, 0x04	; 4
+ 10a:	82 b9       	out	0x02, r24	; 2
+ 10c:	8a e1       	ldi	r24, 0x1A	; 26
+ 10e:	8a 95       	dec	r24
+ 110:	f1 f7       	brne	.-4      	; 0x10e <transmitData+0x36>
+ 112:	00 c0       	rjmp	.+0      	; 0x114 <transmitData+0x3c>
    	_delay_us(5);
 }
-  e2:	df 91       	pop	r29
-  e4:	cf 91       	pop	r28
-  e6:	08 95       	ret
+ 114:	df 91       	pop	r29
+ 116:	cf 91       	pop	r28
+ 118:	08 95       	ret
 
-000000e8 <main>:
+0000011a <main>:
 {
     int dataOffset = -3;
     int dataIterator = 0;
     int leakTestByte = 0;
     int nodeTestByte1 = 0b00010011;
     int nodeTestByte2 = 0b00001100;
-  e8:	0f 2e       	mov	r0, r31
-  ea:	fc e0       	ldi	r31, 0x0C	; 12
-  ec:	2f 2e       	mov	r2, r31
-  ee:	f0 2d       	mov	r31, r0
-  f0:	31 2c       	mov	r3, r1
+ 11a:	0f 2e       	mov	r0, r31
+ 11c:	fc e0       	ldi	r31, 0x0C	; 12
+ 11e:	2f 2e       	mov	r2, r31
+ 120:	f0 2d       	mov	r31, r0
+ 122:	31 2c       	mov	r3, r1
 int main(void)
 {
     int dataOffset = -3;
     int dataIterator = 0;
     int leakTestByte = 0;
     int nodeTestByte1 = 0b00010011;
-  f2:	0f 2e       	mov	r0, r31
-  f4:	f3 e1       	ldi	r31, 0x13	; 19
-  f6:	6f 2e       	mov	r6, r31
-  f8:	71 2c       	mov	r7, r1
-  fa:	f0 2d       	mov	r31, r0
+ 124:	0f 2e       	mov	r0, r31
+ 126:	f3 e1       	ldi	r31, 0x13	; 19
+ 128:	6f 2e       	mov	r6, r31
+ 12a:	71 2c       	mov	r7, r1
+ 12c:	f0 2d       	mov	r31, r0
 
 int main(void)
 {
     int dataOffset = -3;
     int dataIterator = 0;
     int leakTestByte = 0;
-  fc:	41 2c       	mov	r4, r1
-  fe:	51 2c       	mov	r5, r1
+ 12e:	41 2c       	mov	r4, r1
+ 130:	51 2c       	mov	r5, r1
 }
 
 int main(void)
 {
     int dataOffset = -3;
     int dataIterator = 0;
- 100:	c0 e0       	ldi	r28, 0x00	; 0
- 102:	d0 e0       	ldi	r29, 0x00	; 0
+ 132:	c0 e0       	ldi	r28, 0x00	; 0
+ 134:	d0 e0       	ldi	r29, 0x00	; 0
    	_delay_us(5);
 }
 
 int main(void)
 {
     int dataOffset = -3;
- 104:	0d ef       	ldi	r16, 0xFD	; 253
- 106:	1f ef       	ldi	r17, 0xFF	; 255
+ 136:	0d ef       	ldi	r16, 0xFD	; 253
+ 138:	1f ef       	ldi	r17, 0xFF	; 255
     int leakTestByte = 0;
     int nodeTestByte1 = 0b00010011;
     int nodeTestByte2 = 0b00001100;
     while(1)
     {
 	    spiInit(); 
- 108:	0e 94 41 00 	call	0x82	; 0x82 <spiInit>
+ 13a:	be df       	rcall	.-132    	; 0xb8 <spiInit>
     	PORTA = (0<<PORTA2); 
- 10c:	1b ba       	out	0x1b, r1	; 27
- 10e:	2a e1       	ldi	r18, 0x1A	; 26
- 110:	2a 95       	dec	r18
- 112:	f1 f7       	brne	.-4      	; 0x110 <main+0x28>
- 114:	00 c0       	rjmp	.+0      	; 0x116 <main+0x2e>
+ 13c:	12 b8       	out	0x02, r1	; 2
+ 13e:	2a e1       	ldi	r18, 0x1A	; 26
+ 140:	2a 95       	dec	r18
+ 142:	f1 f7       	brne	.-4      	; 0x140 <main+0x26>
+ 144:	00 c0       	rjmp	.+0      	; 0x146 <main+0x2c>
     	_delay_us(5);
         
         transmitData(202,0b00000001,0b01110000 + 2 * dataOffset +152); // Sida 1
- 116:	68 01       	movw	r12, r16
- 118:	84 e8       	ldi	r24, 0x84	; 132
- 11a:	c8 0e       	add	r12, r24
- 11c:	d1 1c       	adc	r13, r1
- 11e:	cc 0c       	add	r12, r12
- 120:	dd 1c       	adc	r13, r13
- 122:	a6 01       	movw	r20, r12
- 124:	61 e0       	ldi	r22, 0x01	; 1
- 126:	70 e0       	ldi	r23, 0x00	; 0
- 128:	8a ec       	ldi	r24, 0xCA	; 202
- 12a:	90 e0       	ldi	r25, 0x00	; 0
- 12c:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 146:	68 01       	movw	r12, r16
+ 148:	84 e8       	ldi	r24, 0x84	; 132
+ 14a:	c8 0e       	add	r12, r24
+ 14c:	d1 1c       	adc	r13, r1
+ 14e:	cc 0c       	add	r12, r12
+ 150:	dd 1c       	adc	r13, r13
+ 152:	a6 01       	movw	r20, r12
+ 154:	61 e0       	ldi	r22, 0x01	; 1
+ 156:	70 e0       	ldi	r23, 0x00	; 0
+ 158:	8a ec       	ldi	r24, 0xCA	; 202
+ 15a:	90 e0       	ldi	r25, 0x00	; 0
+ 15c:	bd df       	rcall	.-134    	; 0xd8 <transmitData>
 
         transmitData(232,0b10000001,0b00000111 + 2 * dataOffset + 55);// Vinkel 1
- 130:	46 01       	movw	r8, r12
- 132:	9a ec       	ldi	r25, 0xCA	; 202
- 134:	89 1a       	sub	r8, r25
- 136:	91 08       	sbc	r9, r1
- 138:	a4 01       	movw	r20, r8
- 13a:	61 e8       	ldi	r22, 0x81	; 129
- 13c:	70 e0       	ldi	r23, 0x00	; 0
- 13e:	88 ee       	ldi	r24, 0xE8	; 232
- 140:	90 e0       	ldi	r25, 0x00	; 0
- 142:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 15e:	46 01       	movw	r8, r12
+ 160:	9a ec       	ldi	r25, 0xCA	; 202
+ 162:	89 1a       	sub	r8, r25
+ 164:	91 08       	sbc	r9, r1
+ 166:	a4 01       	movw	r20, r8
+ 168:	61 e8       	ldi	r22, 0x81	; 129
+ 16a:	70 e0       	ldi	r23, 0x00	; 0
+ 16c:	88 ee       	ldi	r24, 0xE8	; 232
+ 16e:	90 e0       	ldi	r25, 0x00	; 0
+ 170:	b3 df       	rcall	.-154    	; 0xd8 <transmitData>
         
         
         
         transmitData(208,0b00000001,0b01110000 + dataOffset); // Sida 2
- 146:	58 01       	movw	r10, r16
- 148:	20 e7       	ldi	r18, 0x70	; 112
- 14a:	a2 0e       	add	r10, r18
- 14c:	b1 1c       	adc	r11, r1
- 14e:	a5 01       	movw	r20, r10
- 150:	61 e0       	ldi	r22, 0x01	; 1
- 152:	70 e0       	ldi	r23, 0x00	; 0
- 154:	80 ed       	ldi	r24, 0xD0	; 208
- 156:	90 e0       	ldi	r25, 0x00	; 0
- 158:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 172:	58 01       	movw	r10, r16
+ 174:	20 e7       	ldi	r18, 0x70	; 112
+ 176:	a2 0e       	add	r10, r18
+ 178:	b1 1c       	adc	r11, r1
+ 17a:	a5 01       	movw	r20, r10
+ 17c:	61 e0       	ldi	r22, 0x01	; 1
+ 17e:	70 e0       	ldi	r23, 0x00	; 0
+ 180:	80 ed       	ldi	r24, 0xD0	; 208
+ 182:	90 e0       	ldi	r25, 0x00	; 0
+ 184:	a9 df       	rcall	.-174    	; 0xd8 <transmitData>
 
     	transmitData(240,0b10000001,0b00000111 + dataOffset); // Vinkel 2
- 15c:	78 01       	movw	r14, r16
- 15e:	87 e0       	ldi	r24, 0x07	; 7
- 160:	e8 0e       	add	r14, r24
- 162:	f1 1c       	adc	r15, r1
- 164:	a7 01       	movw	r20, r14
- 166:	61 e8       	ldi	r22, 0x81	; 129
- 168:	70 e0       	ldi	r23, 0x00	; 0
- 16a:	80 ef       	ldi	r24, 0xF0	; 240
- 16c:	90 e0       	ldi	r25, 0x00	; 0
- 16e:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 186:	78 01       	movw	r14, r16
+ 188:	87 e0       	ldi	r24, 0x07	; 7
+ 18a:	e8 0e       	add	r14, r24
+ 18c:	f1 1c       	adc	r15, r1
+ 18e:	a7 01       	movw	r20, r14
+ 190:	61 e8       	ldi	r22, 0x81	; 129
+ 192:	70 e0       	ldi	r23, 0x00	; 0
+ 194:	80 ef       	ldi	r24, 0xF0	; 240
+ 196:	90 e0       	ldi	r25, 0x00	; 0
+ 198:	9f df       	rcall	.-194    	; 0xd8 <transmitData>
         
         
         
         transmitData(216,0b00000001,0b01110000 + 2 * dataOffset +152); // Sida 3
- 172:	a6 01       	movw	r20, r12
- 174:	61 e0       	ldi	r22, 0x01	; 1
- 176:	70 e0       	ldi	r23, 0x00	; 0
- 178:	88 ed       	ldi	r24, 0xD8	; 216
- 17a:	90 e0       	ldi	r25, 0x00	; 0
- 17c:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 19a:	a6 01       	movw	r20, r12
+ 19c:	61 e0       	ldi	r22, 0x01	; 1
+ 19e:	70 e0       	ldi	r23, 0x00	; 0
+ 1a0:	88 ed       	ldi	r24, 0xD8	; 216
+ 1a2:	90 e0       	ldi	r25, 0x00	; 0
+ 1a4:	99 df       	rcall	.-206    	; 0xd8 <transmitData>
 
         transmitData(248,0b10000001,0b00000111 + 2 * dataOffset + 55);// Vinkel 3
- 180:	a4 01       	movw	r20, r8
- 182:	61 e8       	ldi	r22, 0x81	; 129
- 184:	70 e0       	ldi	r23, 0x00	; 0
- 186:	88 ef       	ldi	r24, 0xF8	; 248
- 188:	90 e0       	ldi	r25, 0x00	; 0
- 18a:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 1a6:	a4 01       	movw	r20, r8
+ 1a8:	61 e8       	ldi	r22, 0x81	; 129
+ 1aa:	70 e0       	ldi	r23, 0x00	; 0
+ 1ac:	88 ef       	ldi	r24, 0xF8	; 248
+ 1ae:	90 e0       	ldi	r25, 0x00	; 0
+ 1b0:	93 df       	rcall	.-218    	; 0xd8 <transmitData>
         
         
         
         transmitData(224,0b00000001,0b01110000 + dataOffset); // Sida 4
- 18e:	a5 01       	movw	r20, r10
- 190:	61 e0       	ldi	r22, 0x01	; 1
- 192:	70 e0       	ldi	r23, 0x00	; 0
- 194:	80 ee       	ldi	r24, 0xE0	; 224
- 196:	90 e0       	ldi	r25, 0x00	; 0
- 198:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 1b2:	a5 01       	movw	r20, r10
+ 1b4:	61 e0       	ldi	r22, 0x01	; 1
+ 1b6:	70 e0       	ldi	r23, 0x00	; 0
+ 1b8:	80 ee       	ldi	r24, 0xE0	; 224
+ 1ba:	90 e0       	ldi	r25, 0x00	; 0
+ 1bc:	8d df       	rcall	.-230    	; 0xd8 <transmitData>
 
         transmitData(136,0b10000001,0b00000111 + dataOffset); // Vinkel 4
- 19c:	a7 01       	movw	r20, r14
- 19e:	61 e8       	ldi	r22, 0x81	; 129
- 1a0:	70 e0       	ldi	r23, 0x00	; 0
- 1a2:	88 e8       	ldi	r24, 0x88	; 136
- 1a4:	90 e0       	ldi	r25, 0x00	; 0
- 1a6:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 1be:	a7 01       	movw	r20, r14
+ 1c0:	61 e8       	ldi	r22, 0x81	; 129
+ 1c2:	70 e0       	ldi	r23, 0x00	; 0
+ 1c4:	88 e8       	ldi	r24, 0x88	; 136
+ 1c6:	90 e0       	ldi	r25, 0x00	; 0
+ 1c8:	87 df       	rcall	.-242    	; 0xd8 <transmitData>
         
         
         
         transmitData(144,0b10000001,0b00000111 + dataOffset); // Vinkel total
- 1aa:	a7 01       	movw	r20, r14
- 1ac:	61 e8       	ldi	r22, 0x81	; 129
- 1ae:	70 e0       	ldi	r23, 0x00	; 0
- 1b0:	80 e9       	ldi	r24, 0x90	; 144
- 1b2:	90 e0       	ldi	r25, 0x00	; 0
- 1b4:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 1ca:	a7 01       	movw	r20, r14
+ 1cc:	61 e8       	ldi	r22, 0x81	; 129
+ 1ce:	70 e0       	ldi	r23, 0x00	; 0
+ 1d0:	80 e9       	ldi	r24, 0x90	; 144
+ 1d2:	90 e0       	ldi	r25, 0x00	; 0
+ 1d4:	81 df       	rcall	.-254    	; 0xd8 <transmitData>
         
         
         transmitData(152,0,leakTestByte);
- 1b8:	a2 01       	movw	r20, r4
- 1ba:	60 e0       	ldi	r22, 0x00	; 0
- 1bc:	70 e0       	ldi	r23, 0x00	; 0
- 1be:	88 e9       	ldi	r24, 0x98	; 152
- 1c0:	90 e0       	ldi	r25, 0x00	; 0
- 1c2:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 1d6:	a2 01       	movw	r20, r4
+ 1d8:	60 e0       	ldi	r22, 0x00	; 0
+ 1da:	70 e0       	ldi	r23, 0x00	; 0
+ 1dc:	88 e9       	ldi	r24, 0x98	; 152
+ 1de:	90 e0       	ldi	r25, 0x00	; 0
+ 1e0:	7b df       	rcall	.-266    	; 0xd8 <transmitData>
  
  
     	transmitData(160,nodeTestByte1,nodeTestByte2); // Nod
- 1c6:	42 2d       	mov	r20, r2
- 1c8:	53 2d       	mov	r21, r3
- 1ca:	b3 01       	movw	r22, r6
- 1cc:	80 ea       	ldi	r24, 0xA0	; 160
- 1ce:	90 e0       	ldi	r25, 0x00	; 0
- 1d0:	0e 94 50 00 	call	0xa0	; 0xa0 <transmitData>
+ 1e2:	42 2d       	mov	r20, r2
+ 1e4:	53 2d       	mov	r21, r3
+ 1e6:	b3 01       	movw	r22, r6
+ 1e8:	80 ea       	ldi	r24, 0xA0	; 160
+ 1ea:	90 e0       	ldi	r25, 0x00	; 0
+ 1ec:	75 df       	rcall	.-278    	; 0xd8 <transmitData>
 
         switch(dataIterator)
- 1d4:	c2 30       	cpi	r28, 0x02	; 2
- 1d6:	d1 05       	cpc	r29, r1
- 1d8:	a9 f0       	breq	.+42     	; 0x204 <main+0x11c>
- 1da:	2c f4       	brge	.+10     	; 0x1e6 <main+0xfe>
- 1dc:	20 97       	sbiw	r28, 0x00	; 0
- 1de:	c9 f1       	breq	.+114    	; 0x252 <main+0x16a>
- 1e0:	21 97       	sbiw	r28, 0x01	; 1
- 1e2:	49 f0       	breq	.+18     	; 0x1f6 <main+0x10e>
- 1e4:	05 c0       	rjmp	.+10     	; 0x1f0 <main+0x108>
- 1e6:	c3 30       	cpi	r28, 0x03	; 3
- 1e8:	d1 05       	cpc	r29, r1
- 1ea:	99 f0       	breq	.+38     	; 0x212 <main+0x12a>
- 1ec:	24 97       	sbiw	r28, 0x04	; 4
- 1ee:	c1 f0       	breq	.+48     	; 0x220 <main+0x138>
+ 1ee:	c2 30       	cpi	r28, 0x02	; 2
+ 1f0:	d1 05       	cpc	r29, r1
+ 1f2:	a9 f0       	breq	.+42     	; 0x21e <main+0x104>
+ 1f4:	2c f4       	brge	.+10     	; 0x200 <main+0xe6>
+ 1f6:	20 97       	sbiw	r28, 0x00	; 0
+ 1f8:	c9 f1       	breq	.+114    	; 0x26c <main+0x152>
+ 1fa:	21 97       	sbiw	r28, 0x01	; 1
+ 1fc:	49 f0       	breq	.+18     	; 0x210 <main+0xf6>
+ 1fe:	05 c0       	rjmp	.+10     	; 0x20a <main+0xf0>
+ 200:	c3 30       	cpi	r28, 0x03	; 3
+ 202:	d1 05       	cpc	r29, r1
+ 204:	99 f0       	breq	.+38     	; 0x22c <main+0x112>
+ 206:	24 97       	sbiw	r28, 0x04	; 4
+ 208:	c1 f0       	breq	.+48     	; 0x23a <main+0x120>
                 nodeTestByte1 = 0b00010011;
                 nodeTestByte2 = 0b00001100;
             }
             break;
             default:
             dataIterator = 0;
- 1f0:	c0 e0       	ldi	r28, 0x00	; 0
- 1f2:	d0 e0       	ldi	r29, 0x00	; 0
- 1f4:	41 c0       	rjmp	.+130    	; 0x278 <main+0x190>
+ 20a:	c0 e0       	ldi	r28, 0x00	; 0
+ 20c:	d0 e0       	ldi	r29, 0x00	; 0
+ 20e:	41 c0       	rjmp	.+130    	; 0x292 <main+0x178>
             case 0:
             dataIterator ++;
             dataOffset = 3;
             break;
             case 1:
             dataIterator ++;
- 1f6:	92 e0       	ldi	r25, 0x02	; 2
- 1f8:	c9 2f       	mov	r28, r25
- 1fa:	20 e0       	ldi	r18, 0x00	; 0
- 1fc:	d2 2f       	mov	r29, r18
+ 210:	92 e0       	ldi	r25, 0x02	; 2
+ 212:	c9 2f       	mov	r28, r25
+ 214:	20 e0       	ldi	r18, 0x00	; 0
+ 216:	d2 2f       	mov	r29, r18
             dataOffset = 1;
- 1fe:	01 e0       	ldi	r16, 0x01	; 1
- 200:	10 e0       	ldi	r17, 0x00	; 0
+ 218:	01 e0       	ldi	r16, 0x01	; 1
+ 21a:	10 e0       	ldi	r17, 0x00	; 0
             break;
- 202:	3a c0       	rjmp	.+116    	; 0x278 <main+0x190>
+ 21c:	3a c0       	rjmp	.+116    	; 0x292 <main+0x178>
             case 2:
             dataIterator ++;
- 204:	83 e0       	ldi	r24, 0x03	; 3
- 206:	c8 2f       	mov	r28, r24
- 208:	90 e0       	ldi	r25, 0x00	; 0
- 20a:	d9 2f       	mov	r29, r25
+ 21e:	83 e0       	ldi	r24, 0x03	; 3
+ 220:	c8 2f       	mov	r28, r24
+ 222:	90 e0       	ldi	r25, 0x00	; 0
+ 224:	d9 2f       	mov	r29, r25
             dataOffset = -2;
- 20c:	0e ef       	ldi	r16, 0xFE	; 254
- 20e:	1f ef       	ldi	r17, 0xFF	; 255
+ 226:	0e ef       	ldi	r16, 0xFE	; 254
+ 228:	1f ef       	ldi	r17, 0xFF	; 255
             break;
- 210:	33 c0       	rjmp	.+102    	; 0x278 <main+0x190>
+ 22a:	33 c0       	rjmp	.+102    	; 0x292 <main+0x178>
             case 3:
             dataIterator ++;
- 212:	24 e0       	ldi	r18, 0x04	; 4
- 214:	c2 2f       	mov	r28, r18
- 216:	80 e0       	ldi	r24, 0x00	; 0
- 218:	d8 2f       	mov	r29, r24
+ 22c:	24 e0       	ldi	r18, 0x04	; 4
+ 22e:	c2 2f       	mov	r28, r18
+ 230:	80 e0       	ldi	r24, 0x00	; 0
+ 232:	d8 2f       	mov	r29, r24
             dataOffset = 0;
- 21a:	00 e0       	ldi	r16, 0x00	; 0
- 21c:	10 e0       	ldi	r17, 0x00	; 0
+ 234:	00 e0       	ldi	r16, 0x00	; 0
+ 236:	10 e0       	ldi	r17, 0x00	; 0
             break;
- 21e:	2c c0       	rjmp	.+88     	; 0x278 <main+0x190>
+ 238:	2c c0       	rjmp	.+88     	; 0x292 <main+0x178>
             case 4:
             dataIterator = 0;
             dataOffset = -3;
             if (leakTestByte == 0)
- 220:	81 e0       	ldi	r24, 0x01	; 1
- 222:	45 28       	or	r4, r5
- 224:	09 f0       	breq	.+2      	; 0x228 <main+0x140>
- 226:	80 e0       	ldi	r24, 0x00	; 0
+ 23a:	81 e0       	ldi	r24, 0x01	; 1
+ 23c:	45 28       	or	r4, r5
+ 23e:	09 f0       	breq	.+2      	; 0x242 <main+0x128>
+ 240:	80 e0       	ldi	r24, 0x00	; 0
             {
                 leakTestByte = 1;
- 228:	48 2e       	mov	r4, r24
- 22a:	51 2c       	mov	r5, r1
+ 242:	48 2e       	mov	r4, r24
+ 244:	51 2c       	mov	r5, r1
             }
             else
             {
                 leakTestByte = 0;
             }
             if (nodeTestByte1 == 0b00010011)
- 22c:	93 e1       	ldi	r25, 0x13	; 19
- 22e:	69 16       	cp	r6, r25
- 230:	71 04       	cpc	r7, r1
- 232:	a1 f4       	brne	.+40     	; 0x25c <main+0x174>
+ 246:	93 e1       	ldi	r25, 0x13	; 19
+ 248:	69 16       	cp	r6, r25
+ 24a:	71 04       	cpc	r7, r1
+ 24c:	a1 f4       	brne	.+40     	; 0x276 <main+0x15c>
             {
                 nodeTestByte1 = 0b0001100;
                 nodeTestByte2 = 0b00101000;
- 234:	0f 2e       	mov	r0, r31
- 236:	f8 e2       	ldi	r31, 0x28	; 40
- 238:	2f 2e       	mov	r2, r31
- 23a:	f0 2d       	mov	r31, r0
- 23c:	31 2c       	mov	r3, r1
+ 24e:	0f 2e       	mov	r0, r31
+ 250:	f8 e2       	ldi	r31, 0x28	; 40
+ 252:	2f 2e       	mov	r2, r31
+ 254:	f0 2d       	mov	r31, r0
+ 256:	31 2c       	mov	r3, r1
             {
                 leakTestByte = 0;
             }
             if (nodeTestByte1 == 0b00010011)
             {
                 nodeTestByte1 = 0b0001100;
- 23e:	0f 2e       	mov	r0, r31
- 240:	fc e0       	ldi	r31, 0x0C	; 12
- 242:	6f 2e       	mov	r6, r31
- 244:	f0 2d       	mov	r31, r0
- 246:	71 2c       	mov	r7, r1
+ 258:	0f 2e       	mov	r0, r31
+ 25a:	fc e0       	ldi	r31, 0x0C	; 12
+ 25c:	6f 2e       	mov	r6, r31
+ 25e:	f0 2d       	mov	r31, r0
+ 260:	71 2c       	mov	r7, r1
             case 3:
             dataIterator ++;
             dataOffset = 0;
             break;
             case 4:
             dataIterator = 0;
- 248:	c0 e0       	ldi	r28, 0x00	; 0
- 24a:	d0 e0       	ldi	r29, 0x00	; 0
+ 262:	c0 e0       	ldi	r28, 0x00	; 0
+ 264:	d0 e0       	ldi	r29, 0x00	; 0
             dataOffset = -3;
- 24c:	0d ef       	ldi	r16, 0xFD	; 253
- 24e:	1f ef       	ldi	r17, 0xFF	; 255
- 250:	13 c0       	rjmp	.+38     	; 0x278 <main+0x190>
+ 266:	0d ef       	ldi	r16, 0xFD	; 253
+ 268:	1f ef       	ldi	r17, 0xFF	; 255
+ 26a:	13 c0       	rjmp	.+38     	; 0x292 <main+0x178>
     	transmitData(160,nodeTestByte1,nodeTestByte2); // Nod
 
         switch(dataIterator)
         {
             case 0:
             dataIterator ++;
- 252:	c1 e0       	ldi	r28, 0x01	; 1
- 254:	d0 e0       	ldi	r29, 0x00	; 0
+ 26c:	c1 e0       	ldi	r28, 0x01	; 1
+ 26e:	d0 e0       	ldi	r29, 0x00	; 0
             dataOffset = 3;
- 256:	03 e0       	ldi	r16, 0x03	; 3
- 258:	10 e0       	ldi	r17, 0x00	; 0
- 25a:	0e c0       	rjmp	.+28     	; 0x278 <main+0x190>
+ 270:	03 e0       	ldi	r16, 0x03	; 3
+ 272:	10 e0       	ldi	r17, 0x00	; 0
+ 274:	0e c0       	rjmp	.+28     	; 0x292 <main+0x178>
                 nodeTestByte2 = 0b00101000;
             }
             else
             {
                 nodeTestByte1 = 0b00010011;
                 nodeTestByte2 = 0b00001100;
- 25c:	0f 2e       	mov	r0, r31
- 25e:	fc e0       	ldi	r31, 0x0C	; 12
- 260:	2f 2e       	mov	r2, r31
- 262:	f0 2d       	mov	r31, r0
- 264:	31 2c       	mov	r3, r1
+ 276:	0f 2e       	mov	r0, r31
+ 278:	fc e0       	ldi	r31, 0x0C	; 12
+ 27a:	2f 2e       	mov	r2, r31
+ 27c:	f0 2d       	mov	r31, r0
+ 27e:	31 2c       	mov	r3, r1
                 nodeTestByte1 = 0b0001100;
                 nodeTestByte2 = 0b00101000;
             }
             else
             {
                 nodeTestByte1 = 0b00010011;
- 266:	0f 2e       	mov	r0, r31
- 268:	f3 e1       	ldi	r31, 0x13	; 19
- 26a:	6f 2e       	mov	r6, r31
- 26c:	f0 2d       	mov	r31, r0
- 26e:	71 2c       	mov	r7, r1
+ 280:	0f 2e       	mov	r0, r31
+ 282:	f3 e1       	ldi	r31, 0x13	; 19
+ 284:	6f 2e       	mov	r6, r31
+ 286:	f0 2d       	mov	r31, r0
+ 288:	71 2c       	mov	r7, r1
             case 3:
             dataIterator ++;
             dataOffset = 0;
             break;
             case 4:
             dataIterator = 0;
- 270:	c0 e0       	ldi	r28, 0x00	; 0
- 272:	d0 e0       	ldi	r29, 0x00	; 0
+ 28a:	c0 e0       	ldi	r28, 0x00	; 0
+ 28c:	d0 e0       	ldi	r29, 0x00	; 0
             dataOffset = -3;
- 274:	0d ef       	ldi	r16, 0xFD	; 253
- 276:	1f ef       	ldi	r17, 0xFF	; 255
+ 28e:	0d ef       	ldi	r16, 0xFD	; 253
+ 290:	1f ef       	ldi	r17, 0xFF	; 255
 	#else
 		//round up by default
 		__ticks_dc = (uint32_t)(ceil(fabs(__tmp)));
 	#endif
 
 	__builtin_avr_delay_cycles(__ticks_dc);
- 278:	2f ef       	ldi	r18, 0xFF	; 255
- 27a:	83 ec       	ldi	r24, 0xC3	; 195
- 27c:	99 e0       	ldi	r25, 0x09	; 9
- 27e:	21 50       	subi	r18, 0x01	; 1
- 280:	80 40       	sbci	r24, 0x00	; 0
- 282:	90 40       	sbci	r25, 0x00	; 0
- 284:	e1 f7       	brne	.-8      	; 0x27e <main+0x196>
- 286:	00 c0       	rjmp	.+0      	; 0x288 <main+0x1a0>
- 288:	00 00       	nop
- 28a:	3e cf       	rjmp	.-388    	; 0x108 <main+0x20>
+ 292:	2f ef       	ldi	r18, 0xFF	; 255
+ 294:	83 ec       	ldi	r24, 0xC3	; 195
+ 296:	99 e0       	ldi	r25, 0x09	; 9
+ 298:	21 50       	subi	r18, 0x01	; 1
+ 29a:	80 40       	sbci	r24, 0x00	; 0
+ 29c:	90 40       	sbci	r25, 0x00	; 0
+ 29e:	e1 f7       	brne	.-8      	; 0x298 <main+0x17e>
+ 2a0:	00 c0       	rjmp	.+0      	; 0x2a2 <main+0x188>
+ 2a2:	00 00       	nop
+ 2a4:	4a cf       	rjmp	.-364    	; 0x13a <main+0x20>
 
-0000028c <_exit>:
- 28c:	f8 94       	cli
+000002a6 <_exit>:
+ 2a6:	f8 94       	cli
 
-0000028e <__stop_program>:
- 28e:	ff cf       	rjmp	.-2      	; 0x28e <__stop_program>
+000002a8 <__stop_program>:
+ 2a8:	ff cf       	rjmp	.-2      	; 0x2a8 <__stop_program>

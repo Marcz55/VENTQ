@@ -2,6 +2,8 @@
 # Automatically-generated file. Do not edit or delete the file
 ################################################################################
 
+SPI.c
+
 USART.c
 
 Test_servo_v1.c
