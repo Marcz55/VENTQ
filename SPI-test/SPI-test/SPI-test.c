@@ -9,9 +9,9 @@ unsigned char inbuffer = 0x44;
 
 void spiInit(void)
 {
-	DDRA = (1<<PORTA2);
+	DDRA = (1<<PORTA2); // Denna port skickar slave-select till en annan processor.
 	PORTA = (1<<PORTA2); //Ha ingen slav vald
-	DDRB = (1<<PORTB5)|(1<<PORTB7)|(1<<PORTB4); //Definiera outputs
+	DDRB = (1<<PORTB5)|(1<<PORTB7)|(0<<PORTB4); //Definiera outputs. PortB4 skall hållas hög på master.
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0); //Sätt enhet till master, enable spi, klockfrekvens
 }
 

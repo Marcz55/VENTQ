@@ -29,16 +29,14 @@ void bluetoothInit()
     UBRRL = (0<<UBRR3)|(1<<UBRR2)|(1<<UBRR1)|(1<<UBRR0); //Sätt baud-rate till 115200
     UCSRB = (1<<RXEN)|(1<<TXEN)|(1<<RXCIE); //Sätt på sändare och mottagare, samt sätt på interrupts vid recieve complete respektive tom buffer.
     UCSRC = (1<<URSEL)|(3<<UCSZ0)|(0<<UPM1)|(0<<UPM0); //Sätt 8-bit meddelanden samt ingen paritet
-    DDRA = (0<<DDA1)|(1<<DDA0); //Definiera en input och en output
-    PORTA = (0<<PORTA0)|(1<<PORTA1); //Skicka ut clear to send
+    DDRA = (0<<DDA1)|(1<<DDA0)|(1<<DDA2); //Definiera en input och en output
+    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet
 }
 
 void spiInit(void)
 {
     DDRB = (1<<PORTB6); //Alla utom MISO ska vara ingångar.
-    SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI
-    //Ska sätta SPIE här med för att fixa avbrottstyrning
-    
+    SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI  
 }
 
 void bluetoothSend(unsigned char data)
@@ -120,7 +118,7 @@ int main(void)
 	spiInit();
 	sei();
 	
-	/*while(1)
+	while(1)
 	{
         while(last_p_g != NULL)   //Gå igenom listan tills den blir tom
         {
@@ -128,19 +126,21 @@ int main(void)
         }
         MCUCR = (1<<SE); //Sleep enable
 	    sleep_mode(); //Gå in i sleep mode om det inte finns något att göra
-	}*/
-    
-    while(1)
-    {
-        _delay_ms(1000);
-        bluetoothSend(0x44);
-    }
+	}
+   
 }
 
 ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
 {
 	MCUCR = (0<<SE);
-	spiWrite(bluetoothReceive()); //Information som ska skickas överförs direkt till SPDR, där det är redo att föras över till masterenheten.
+    PORTA = (0<<PORTA2);
+    //unsigned char plutt;
+    //plutt = bluetoothReceive();
+    //bluetoothSend(0x44);
+    //bluetoothSend(0x45);
+    //bluetoothSend(plutt);
+    spiWrite(bluetoothReceive()); //Information som ska skickas överförs direkt till SPDR, där det är redo att föras över till masterenheten.
+    PORTA = (1<<PORTA2); //Generera avbrott i styrenhet
 }
 
 ISR(SPISTC_vect)//SPI-överföring klar
@@ -151,3 +151,4 @@ ISR(SPISTC_vect)//SPI-överföring klar
 	spiReset(); //Återställ SPDR.
 }
 //Kommer att behöva en lista där indata kan sparas tillfälligt.
+
