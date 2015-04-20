@@ -120,9 +120,52 @@ uint8_t whatWayIn()
     return currentDirection;
 }
 
-uint8_t whatsNextDirection()
+uint8_t whatsNextDirection()        // Sätter även currentDirection (behandlar alltså styrbeslut)
 {
-    // Styrbeslut, väljer höger först om vägval finns (T-korsning)
+    if (currentDirection == north)
+    {
+        if (tempNorthAvailible_g == true)  // Kan jag fortsätta gå rakt på?
+            currentDirection == north;
+        else if (tempEastAvailible_g == true) // Kan jag svänga öst?
+            currentDirection == east;
+        else if (tempWestAvailible_g == true) // Kan jag svänga väst?
+            currentDirection == west;
+        else
+            currentDirection == south;        // Detta händer om det är en återvändsgränd (deadEnd)
+    }
+    else if (currentDirection == east)
+    {
+        if (tempEastAvailible_g == true)
+            currentDirection = east;
+        else if (tempSouthAvailible_g == true)
+            currentDirection = south;
+        else if (tempNorthAvailible_g == true)
+            currentDirection = north;
+        else
+            currentDirection = west;    // deadEnd
+    }
+    else if (currentDirection == south)
+    {
+        if (tempSouthAvailible_g == true)
+            currentDirection = south;
+        else if (tempWestAvailible_g == true)
+            currentDirection = west;
+        else if (tempEastAvailible_g == true)
+            currentDirection = east;
+        else
+            currentDirection = north;   // deadEnd
+    }
+    else if (currentDirection == west)
+    {
+        if (tempWestAvailible_g == true)
+            currentDirection = west;
+        else if (tempSouthAvailible_g = true)
+            currentDirection = south;
+        else if (tempNorthAvailible_g = true)
+            currentDirection = north;
+        else
+            currentDirection = east;    // deadEnd
+    }
 }
 
 void updateLeakInfo()
