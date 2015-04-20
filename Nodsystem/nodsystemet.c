@@ -35,6 +35,20 @@ eastSensor4_g
              Jocke fixar dessa
 */
 
+
+
+
+
+
+// DET SKA FINNAS TVÅ MODES, ETT DÅ ROBOTEN MAPPAR UPP OCH GÖR DENNA ARRAY
+// OCH ETT MODE DÅ ROBOTEN LETAR I LISTAN SOM REDAN FINNS, OCH GÅR TILL VALD LÄCKA
+// lägger en kommentar ovanför funktionerna för att visa vilka som ska finna i läget då roboten mappar upp kartan (MapMode)
+
+
+
+
+
+
 #define maxWallDistance 310 // Roboten bör hållas inom 310 mm från väggen
 
 uint8_t tempNorthAvailible_g = true;
@@ -59,6 +73,7 @@ struct pathsAndNodes
     uint8_t     containsLeak;    // Finns läcka i "noden", kan bara finnas om det är en korridor
 }
 
+// MapMode
 void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 {
     nodeArray[currentNode_g].whatNode = whatNodeType();
@@ -72,7 +87,7 @@ void createNewNode()    // Skapar en ny nod och lägger den i arrayen
     nodeArray[currentNode_g].containsLeak = false;                // En ny nod kan inte initieras med en läcka
 }
 
-
+// MapMode
 uint8_t checkIfNewNode() // "Bool" returnar false om alla noder är desamma och true om någon skiljer och den har skiljt 2 ggr i rad.
 {
     if ((nodeArray[currentNode_g].northAvailible == tempNorthAvailible_g) && (nodeArray[currentNode_g].eastAvailible == tempEastAvailible_g) &&
@@ -92,6 +107,7 @@ uint8_t checkIfNewNode() // "Bool" returnar false om alla noder är desamma och 
     }
 }
 
+// MapMode
 uint8_t whatNodeType();
 {
     if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)
@@ -115,11 +131,13 @@ uint8_t whatNodeType();
     }
 }
 
+// Får finnas i bägge, behövs i MapMode
 uint8_t whatWayIn()
 {
     return currentDirection;
 }
 
+// Får finnas i bägge, behövs i MapMode
 uint8_t whatsNextDirection()        // Sätter även currentDirection (behandlar alltså styrbeslut)
 {
     if (currentDirection == north)
@@ -168,6 +186,7 @@ uint8_t whatsNextDirection()        // Sätter även currentDirection (behandlar
     }
 }
 
+// Ska finnas i bägge modes
 void updateLeakInfo()
 {
     if ((validLeak() == true) &&                              // Faktisk läcka?
@@ -178,6 +197,7 @@ void updateLeakInfo()
     }
 }
 
+// Ska finnas i bägge modes
 uint8_t validLeak()
 {
     if (isLeakVisible_g == true)
@@ -200,6 +220,7 @@ uint8_t validLeak()
     return false;
 }
 
+// Ska bara finnas i MapMode
 void updateMakeNew()
 {
     if ((nodeArray[currentNode_g].whatNode == deadEnd) && !(nodeArray[currentNode_g].whatNode == Tcrossing))
@@ -212,6 +233,7 @@ void updateMakeNew()
     }
 }
 
+// Ska finnas i bägge modes
 void updateTempDirections()
 {
     if (northSensor_g() > maxWallDistance) // Kan behöva ändra maxWallDistance
@@ -259,6 +281,7 @@ int main()
         updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
         updateMakeNew();
 
+        // Denna gör nya noder, ska bara finnas i MapMode
         if ((checkIfNewNode() == true) && (canMakeNew_g == true))
         {
             currentNode_g ++;
