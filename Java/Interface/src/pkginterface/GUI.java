@@ -1,6 +1,7 @@
 
 package pkginterface;
 
+
 import javafx.geometry.Insets;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -13,63 +14,62 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
         
 public class GUI extends Application
 {
     private Interface mainInterface;
     private boolean autonomusMode = false;
-    private int turnDirection = 0; // Vridning åt höger innebär positiv vridning
-    private int upMovement = 0; // Rörelse uppåt är positiv
-    private int rightMovement = 0; // Rörelse åt höger är positiv
+    private int turnDirection = 0; // Vridning åt höger innebär positiv vridning, styrs av q och e
+    private int upMovement = 0;    // Rörelse uppåt är positiv, styrs av w och s
+    private int rightMovement = 0; // Rörelse åt höger är positiv, styrs av a och d
+                                   // Om båda knapparna för motsvarande variabel är nedtryckt tar de ut varandra
+                                   // och variabeln blir noll
     
-    Text angle1Text= new Text();
-    Text angle2Text= new Text();
-    Text angle3Text= new Text();
-    Text angle4Text= new Text();
-    Text angleTotalText= new Text();
-    Text side1Text = new Text();
+    Text angle1Text = new Text(); // Dessa texter skriver ut vinklar
+    Text angle2Text = new Text();
+    Text angle3Text = new Text();
+    Text angle4Text = new Text();
+    Text angleTotalText = new Text();
+    Text side1Text = new Text(); // Dessa texter skriver ut avstånd
     Text side2Text = new Text();
     Text side3Text = new Text();
     Text side4Text = new Text();
-    Text leakText = new Text();
+    Text leakText = new Text();  // leak, node, connected och autonomus visar robotens status
     Text nodeText = new Text();
     Text connectedText = new Text();
-    Text upArrow = new Text();
-    Text downArrow = new Text();
-    Text leftArrow = new Text();
-    Text rightArrow = new Text();
-    Text turnSymbol = new Text();
     Text autonomusText = new Text("Autonomt läge av");
-    boolean wPressed = false;
-    boolean aPressed = false;
+    Text upArrow = new Text("^");   // Dessa texter använd för att visa riktning/vridning som nedtryckta
+    Text downArrow = new Text("v"); // knappar motsvarar
+    Text leftArrow = new Text("<");
+    Text rightArrow = new Text(">");
+    Text turnSymbol = new Text("");
+    boolean wPressed = false;  // Dessa värden används för att komma ihåg om en knapp är nedtryckt, sätts till sann
+    boolean aPressed = false;  // när motsvarande knapp trycks ner och till falsk när knapp släpps
     boolean sPressed = false;
     boolean dPressed = false;
     boolean qPressed = false;
     boolean ePressed = false;
-    
-    
-    
-    
 
-    
-    void setMovement()
-    {
-        switch(upMovement)
+    void setMovement() // Omvandlar nedtryckta knappar till rörelseriktning och vridning. Skickar vidare
+    {                  // eventuell rörelse via bluetooth och visar rörelse på GUI
+        int movementByte_ = 0b00000000;  // I denna byte sätts olika bitar beroende på hur roboten ska röra sig, bitarna 0-3 motsvarar
+                                         // en rörelsevektor och bitarna 4 och 5 motsvarar vridning
+        switch(upMovement) // Undersöker om rörelse uppåt är positiv, negativ eller noll
         {
-            case 0:
+            case 0: 
                 upArrow.setFill(Color.BLACK);
                 downArrow.setFill(Color.BLACK);
                 break;
             case 1:
-                upArrow.setFill(Color.LAWNGREEN);
+                upArrow.setFill(Color.LAWNGREEN); // Eventuell rörelse markeras med grönt
                 downArrow.setFill(Color.BLACK);
-                break;
+                movementByte_ = movementByte_ + 0b00000001;  // Bit 0 sätts till 1 om rörelsevektorn har rörelsekomponent uppåt
+                break;                                       
             case -1:
                 upArrow.setFill(Color.BLACK);
                 downArrow.setFill(Color.LAWNGREEN);
+                movementByte_ = movementByte_ + 0b00000010;  // Bit 1 sätts till 1 om rörelsevektorn har rörelsekomponent nedåt
                 break;
             default:
                 upArrow.setFill(Color.BLACK);
@@ -77,7 +77,7 @@ public class GUI extends Application
                 break;
                 
         }
-        switch(rightMovement)
+        switch(rightMovement) // Undersöker om rörelse åt höger är positiv, negativ eller noll
         {
             case 0:
                 rightArrow.setFill(Color.BLACK);
@@ -86,10 +86,12 @@ public class GUI extends Application
             case 1:
                 rightArrow.setFill(Color.LAWNGREEN);
                 leftArrow.setFill(Color.BLACK);
+                movementByte_ = movementByte_ + 0b00000100;  // Bit 2 sätts till 1 om rörelsevektorn har rörelsekomponent åt höger
                 break;
             case -1:
                 rightArrow.setFill(Color.BLACK);
                 leftArrow.setFill(Color.LAWNGREEN);
+                movementByte_ = movementByte_ + 0b00001000;  // Bit 3 sätts till 1 om rörelsevektorn har rörelsekomponent åt vänster
                 break;
             default:
                 rightArrow.setFill(Color.BLACK);
@@ -98,24 +100,28 @@ public class GUI extends Application
                 
         }
         
-        switch(turnDirection)
+        switch(turnDirection) // Undersöker om vridning är positiv, negativ eller noll
         {
             case 0:
                 turnSymbol.setText("");
                 break;
             case 1:
-                turnSymbol.setText("H");
+                turnSymbol.setText("H"); // Vridning markeras med bokstav för Höger eller Vänster
+                movementByte_ = movementByte_ + 0b00010000;  // Bit 4 sätts till 1 om roboten ska vrida sig åt höger
                 break;
             case -1:
                 turnSymbol.setText("V");
+                movementByte_ = movementByte_ + 0b00100000;  // Bit 5 sätts till 1 om roboten ska vrida sig åt vänster
                 break;
             default:
                 turnSymbol.setText("");
                 break;
         }
+        mainInterface.sendData((byte)movementByte_);
+        
     }
         
-    void setAllText()
+    void setAllText() // Hämtar variabler från mainInterface och sätter motsvarande text.
     {
         side1Text.setText(Integer.toString(mainInterface.allSides[0]));
         side2Text.setText(Integer.toString(mainInterface.allSides[1]));
@@ -139,6 +145,20 @@ public class GUI extends Application
         }
     }
     
+    public void resetButtons() // Nollställer alla knappar
+    {
+        upMovement = 0;
+        rightMovement = 0;
+        turnDirection = 0;
+        wPressed = false;
+        aPressed = false;
+        sPressed = false;
+        dPressed = false;
+        qPressed = false;
+        ePressed = false;
+        setMovement();
+    }
+    
     
     @Override
     public void start(Stage stage)
@@ -148,62 +168,54 @@ public class GUI extends Application
         
         stage.setTitle("V.E.N.T:Q Control Room");
         
-        Button connectButton = new Button();
-        connectButton.setText("    Anslut    ");
-        connectButton.setOnAction(new EventHandler<ActionEvent>()
+        Button connectButton = new Button(); // Skapar knapp som används för att ansluta till/koppla från roboten.
+        connectButton.setText("    Anslut    "); // Om datorn ej ansluten till roboten används knappen för att ansluta,
+        connectButton.setOnAction(new EventHandler<ActionEvent>() // annars använd den för att koppla från
         {
             @Override
-            public void handle(ActionEvent event)
+            public void handle(ActionEvent event) // Funktion som sker när knappen trycks.
             {
-                if (mainInterface.portConnected == "Ej ansluten")
+                if (mainInterface.portConnected == "Ej ansluten") 
                 {
-                    mainInterface.hittaportGUI("COM12"); // COM** är olika på olika datorer
-                    if (mainInterface.comport != null)
+                    mainInterface.findPortGUI("COM12"); // Försöker ansluta om ej ansluten
+                    if (mainInterface.comPort != null)  // Notera att COM** är olika på olika datorer
                     {
-                        mainInterface.anslut();
+                        mainInterface.connect(); 
                     }
-                    if(mainInterface.portConnected == "Ansluten")
+                    if(mainInterface.portConnected == "Ansluten") // Ändra knapp om anslutning lyckas
                     {
                         connectButton.setText("Koppla bort");
                     }
                 }
                 else
                 {
-                    mainInterface.flush();
+                    resetButtons(); // Om ansluten, koppla från och ändra knapp, nollställ alla knapptryck
+                    mainInterface.flush(); // och skicka till roboten så den inte fortsätter okontrollerat
                     connectButton.setText("    Anslut    ");
                 }
             }
         });
         
-        Button autonomusButton = new Button();
+        Button autonomusButton = new Button(); // Knapp för att byta mellan manuellt och autonomt värde
         autonomusButton.setText(" Aktivera ");
         autonomusButton.setOnAction(new EventHandler<ActionEvent>()
         {
             @Override
             public void handle(ActionEvent event)
             {
-                if (!autonomusMode)
-                {
-                    mainInterface.skickainput("A"); // Skickar A för autonomt
-                    System.out.println("A");
+                if (!autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
+                {                   // värde till robot och ändra på text och knapp
+                    mainInterface.sendData((byte)0b10000000); 
+                    System.out.println((byte)0b10000000);
                     autonomusMode = true;
                     autonomusButton.setText("Avaktivera");
                     autonomusText.setText("Autonomt läge på");
-                    upMovement = 0;
-                    rightMovement = 0;
-                    turnDirection = 0;
-                    wPressed = false;
-                    aPressed = false;
-                    sPressed = false;
-                    dPressed = false;
-                    qPressed = false;
-                    ePressed = false;
-                    setMovement();
+                    resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
                 }
-                else
+                else  // Om i autonomt läge, växla till manuellt
                 {
-                    mainInterface.skickainput("M"); // Skickar M för manuellt
-                    System.out.println("M");
+                    mainInterface.sendData((byte)0b11000000);
+                    System.out.println((byte)0b11000000);
                     autonomusMode = false;
                     autonomusButton.setText(" Aktivera ");
                     autonomusText.setText("Autonomt läge av");
@@ -211,7 +223,7 @@ public class GUI extends Application
             }
         });
         
-        Label vinkel1 = new Label("Vinkel 1:");
+        Label vinkel1 = new Label("Vinkel 1:"); // Labels för GUI:t
         Label vinkel2 = new Label("Vinkel 2:");
         Label vinkel3 = new Label("Vinkel 3:");
         Label vinkel4 = new Label("Vinkel 4:");
@@ -225,27 +237,37 @@ public class GUI extends Application
         Label connected  = new Label("Seriell port: ");
         
         
-        GridPane root = new GridPane();
+        GridPane root = new GridPane(); // Skapar en grid
+        Scene mainScene = new Scene(root,1000,500); // Storlek är 1000x500 pixlar
         root.setAlignment(Pos.CENTER);
-        root.setHgap(50);
+        root.setHgap(50); // Bestämmer horisontella och vertikala avstånd
         root.setVgap(10);
         root.setPadding(new Insets(25,25,25,25));
-        stage.setScene(new Scene(root,1000,500));
-        stage.show();
+        stage.setScene(mainScene);
+        mainScene.getStylesheets().add(GUI.class.getResource("GUI.css").toExternalForm()); // Hämtar CSS där bakgrundsbild och vissa textdefinitioner finns
+        stage.show(); 
         
-        root.setOnKeyPressed(new EventHandler<KeyEvent>()
+        root.setOnKeyPressed(new EventHandler<KeyEvent>() // Eventhandler som hanterar när knapp trycks ner
         {
             public void handle(KeyEvent e)
             {
-                if (!autonomusMode)
+                if(e.getText().toLowerCase() == "r") // r används för "reset"
+                {                                    // toLowerCase gör att capslock ej påverkar
+                    resetButtons();
+                }
+                if (!autonomusMode) // Knapptryck för styrning registreras bara om roboten är i manuellt läge
                 {
-                    switch (e.getText().toLowerCase()) // toLowerCase om capslock nedtryckt
-                    {
-                        case "w":
-                            if (!wPressed)
-                            {
+                    switch (e.getText().toLowerCase()) // Ändra up- och rightMovement samt turnDirection när
+                    {                                  // knappar trycks ned
+                                                       // w och s ökar respektive minskar upMovement, d och a ökar
+                                                       // respektive minskar righMovement, e och q ökar respektive
+                                                       // minskar turnDirection
+                        case "w":                      
+                            if (!wPressed)             // Knapptryck registreras ej om knappen redan nedtryckt
+                            {                          
                                 upMovement ++;
-                                wPressed = true;
+                                wPressed = true; 
+                                setMovement();
                             }
                             break;
                         case "a":
@@ -253,6 +275,7 @@ public class GUI extends Application
                             {
                                 rightMovement --;
                                 aPressed = true;
+                                setMovement();
                             }
                             break;
                         case "s":
@@ -260,6 +283,7 @@ public class GUI extends Application
                             {
                                 upMovement --;
                                 sPressed = true;
+                                setMovement();
                             }
                             break;
                         case "d":
@@ -267,6 +291,7 @@ public class GUI extends Application
                             {
                                 rightMovement ++;
                                 dPressed = true;
+                                setMovement();
                             }
                             break;
                         case "q":
@@ -274,6 +299,7 @@ public class GUI extends Application
                             {
                                 turnDirection --;
                                 qPressed = true;
+                                setMovement();
                             }
                             break;
                         case "e":
@@ -281,35 +307,30 @@ public class GUI extends Application
                             {
                                 turnDirection ++;
                                 ePressed = true;
+                                setMovement();
                             }
                             break;
                         default:
                             break;
                     }
-                    setMovement();
-                    System.out.print("Upp: ");
-                    System.out.print(upMovement);
-                    System.out.print(", Höger: ");
-                    System.out.print(rightMovement);
-                    System.out.print(" , Vridning: ");
-                    System.out.println(turnDirection);
                 }
             }
         });
         
-        root.setOnKeyReleased(new EventHandler<KeyEvent>()
-        {
-            public void handle(KeyEvent e)
+        root.setOnKeyReleased(new EventHandler<KeyEvent>() // Eventhandler som hanterar när knapp släpps
+        {                                                  // Knappuppsläpp fungerar omvänt som knapptryck,
+            public void handle(KeyEvent e)                 // se funktion ovan
             {
                 if (!autonomusMode)
                 {
                     switch (e.getText().toLowerCase())
                     {
                         case "w":
-                            if (wPressed)
+                            if (wPressed)                 // Knappuppsläpp registreras bara om knapp redan nedtryckt
                             {
                                 upMovement --;
                                 wPressed = false;
+                                setMovement();
                             }
                             break;
                         case "a":
@@ -317,6 +338,7 @@ public class GUI extends Application
                             {
                                 rightMovement ++;
                                 aPressed = false;
+                                setMovement();
                             }
                             break;
                         case "s":
@@ -324,6 +346,7 @@ public class GUI extends Application
                             {
                                 upMovement ++;
                                 sPressed = false;
+                                setMovement();
                             }
                             break;
                         case "d":
@@ -331,6 +354,7 @@ public class GUI extends Application
                             {
                                 rightMovement --;
                                 dPressed = false;
+                                setMovement();
                             }
                             break;
                         case "q":
@@ -338,6 +362,7 @@ public class GUI extends Application
                             {
                                 turnDirection ++;
                                 qPressed = false;
+                                setMovement();
                             }
                             break;
                         case "e":
@@ -345,18 +370,12 @@ public class GUI extends Application
                             {
                                 turnDirection --;
                                 ePressed = false;
+                                setMovement();
                           }
                             break;
                         default:
                             break;
                     }
-                    setMovement();
-                    System.out.print("Upp: ");
-                    System.out.print(upMovement);
-                    System.out.print(", Höger: ");
-                    System.out.print(rightMovement);
-                    System.out.print(" , Vridning: ");
-                    System.out.println(turnDirection);
                 }
             }
         });
@@ -364,7 +383,7 @@ public class GUI extends Application
         
         
         
-        root.add(sida1,2,0);
+        root.add(sida1,2,0); // Lägger till alla labels i den grid som skapats
         root.add(sida2,5,4);
         root.add(sida3,3,12);
         root.add(sida4,0,8);
@@ -376,7 +395,7 @@ public class GUI extends Application
         root.add(läcka,2,4);
         root.add(nod,2,8);
         
-        root.add(side1Text,2,1);
+        root.add(side1Text,2,1); // Lägger till alla texter som hör till labels
         root.add(side2Text,5,5);
         root.add(side3Text,3,13);
         root.add(side4Text,0,9);
@@ -388,25 +407,24 @@ public class GUI extends Application
         root.add(leakText,2,5);
         root.add(nodeText,2,9);
         
-        root.add(connectButton,7,13);
+        root.add(connectButton,7,13); // lägger till knappar och deras texter
         root.add(connected,7,11);
         root.add(connectedText,7,12);
         
         root.add(autonomusText,7,0);
         root.add(autonomusButton,7,1);
         
-        root.add(leftArrow,8,8);
-        root.add(rightArrow,10,8);
-        root.add(upArrow,9,5);
-        root.add(downArrow,9,10);
-        root.add(turnSymbol,9,8);
+        root.add(leftArrow,8,5); // Lägger till symboler för att visa rörelseriktning
+        root.add(rightArrow,10,5);
+        root.add(upArrow,9,3);
+        root.add(downArrow,9,8);
+        root.add(turnSymbol,9,5);
         
-        upArrow.setText("^");
-        downArrow.setText("v");
-        leftArrow.setText("<");
-        rightArrow.setText(">");
-        turnSymbol.setText("");
-        
+        turnSymbol.setFill(Color.LAWNGREEN); // Ändrar utseende på symbolerna
+        upArrow.setId("boldText");
+        leftArrow.setId("boldText");
+        rightArrow.setId("boldText");
+        turnSymbol.setId("boldText");
         
         setAllText();
     }
