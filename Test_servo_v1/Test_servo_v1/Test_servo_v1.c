@@ -150,7 +150,7 @@ int startPositionY_g = 100;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
-int speedMultiplier_g = 1;
+int stepLengthRotationAdjust = 30;
 int gaitResolutionTime_g = INCREMENT_PERIOD_40;
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
@@ -164,7 +164,6 @@ int startPositionZ_g = -110;
 int stepHeight_g = 20;
 int gaitResolution_g = 12;
 int gaitResolutionTime_g = INCREMENT_PERIOD_60;
-int speedMultiplier_g = 1;
 */
 enum controlMode{
     manuell,
@@ -339,7 +338,7 @@ long int calcDynamixelSpeed(long int deltaAngle)
     }
     else
     {
-        return speedMultiplier_g * calculatedSpeed;
+        return calculatedSpeed;
     }
 }
 
@@ -945,7 +944,7 @@ void calcRegulation()
     * Andra värdet anger hur mycket längre steg benen på vänstra sidan relativt rörelseriktningen ska ta, de som medför en CW-rotation. 
     * Tredje värdet anger hur mycket längre steg benen på högra sidan relativt rörelseriktningen ska ta, de som medför en CCW-rotation
     */
-<<<<<<< HEAD
+
     int translationRight = 0;
     int CWRegulation = 0;
     int CCWRotation = 0;
@@ -1211,17 +1210,23 @@ int main(void)
             {
                 case CW_ROTATION:
                 {
-                    // gör något bra här jocke :) 
+                    regulation_g[1] = stepLengthRotationAdjust;
+                    regulation_g[2] = -stepLengthRotationAdjust;
+                    directionHasChanged = 0;
                     break;
                 }
                 case CCW_ROTATION:
                 {
-                    // gör något ännu bättre här 
+                    regulation_g[1] = -stepLengthRotationAdjust;
+                    regulation_g[2] = stepLengthRotationAdjust;
+                    directionHasChanged = 0;
                     break;
                 }
                 case NO_ROTATION:
                 {
-                    // rotera inte :)
+                    regulation_g[1] = 0;
+                    regulation_g[2] = 0;
+                    directionHasChanged = 0;
                     break;
                 }
             }
@@ -1230,47 +1235,69 @@ int main(void)
                 case NORTH:
                 {
                     currentDirection = north;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 111);
-                    transmitDataToCommUnit(DISTANCE_EAST, 100);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 100);
-                    transmitDataToCommUnit(DISTANCE_WEST, 100);
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case NORT_EAST:
+                {
+                    // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = north;
+                    regulation_g[0] = stepLength_g; 
                     directionHasChanged = 0;
                     break;
                 }
                 case EAST:
                 {
                     currentDirection = east;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 100);
-                    transmitDataToCommUnit(DISTANCE_EAST, 111);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 100);
-                    transmitDataToCommUnit(DISTANCE_WEST, 100);
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case SOUTH_EAST:
+                {
+                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = east;
+                    regulation_g[0] = stepLength_g; 
                     directionHasChanged = 0;
                     break;
                 }
                 case SOUTH:
                 {
+                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
                     currentDirection = south;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 100);
-                    transmitDataToCommUnit(DISTANCE_EAST, 100);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 111);
-                    transmitDataToCommUnit(DISTANCE_WEST, 100);
-    
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case SOUTH_WEST:
+                {
+                    // Huvudsaklig rörelseriktning söder. Västlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = south;
+                    regulation_g[0] = stepLength_g;
                     directionHasChanged = 0;
                     break;
                 }
                 case WEST:
                 {
                     currentDirection = west;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 100);
-                    transmitDataToCommUnit(DISTANCE_EAST, 100);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 100);
-                    transmitDataToCommUnit(DISTANCE_WEST, 111);
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case NORTH_WEST:
+                {
+                    // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = west;
+                    regulation[0] = stepLength_g;
                     directionHasChanged = 0;
                     break;
                 }
                 case NO_MOVEMENT_DIRECTION:
                 {
-                    // här ska roboten stå still! Vi kanske vill ha en utökning i vår direction-enum för att stå still. 
+                    currentDirection = none;
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
                     break;
                 }
                 
