@@ -32,11 +32,14 @@ LIB_DEP:=
 LINKER_SCRIPT_DEP:=
 
 # Every subdirectory with source files must be described here
-SUBDIRS := 
+SUBDIRS :=  \
+../vsix/
 
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../SPI.c \
+../USART.c \
 ../Test_servo_v1.c
 
 
@@ -47,15 +50,23 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+SPI.o \
+USART.o \
 Test_servo_v1.o
 
 OBJS_AS_ARGS +=  \
+SPI.o \
+USART.o \
 Test_servo_v1.o
 
 C_DEPS +=  \
+SPI.d \
+USART.d \
 Test_servo_v1.d
 
 C_DEPS_AS_ARGS +=  \
+SPI.d \
+USART.d \
 Test_servo_v1.d
 
 OUTPUT_FILE_PATH +=Test_servo_v1.elf
@@ -72,6 +83,10 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
+
+
 
 
 
