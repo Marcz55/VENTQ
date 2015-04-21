@@ -18,6 +18,16 @@
 #define TXD0_DATA (UDR0)
 #define RXD0_DATA (UDR0)
 
+void USART0RecieveMode() 
+{
+    PORTD = (0<<PORTD4);
+}
+
+void USART0SendMode()
+{
+    PORTD = (1<<PORTD4);
+}
+
 void initUSART()
 {
     DDRD = (1<<PORTD4); // Styrsignal för sändning/mottagning, PD2

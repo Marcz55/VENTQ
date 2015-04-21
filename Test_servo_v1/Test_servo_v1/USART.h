@@ -88,6 +88,9 @@
 #define INST_SYNC_WRITE 0x83
 #define INST_SYNC_REG_WRITE 0x84
 
+
+void USART0RecieveMode() 
+void USART0SendMode();
 void initUSART();
 void USARTWriteChar(char data);
 void USARTSendInstruction0(int ID, int instruction);

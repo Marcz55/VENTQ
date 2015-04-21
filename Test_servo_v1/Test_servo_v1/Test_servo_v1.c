@@ -129,6 +129,21 @@
 #define INCREMENT_PERIOD_500 500
 
 
+ #define NORTH 1
+ #define NORTH_EAST 5
+ #define EAST 4
+ #define SOUTH_EAST 6
+ #define SOUTH 2
+ #define SOUTH_WEST 10
+ #define WEST 8
+ #define NORTH_WEST 9
+ #define NO_MOVEMENT_DIRECTION 0
+
+ #define CW_ROTATION 1
+ #define CCW_ROTATION 2
+ #define NO_ROTATION 0
+
+
 int stepLength_g = 60;
 int startPositionX_g = 100;
 int startPositionY_g = 100;
@@ -137,7 +152,8 @@ int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int speedMultiplier_g = 1;
 int gaitResolutionTime_g = INCREMENT_PERIOD_40;
-int currentInstruction = 0; // Nuvarande manuell styrinstruktion
+int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
+int currentRotationInstruction = 0;
 
 /*
 // Joakims coola gångstil,
@@ -175,16 +191,6 @@ int timerRemainingTicks_g = 62;
 
 
 
-
-void USART0RecieveMode() 
-{
-    PORTD = (0<<PORTD4);
-}
-
-void USART0SendMode()
-{
-    PORTD = (1<<PORTD4);
-}
 
 volatile uint8_t totOverflow_g;
 
@@ -861,16 +867,19 @@ void move()
 
 int directionHasChanged = 0;
 
-ISR(INT0_vect)
+ISR(INT0_vect) // avbrott från kommunikationsenheten
 {
+    
     PORTA = (0<<PORTA2);
     spiTransmit(0x44); // Skicka iväg skräp för att kunna ta emot det som finns i kommunikationsenhetens SPDR
     PORTA = (1<<PORTA2);
-    currentInstruction = inbuffer;
+    int instruction = inbuffer;
+    currentDirectionInstruction = (instruction & 0b00001111);
+    currentRotationInstruction = (instruction & 0b11110000) >> 4;
     directionHasChanged = 1;
 }
 
-ISR(INT1_vect)
+ISR(INT1_vect) 
 {   
     directionHasChanged = 1;
     switch(currentDirection)
@@ -1095,9 +1104,27 @@ int main(void)
         }
         if ((currentPos_g == posToCalcGait) & directionHasChanged)
         {
-            switch(currentInstruction) // Väljer riktning beroende på vad användaren matat in
+            switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
             {
-                case 1:
+                case CW_ROTATION:
+                {
+                    // gör något bra här jocke :) 
+                    break;
+                }
+                case CCW_ROTATION:
+                {
+                    // gör något ännu bättre här 
+                    break;
+                }
+                case NO_ROTATION:
+                {
+                    // rotera inte :)
+                    break;
+                }
+            }
+            switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
+            {
+                case NORTH:
                 {
                     currentDirection = north;
                     transmitDataToCommUnit(DISTANCE_NORTH, 111);
@@ -1107,7 +1134,7 @@ int main(void)
                     directionHasChanged = 0;
                     break;
                 }
-                case 2:
+                case EAST:
                 {
                     currentDirection = east;
                     transmitDataToCommUnit(DISTANCE_NORTH, 100);
@@ -1117,7 +1144,7 @@ int main(void)
                     directionHasChanged = 0;
                     break;
                 }
-                case 3:
+                case SOUTH:
                 {
                     currentDirection = south;
                     transmitDataToCommUnit(DISTANCE_NORTH, 100);
@@ -1128,7 +1155,7 @@ int main(void)
                     directionHasChanged = 0;
                     break;
                 }
-                case 4:
+                case WEST:
                 {
                     currentDirection = west;
                     transmitDataToCommUnit(DISTANCE_NORTH, 100);
@@ -1136,6 +1163,11 @@ int main(void)
                     transmitDataToCommUnit(DISTANCE_SOUTH, 100);
                     transmitDataToCommUnit(DISTANCE_WEST, 111);
                     directionHasChanged = 0;
+                    break;
+                }
+                case NO_MOVEMENT_DIRECTION:
+                {
+                    // här ska roboten stå still! Vi kanske vill ha en utökning i vår direction-enum för att stå still. 
                     break;
                 }
                 
