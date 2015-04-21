@@ -1063,11 +1063,12 @@ void MakeTrotGait(int cycleResolution)
     int res = cycleResolution/2;
     maxGaitCyclePos_g = cycleResolution - 1;
     
-    if(currentControlMode = autonomous)
+    if(currentControlMode == autonomous)
     {
         calcRegulation();    
     }
     
+    // om ej autonomt läge kommer den manuella styrningen i main-loopen att använda reglerparametrarna till diagonal gång och rotation.
     int translationRight = regulation_g[0];
     int leftSideStepLengthAdjust = regulation_g[1];
     int rightSideStepLengthAdjust = regulation_g[2];
