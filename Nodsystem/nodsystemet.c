@@ -1,8 +1,17 @@
+//
+//  main.c
+//  AVR-test
+//
+//  Created by Isak Wiberg on 2015-04-09.
+//  Copyright (c) 2015 Isak Wiberg. All rights reserved.
+//
+
 
 // Rasmus
 // Kartnavigeringsnodvägvalssystem
 
 #include <stdio.h>
+
 
 #define false uint8_t 0
 #define true  uint8_t 1
@@ -24,16 +33,16 @@
 //------------------------------------------------ Ta bort dessa när denna kod integreras
 
 /*
-isLeakVisible_g
-northSensor_g
-northSensor1_g
-northSensor2_g
-eastSensor_g
-eastSensor3_g
-eastSensor4_g
-... 
-             Jocke fixar dessa
-*/
+ isLeakVisible_g
+ northSensor_g
+ northSensor1_g
+ northSensor2_g
+ eastSensor_g
+ eastSensor3_g
+ eastSensor4_g
+ ...
+ Jocke fixar dessa
+ */
 
 
 
@@ -48,7 +57,6 @@ eastSensor4_g
 
 
 
-
 #define maxWallDistance 310 // Roboten bör hållas inom 310 mm från väggen
 
 uint8_t tempNorthAvailible_g = true;
@@ -58,6 +66,7 @@ uint8_t tempWestAvailible_g = false;
 uint8_t currentNode_g = 0;
 uint8_t actualLeak_g = 0;
 uint8_t validNode_g = true;
+uint8_t currentDirection_g = north;
 
 struct pathsAndNodes
 {
@@ -70,7 +79,10 @@ struct pathsAndNodes
     uint8_t     southAvailible;
     uint8_t     westAvailible;
     uint8_t     containsLeak;    // Finns läcka i "noden", kan bara finnas om det är en korridor
-}
+};
+
+struct pathsAndNodes nodeArray[maxNodes];
+
 
 // MapMode
 void createNewNode()    // Skapar en ny nod och lägger den i arrayen
@@ -90,7 +102,7 @@ void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 uint8_t checkIfNewNode() // "Bool" returnar false om alla noder är desamma och true om någon skiljer och den har skiljt 2 ggr i rad.
 {
     if ((nodeArray[currentNode_g].northAvailible == tempNorthAvailible_g) && (nodeArray[currentNode_g].eastAvailible == tempEastAvailible_g) &&
-        (nodeArray[currentNode_g].southAvailible == tempSouthAvailible_g) && (nodeArray[currentNode_g].westAvailible == tempWestAvailible_g)) 
+        (nodeArray[currentNode_g].southAvailible == tempSouthAvailible_g) && (nodeArray[currentNode_g].westAvailible == tempWestAvailible_g))
     {
         return false;
     }
@@ -107,11 +119,11 @@ uint8_t checkIfNewNode() // "Bool" returnar false om alla noder är desamma och 
 }
 
 // MapMode
-uint8_t whatNodeType();
+uint8_t whatNodeType()
 {
     if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)
     {
-       return Tcrossing;            // Om det finns 3 vägar så är det en vägvalsnod
+        return Tcrossing;            // Om det finns 3 vägar så är det en vägvalsnod
     }
     else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 2)
     {
@@ -133,55 +145,57 @@ uint8_t whatNodeType();
 // Får finnas i bägge, behövs i MapMode
 uint8_t whatWayIn()
 {
-    return currentDirection;
+    return currentDirection_g;
 }
 
+
+
 // Får finnas i bägge, behövs i MapMode
-uint8_t whatsNextDirection()                // Sätter även currentDirection (behandlar alltså styrbeslut)
+uint8_t whatsNextDirection()                // Sätter även currentDirection_g (behandlar alltså styrbeslut)
 {
-    if (currentDirection == north)
+    if (currentDirection_g == north)
     {
         if (tempNorthAvailible_g == true)  // Kan jag fortsätta gå rakt på?
-            currentDirection == north;
+            currentDirection_g == north;
         else if (tempEastAvailible_g == true) // Kan jag svänga öst?
-            currentDirection == east;
+            currentDirection_g == east;
         else if (tempWestAvailible_g == true) // Kan jag svänga väst?
-            currentDirection == west;
+            currentDirection_g == west;
         else
-            currentDirection == south;        // Detta händer om det är en återvändsgränd (deadEnd)
+            currentDirection_g == south;        // Detta händer om det är en återvändsgränd (deadEnd)
     }
-    else if (currentDirection == east)
+    else if (currentDirection_g == east)
     {
         if (tempEastAvailible_g == true)
-            currentDirection = east;
+            currentDirection_g = east;
         else if (tempSouthAvailible_g == true)
-            currentDirection = south;
+            currentDirection_g = south;
         else if (tempNorthAvailible_g == true)
-            currentDirection = north;
+            currentDirection_g = north;
         else
-            currentDirection = west;    // deadEnd
+            currentDirection_g = west;    // deadEnd
     }
-    else if (currentDirection == south)
+    else if (currentDirection_g == south)
     {
         if (tempSouthAvailible_g == true)
-            currentDirection = south;
+            currentDirection_g = south;
         else if (tempWestAvailible_g == true)
-            currentDirection = west;
+            currentDirection_g = west;
         else if (tempEastAvailible_g == true)
-            currentDirection = east;
+            currentDirection_g = east;
         else
-            currentDirection = north;   // deadEnd
+            currentDirection_g = north;   // deadEnd
     }
-    else if (currentDirection == west)
+    else if (currentDirection_g == west)
     {
         if (tempWestAvailible_g == true)
-            currentDirection = west;
+            currentDirection_g = west;
         else if (tempSouthAvailible_g = true)
-            currentDirection = south;
+            currentDirection_g = south;
         else if (tempNorthAvailible_g = true)
-            currentDirection = north;
+            currentDirection_g = north;
         else
-            currentDirection = east;    // deadEnd
+            currentDirection_g = east;    // deadEnd
     }
 }
 
@@ -215,7 +229,7 @@ uint8_t validLeak()
     {
         actualLeak_g = 0;
     }
-
+    
     return false;
 }
 
@@ -240,20 +254,20 @@ void updateTempDirections()
         tempNorthAvailible_g = true;
     else
         tempNorthAvailible_g = false;
-
-
+    
+    
     if (eastSensor_g > maxWallDistance)
         tempEastAvailible_g = true;
-    else    
+    else
         tempEastAvailible_g = false;
-
-
+    
+    
     if (southSensor_g > maxWallDistance)
         tempSouthAvailible_g = true;
     else
         tempSouthAvailible_g = false;
-
-
+    
+    
     if (westSensor_g > maxWallDistance)
         tempWestAvailible_g = true;
     else
@@ -263,7 +277,7 @@ void updateTempDirections()
 int main()
 {
     struct pathsAndNodes nodeArray[maxNodes];
-
+    
     // Börjar i en återvändsgränd med norr som frammåt
     nodeArray[0].whatNode = deadEnd;
     nodeArray[0].nodeID = 0;                // Nodens ID börjar på 0, för att vara samma som currentNode_g
@@ -274,12 +288,12 @@ int main()
     nodeArray[0].southAvailible = false;
     nodeArray[0].westAvailible = false;
     nodeArray[0].containsLeak = false;
-
+    
     while(1)
     {
         updateTempDirections();
         updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
-
+        
         // Denna gör nya noder, ska bara finnas i MapMode
         if ((canMakeNew() == true) && (checkIfNewNode() == true))
         {
