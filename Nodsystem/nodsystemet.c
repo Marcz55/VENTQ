@@ -56,7 +56,6 @@ uint8_t tempEastAvailible_g = false;
 uint8_t tempSouthAvailible_g = false;
 uint8_t tempWestAvailible_g = false;
 uint8_t currentNode_g = 0;
-uint8_t canMakeNew_g = true;
 uint8_t actualLeak_g = 0;
 uint8_t validNode_g = true;
 
@@ -77,7 +76,7 @@ struct pathsAndNodes
 void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 {
     nodeArray[currentNode_g].whatNode = whatNodeType();
-    nodeArray[currentNode_g].nodeID = currentNode;
+    nodeArray[currentNode_g].nodeID = currentNode_g;
     nodeArray[currentNode_g].wayIn = whatWayIn();
     nodeArray[currentNode_g].nextDirection = whatsNextDirection();
     nodeArray[currentNode_g].northAvailible = tempNorthAvailible_g;
@@ -128,7 +127,7 @@ uint8_t whatNodeType();
     else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 0)
     {
         return Zcrossing;           // Detta måste vara en Z-sväng (sensornenh. returnerar kortase)
-    }
+    }                               // FUNKAR EJ :(
 }
 
 // Får finnas i bägge, behövs i MapMode
@@ -138,7 +137,7 @@ uint8_t whatWayIn()
 }
 
 // Får finnas i bägge, behövs i MapMode
-uint8_t whatsNextDirection()        // Sätter även currentDirection (behandlar alltså styrbeslut)
+uint8_t whatsNextDirection()                // Sätter även currentDirection (behandlar alltså styrbeslut)
 {
     if (currentDirection == north)
     {
@@ -221,40 +220,41 @@ uint8_t validLeak()
 }
 
 // Ska bara finnas i MapMode
-void updateMakeNew()
+uint8_t canMakeNew()
 {
-    if ((nodeArray[currentNode_g].whatNode == deadEnd) && !(nodeArray[currentNode_g].whatNode == Tcrossing))
+    if ((nodeArray[currentNode_g].whatNode == deadEnd) &&                                                   // Var senaste noden en återvändsgränd (deadEnd)?
+        !(tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3))    // Detta kollar om roboten står i en T-korsning
     {
-        canMakeNew_g = false;
+        return false; // Alltså: om senaste noden var en deadEnd och den nuvarande inte är en T-korsning ska inte nya noder göras
     }
     else
     {
-        canMakeNew_g = true;
+        return true;
     }
 }
 
 // Ska finnas i bägge modes
 void updateTempDirections()
 {
-    if (northSensor_g() > maxWallDistance) // Kan behöva ändra maxWallDistance
+    if (northSensor_g > maxWallDistance) // Kan behöva ändra maxWallDistance
         tempNorthAvailible_g = true;
     else
         tempNorthAvailible_g = false;
 
 
-    if (eastSensor_g() > maxWallDistance)
+    if (eastSensor_g > maxWallDistance)
         tempEastAvailible_g = true;
     else    
         tempEastAvailible_g = false;
 
 
-    if (southSensor_g() > maxWallDistance)
+    if (southSensor_g > maxWallDistance)
         tempSouthAvailible_g = true;
     else
         tempSouthAvailible_g = false;
 
 
-    if (westSensor_g() > maxWallDistance)
+    if (westSensor_g > maxWallDistance)
         tempWestAvailible_g = true;
     else
         tempWestAvailible_g = false;
@@ -279,10 +279,9 @@ int main()
     {
         updateTempDirections();
         updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
-        updateMakeNew();
 
         // Denna gör nya noder, ska bara finnas i MapMode
-        if ((checkIfNewNode() == true) && (canMakeNew_g == true))
+        if ((canMakeNew() == true) && (checkIfNewNode() == true))
         {
             currentNode_g ++;
             createNewNode();
