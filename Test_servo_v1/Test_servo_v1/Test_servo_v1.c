@@ -144,14 +144,14 @@
  #define NO_ROTATION 0
 
 
-int stepLength_g = 60;
+int stepLength_g = 70;
 int startPositionX_g = 100;
 int startPositionY_g = 100;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int gaitResolutionTime_g = INCREMENT_PERIOD_40;
+int gaitResolutionTime_g = INCREMENT_PERIOD_30;
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 
@@ -169,7 +169,7 @@ enum controlMode{
     manuell,
     autonomous
 };
-enum controlMode currentControlMode = manuell
+enum controlMode currentControlMode = manuell;
 
 enum direction{
     none,
@@ -912,7 +912,7 @@ ISR(INT1_vect)
    // move();
 } 
 
-int regulation_g[3];
+
 
 void getSensorData()
 {
@@ -929,10 +929,7 @@ int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till vägga
 int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna
 int sensorValue_g[8]; // innehåller avstånden från varje separat sensor till väggarna
 int pathWidth_g = 570; // Avståndet mellan väggar
-#define north 1;
-#define east 2;
-#define south 3;
-#define west 4;
+int regulation_g[3]; // array som regleringen sparas i
 void calcRegulation()
 {
     
@@ -946,8 +943,6 @@ void calcRegulation()
     */
 
     int translationRight = 0;
-    int CWRegulation = 0;
-    int CCWRotation = 0;
     int sensorOffset = 370;// Avstånd ifrån sensorera till mitten av roboten (mm)
 
     // variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
@@ -991,8 +986,8 @@ void calcRegulation()
     }
 
     translationRight = kProportionalTranslation * translationRegulationError;
-    leftSideStepLengthAdjust = kProportionalAngle/2 * angleRegulationError; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-    rightSideStepLengthAdjust = kProportionalAngle/2 * (-angleRegulationError);
+    int leftSideStepLengthAdjust = kProportionalAngle/2 * angleRegulationError; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+    int rightSideStepLengthAdjust = kProportionalAngle/2 * (-angleRegulationError);
     regulation_g[0] =  translationRight;
     regulation_g[1] = leftSideStepLengthAdjust;
     regulation_g[2] = rightSideStepLengthAdjust;
@@ -1149,17 +1144,17 @@ void MakeTrotGait(int cycleResolution)
 
         case none:
         {
-            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g,startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g);
-            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g,startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g);
+            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g);
         
-            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g,-startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g,-startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g);
-            CalcStraightPath(rearRightLeg,res,res,startPositionX_g,-startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g,-startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g);
+            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g,-startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,-startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g);
+            CalcStraightPath(rearRightLeg,res,res,startPositionX_g,-startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,-startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g);
         
-            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g,-startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g);
-            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g,-startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g);
+            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g,-startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g,-startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g);
         
-            CalcStraightPath(frontRightLeg,res,0,startPositionX_g,startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g,startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g);
-            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g,startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g,startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g);
+            CalcStraightPath(frontRightLeg,res,0,startPositionX_g,startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g);
+            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g,startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g);
             break;
         }
     }
@@ -1240,7 +1235,7 @@ int main(void)
                     directionHasChanged = 0;
                     break;
                 }
-                case NORT_EAST:
+                case NORTH_EAST:
                 {
                     // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
                     currentDirection = north;
@@ -1290,7 +1285,7 @@ int main(void)
                 {
                     // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
                     currentDirection = west;
-                    regulation[0] = stepLength_g;
+                    regulation_g[0] = stepLength_g;
                     directionHasChanged = 0;
                     break;
                 }
