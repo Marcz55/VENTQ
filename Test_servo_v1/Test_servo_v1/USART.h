@@ -89,7 +89,7 @@
 #define INST_SYNC_REG_WRITE 0x84
 
 
-void USART0RecieveMode() 
+void USART0RecieveMode();
 void USART0SendMode();
 void initUSART();
 void USARTWriteChar(char data);

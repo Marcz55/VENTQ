@@ -144,14 +144,14 @@
  #define NO_ROTATION 0
 
 
-int stepLength_g = 60;
+int stepLength_g = 70;
 int startPositionX_g = 100;
 int startPositionY_g = 100;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
-int speedMultiplier_g = 1;
-int gaitResolutionTime_g = INCREMENT_PERIOD_40;
+int stepLengthRotationAdjust = 30;
+int gaitResolutionTime_g = INCREMENT_PERIOD_30;
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 
@@ -164,17 +164,21 @@ int startPositionZ_g = -110;
 int stepHeight_g = 20;
 int gaitResolution_g = 12;
 int gaitResolutionTime_g = INCREMENT_PERIOD_60;
-int speedMultiplier_g = 1;
 */
-
+enum controlMode{
+    manuell,
+    autonomous
+};
+enum controlMode currentControlMode = manuell;
 
 enum direction{
-    north = 1,
+    none,
+    north,
     east,
     south,
     west
     }; 
-enum direction currentDirection = north;
+enum direction currentDirection = none;
 
 
 int standardSpeed_g = 20;
@@ -334,7 +338,7 @@ long int calcDynamixelSpeed(long int deltaAngle)
     }
     else
     {
-        return speedMultiplier_g * calculatedSpeed;
+        return calculatedSpeed;
     }
 }
 
@@ -908,8 +912,24 @@ ISR(INT1_vect)
    // move();
 } 
 
-int regulation_g[3];
 
+
+void getSensorData()
+{
+    /*
+    * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g och sensorValue_g
+    * 
+    *
+    *
+    */
+}
+
+// arrays som värden hämtade ifrån sensorenheten skall ligga i
+int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
+int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna
+int sensorValue_g[8]; // innehåller avstånden från varje separat sensor till väggarna
+int pathWidth_g = 570; // Avståndet mellan väggar
+int regulation_g[3]; // array som regleringen sparas i
 void calcRegulation()
 {
     
@@ -921,10 +941,64 @@ void calcRegulation()
     * Andra värdet anger hur mycket längre steg benen på vänstra sidan relativt rörelseriktningen ska ta, de som medför en CW-rotation. 
     * Tredje värdet anger hur mycket längre steg benen på högra sidan relativt rörelseriktningen ska ta, de som medför en CCW-rotation
     */
+
+    int translationRight = 0;
+    int sensorOffset = 370;// Avstånd ifrån sensorera till mitten av roboten (mm)
+
+    // variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
+    int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
+    int angleRegulationError = 0; // avser hur många grader vridna i CCW riktning relativt "den raka riktningen" dvs relativt väggarna.
+
+    //Regleringskoefficienter
+    int kProportionalTranslation = 1;
+    int kProportionalAngle = 1;
+
+    //Reglering vid gång i kooridor
+    switch (currentDirection)
+    {
+        case north:
+        {
+            translationRegulationError = (distanceValue_g[east] + sensorOffset) - pathWidth_g;
+            angleRegulationError = angleValue_g[east]; 
+            break;
+        }
+
+        case east:
+        {
+            translationRegulationError = (distanceValue_g[south] + sensorOffset) - pathWidth_g;
+            angleRegulationError = angleValue_g[south];
+            break;
+        }
+
+        case south:
+        {
+            translationRegulationError = (distanceValue_g[west] + sensorOffset) - pathWidth_g;
+            angleRegulationError = angleValue_g[west];
+            break;
+        }
+
+        case west:
+        {
+            translationRegulationError = (distanceValue_g[north] + sensorOffset) - pathWidth_g;
+            angleRegulationError = angleValue_g[north];
+            break;
+        }
+    }
+
+    translationRight = kProportionalTranslation * translationRegulationError;
+    int leftSideStepLengthAdjust = kProportionalAngle/2 * angleRegulationError; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+    int rightSideStepLengthAdjust = kProportionalAngle/2 * (-angleRegulationError);
+    regulation_g[0] =  translationRight;
+    regulation_g[1] = leftSideStepLengthAdjust;
+    regulation_g[2] = rightSideStepLengthAdjust;
+   // return;
+
+// vid nuläget har vi inte sensorenheten inkopplad så värdena i distancevalue_g m.m är odefinierade
     regulation_g[0] =  0;
     regulation_g[1] = 0;
     regulation_g[2] = 0;
     return; 
+
 }
 
 /*
@@ -984,79 +1058,103 @@ void MakeTrotGait(int cycleResolution)
     int res = cycleResolution/2;
     maxGaitCyclePos_g = cycleResolution - 1;
     
-    calcRegulation();
+    if(currentControlMode == autonomous)
+    {
+        calcRegulation();    
+    }
+    
+    // om ej autonomt läge kommer den manuella styrningen i main-loopen att använda reglerparametrarna till diagonal gång och rotation.
     int translationRight = regulation_g[0];
-    int CWRegulation = regulation_g[1];
-    int CCWRegulation = regulation_g[2];
+    int leftSideStepLengthAdjust = regulation_g[1];
+    int rightSideStepLengthAdjust = regulation_g[2];
         
-    int totalStepLengthCW = stepLength_g + CWRegulation;
-    int totalStepLengthCCW = stepLength_g + CCWRegulation;
+    int leftSideTotalStepLength = stepLength_g + leftSideStepLengthAdjust; // left hänvisar till den vänstra sidan relativt rörelseriktningen
+    int rightSideTotalStepLength = stepLength_g + rightSideStepLengthAdjust; // right hänvisar till den högra sidan relativt rörelseriktningen
 
     directionHasChanged = 0;
     switch(currentDirection)
     {       
     // rörelsemönstret finns på ett papper (frontleft och rearright börjar alltid med curved)
+    
+    // anmärk att left/right-SideTotalStepLength menar den totala steglängden på den vänstra/högra sidan relativt rörelseriktningen 
+    // medans frontLeftLeg och de andra benen alltid har samma namn och är namngivna utifrån rörelseriktningen norr.   
         case north:
         {   
-            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCW/2,startPositionZ_g,-startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCW/2,startPositionZ_g);
-            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCW/2,startPositionZ_g,-startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCW/2,startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g-translationRight/2,startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g+translationRight/2,startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g);
+            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g+translationRight/2,startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g-translationRight/2,startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g);
   
-            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCCW/2,startPositionZ_g,startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCCW/2,startPositionZ_g);
-            CalcStraightPath(rearRightLeg,res,res,startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCCW/2,startPositionZ_g,startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCCW/2,startPositionZ_g);
+            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g-translationRight/2,-startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g+translationRight/2,-startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g);
+            CalcStraightPath(rearRightLeg,res,res,startPositionX_g+translationRight/2,-startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g-translationRight/2,-startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g);
     
-            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCW/2,startPositionZ_g,-startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCW/2,startPositionZ_g);
-            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCW/2,startPositionZ_g,-startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCW/2,startPositionZ_g);
+            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g+translationRight/2,-startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g-translationRight/2,-startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g-translationRight/2,-startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g,-startPositionX_g+translationRight/2,-startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g);
     
-            CalcStraightPath(frontRightLeg,res,0,startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCCW/2,startPositionZ_g,startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCCW/2,startPositionZ_g);
-            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCCW/2,startPositionZ_g,startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCCW/2,startPositionZ_g);
+            CalcStraightPath(frontRightLeg,res,0,startPositionX_g+translationRight/2,startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g-translationRight/2,startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g);
+            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g-translationRight/2,startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g,startPositionX_g+translationRight/2,startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g);
             break;
         }
     
         case east:
         {
-            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g-totalStepLengthCW/2,startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+totalStepLengthCW/2,startPositionY_g-translationRight/2,startPositionZ_g);
-            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g+totalStepLengthCW/2,startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-totalStepLengthCW/2,startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g-leftSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+leftSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g+leftSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-leftSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g);
         
-            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g-totalStepLengthCCW/2,-startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+totalStepLengthCCW/2,-startPositionY_g-translationRight/2,startPositionZ_g);
-            CalcStraightPath(rearRightLeg,res,res,startPositionX_g+totalStepLengthCCW/2,-startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-totalStepLengthCCW/2,-startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g-rightSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+rightSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcStraightPath(rearRightLeg,res,res,startPositionX_g+rightSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-rightSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g);
         
-            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g+totalStepLengthCCW/2,-startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-totalStepLengthCCW/2,-startPositionY_g+translationRight/2,startPositionZ_g);
-            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g-totalStepLengthCCW/2,-startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+totalStepLengthCCW/2,-startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g+rightSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-rightSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g-rightSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+rightSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g);
         
-            CalcStraightPath(frontRightLeg,res,0,startPositionX_g+totalStepLengthCW/2,startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-totalStepLengthCW/2,startPositionY_g+translationRight/2,startPositionZ_g);
-            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g-totalStepLengthCW/2,startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+totalStepLengthCW/2,startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcStraightPath(frontRightLeg,res,0,startPositionX_g+leftSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-leftSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g-leftSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+leftSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g);
             break;
         }
     
         case south:
         {
-            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCCW/2,startPositionZ_g,-startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCCW/2,startPositionZ_g);
-            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCCW/2,startPositionZ_g,-startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCCW/2,startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g+translationRight/2,startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g,-startPositionX_g-translationRight/2,startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g);
+            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g-translationRight/2,startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g,-startPositionX_g+translationRight/2,startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g);
         
-            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCW/2,startPositionZ_g,startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCW/2,startPositionZ_g);
-            CalcStraightPath(rearRightLeg,res,res,startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCW/2,startPositionZ_g,startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCW/2,startPositionZ_g);
+            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g+translationRight/2,-startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g,startPositionX_g-translationRight/2,-startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g);
+            CalcStraightPath(rearRightLeg,res,res,startPositionX_g-translationRight/2,-startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g,startPositionX_g+translationRight/2,-startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g);
         
-            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCCW/2,startPositionZ_g,-startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCCW/2,startPositionZ_g);
-            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g+translationRight/2,-startPositionY_g+totalStepLengthCCW/2,startPositionZ_g,-startPositionX_g-translationRight/2,-startPositionY_g-totalStepLengthCCW/2,startPositionZ_g);
+            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g-translationRight/2,-startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g,-startPositionX_g+translationRight/2,-startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g+translationRight/2,-startPositionY_g+rightSideTotalStepLength/2,startPositionZ_g,-startPositionX_g-translationRight/2,-startPositionY_g-rightSideTotalStepLength/2,startPositionZ_g);
         
-            CalcStraightPath(frontRightLeg,res,0,startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCW/2,startPositionZ_g,startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCW/2,startPositionZ_g);
-            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g+translationRight/2,startPositionY_g+totalStepLengthCW/2,startPositionZ_g,startPositionX_g-translationRight/2,startPositionY_g-totalStepLengthCW/2,startPositionZ_g);
+            CalcStraightPath(frontRightLeg,res,0,startPositionX_g-translationRight/2,startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g,startPositionX_g+translationRight/2,startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g);
+            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g+translationRight/2,startPositionY_g+leftSideTotalStepLength/2,startPositionZ_g,startPositionX_g-translationRight/2,startPositionY_g-leftSideTotalStepLength/2,startPositionZ_g);
             break;
         }
     
         case west:
         {
-            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g+totalStepLengthCCW/2,startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-totalStepLengthCCW/2,startPositionY_g+translationRight/2,startPositionZ_g);
-            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g-totalStepLengthCCW/2,startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+totalStepLengthCCW/2,startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g+rightSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-rightSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g-rightSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+rightSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g);
         
-            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g+totalStepLengthCW/2,-startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-totalStepLengthCW/2,-startPositionY_g+translationRight/2,startPositionZ_g);
-            CalcStraightPath(rearRightLeg,res,res,startPositionX_g-totalStepLengthCW/2,-startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+totalStepLengthCW/2,-startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g+leftSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-leftSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcStraightPath(rearRightLeg,res,res,startPositionX_g-leftSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+leftSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g);
         
-            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g-totalStepLengthCW/2,-startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+totalStepLengthCW/2,-startPositionY_g-translationRight/2,startPositionZ_g);
-            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g+totalStepLengthCW/2,-startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-totalStepLengthCW/2,-startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g-leftSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g,-startPositionX_g+leftSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g+leftSideTotalStepLength/2,-startPositionY_g-translationRight/2,startPositionZ_g,-startPositionX_g-leftSideTotalStepLength/2,-startPositionY_g+translationRight/2,startPositionZ_g);
         
-            CalcStraightPath(frontRightLeg,res,0,startPositionX_g-totalStepLengthCCW/2,startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+totalStepLengthCCW/2,startPositionY_g-translationRight/2,startPositionZ_g);
-            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g+totalStepLengthCCW/2,startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-totalStepLengthCCW/2,startPositionY_g+translationRight/2,startPositionZ_g);
+            CalcStraightPath(frontRightLeg,res,0,startPositionX_g-rightSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g,startPositionX_g+rightSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g);
+            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g+rightSideTotalStepLength/2,startPositionY_g-translationRight/2,startPositionZ_g,startPositionX_g-rightSideTotalStepLength/2,startPositionY_g+translationRight/2,startPositionZ_g);
+            break;
+        }
+
+        case none:
+        {
+            CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g);
+            CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g);
+        
+            CalcCurvedPath(rearRightLeg,res,0,startPositionX_g,-startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,-startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g);
+            CalcStraightPath(rearRightLeg,res,res,startPositionX_g,-startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,-startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g);
+        
+            CalcStraightPath(rearLeftLeg,res,0,-startPositionX_g,-startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,-startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg,res,res,-startPositionX_g,-startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,-startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g);
+        
+            CalcStraightPath(frontRightLeg,res,0,startPositionX_g,startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g);
+            CalcCurvedPath(frontRightLeg,res,res,startPositionX_g,startPositionY_g-rightSideStepLengthAdjust/2,startPositionZ_g,startPositionX_g,startPositionY_g+rightSideStepLengthAdjust/2,startPositionZ_g);
             break;
         }
     }
@@ -1108,17 +1206,23 @@ int main(void)
             {
                 case CW_ROTATION:
                 {
-                    // gör något bra här jocke :) 
+                    regulation_g[1] = stepLengthRotationAdjust;
+                    regulation_g[2] = -stepLengthRotationAdjust;
+                    directionHasChanged = 0;
                     break;
                 }
                 case CCW_ROTATION:
                 {
-                    // gör något ännu bättre här 
+                    regulation_g[1] = -stepLengthRotationAdjust;
+                    regulation_g[2] = stepLengthRotationAdjust;
+                    directionHasChanged = 0;
                     break;
                 }
                 case NO_ROTATION:
                 {
-                    // rotera inte :)
+                    regulation_g[1] = 0;
+                    regulation_g[2] = 0;
+                    directionHasChanged = 0;
                     break;
                 }
             }
@@ -1127,47 +1231,69 @@ int main(void)
                 case NORTH:
                 {
                     currentDirection = north;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 111);
-                    transmitDataToCommUnit(DISTANCE_EAST, 100);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 100);
-                    transmitDataToCommUnit(DISTANCE_WEST, 100);
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case NORTH_EAST:
+                {
+                    // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = north;
+                    regulation_g[0] = stepLength_g; 
                     directionHasChanged = 0;
                     break;
                 }
                 case EAST:
                 {
                     currentDirection = east;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 100);
-                    transmitDataToCommUnit(DISTANCE_EAST, 111);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 100);
-                    transmitDataToCommUnit(DISTANCE_WEST, 100);
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case SOUTH_EAST:
+                {
+                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = east;
+                    regulation_g[0] = stepLength_g; 
                     directionHasChanged = 0;
                     break;
                 }
                 case SOUTH:
                 {
+                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
                     currentDirection = south;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 100);
-                    transmitDataToCommUnit(DISTANCE_EAST, 100);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 111);
-                    transmitDataToCommUnit(DISTANCE_WEST, 100);
-    
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case SOUTH_WEST:
+                {
+                    // Huvudsaklig rörelseriktning söder. Västlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = south;
+                    regulation_g[0] = stepLength_g;
                     directionHasChanged = 0;
                     break;
                 }
                 case WEST:
                 {
                     currentDirection = west;
-                    transmitDataToCommUnit(DISTANCE_NORTH, 100);
-                    transmitDataToCommUnit(DISTANCE_EAST, 100);
-                    transmitDataToCommUnit(DISTANCE_SOUTH, 100);
-                    transmitDataToCommUnit(DISTANCE_WEST, 111);
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
+                    break;
+                }
+                case NORTH_WEST:
+                {
+                    // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
+                    currentDirection = west;
+                    regulation_g[0] = stepLength_g;
                     directionHasChanged = 0;
                     break;
                 }
                 case NO_MOVEMENT_DIRECTION:
                 {
-                    // här ska roboten stå still! Vi kanske vill ha en utökning i vår direction-enum för att stå still. 
+                    currentDirection = none;
+                    regulation_g[0] = 0;
+                    directionHasChanged = 0;
                     break;
                 }
                 
