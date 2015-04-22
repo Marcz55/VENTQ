@@ -237,6 +237,17 @@ uint8_t whatWayIn()
 	return currentDirection_g;
 }
 
+uint8_t TcrossingID()
+{
+	if (nodeArray[currentNode_g].whatNode == Tcrossing)
+	{
+		// Räkna ut vilken nodjävel det är
+		// Funkar detta blir navigering asenkel
+		// Börjar med ID = 1
+		// Om det inte är en Tcrossing ska 0 returneras
+	}
+}
+
 // Får finnas i bägge, behövs i MapMode
 uint8_t whatsNextDirection()
 {
@@ -247,7 +258,7 @@ uint8_t whatsNextDirection()
 void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 {
     nodeArray[currentNode_g].whatNode = whatNodeType();
-    nodeArray[currentNode_g].nodeID = currentNode_g;
+    nodeArray[currentNode_g].nodeID = TcrossingID();		// Är alltid 0 om det inte är en Tcrossing
     nodeArray[currentNode_g].wayIn = whatWayIn();
     nodeArray[currentNode_g].nextDirection = whatsNextDirection();
     nodeArray[currentNode_g].northAvailible = tempNorthAvailible_g;
