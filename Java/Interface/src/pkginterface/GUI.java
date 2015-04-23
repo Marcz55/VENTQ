@@ -118,6 +118,7 @@ public class GUI extends Application
                 break;
         }
         mainInterface.sendData((byte)movementByte_);
+        System.out.println(movementByte_);
         
     }
         
@@ -177,7 +178,7 @@ public class GUI extends Application
             {
                 if (mainInterface.portConnected == "Ej ansluten") 
                 {
-                    mainInterface.findPortGUI("COM12"); // Försöker ansluta om ej ansluten
+                    mainInterface.findPortGUI("COM15"); // Försöker ansluta om ej ansluten
                     if (mainInterface.comPort != null)  // Notera att COM** är olika på olika datorer
                     {
                         mainInterface.connect(); 

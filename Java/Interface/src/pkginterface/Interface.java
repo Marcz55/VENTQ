@@ -32,6 +32,7 @@ public class Interface implements SerialPortEventListener{
     public String currentNode = "Okänt\nOkänt\nID: 0";
     public String leak = "Nej";
     public String portConnected = "Ej ansluten";
+    public int acknowledge = 0;
     
     GUI mainGUI;
     
@@ -301,28 +302,39 @@ public class Interface implements SerialPortEventListener{
             //Gör det som ska göras vid inläsnign av data
             try
             {
-                response = inputData.read(); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande.
-                dataBuffer[bufferCounter] = response;
-                System.out.println(response);
-                if(bufferCounter >= 2)
+                response = inputData.read(); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande
+                if ((response == 184) && (bufferCounter == 0))
                 {
-                    bufferCounter = 0;
-                    combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
-                    if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
+                    // 184 är en skräpheader som skickas ut vid kommunikationsenheten i samband med SPI-kommunkiation,
+                }   // den ska därför ignoreras om den är första delen av ett medelande
+                else
+                {
+                    dataBuffer[bufferCounter] = response;
+                    if(bufferCounter >= 2)
                     {
-                        setAllData(dataBuffer[0],combinedData);
-                        mainGUI.setAllText();
+                        bufferCounter = 0;
+                        combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
+                        if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
+                        {
+                            /*System.out.print(dataBuffer[0]);
+                            System.out.print(" ");
+                            System.out.print(dataBuffer[1]);
+                            System.out.print(" ");
+                            System.out.println(dataBuffer[2]);*/
+                            setAllData(dataBuffer[0],combinedData);
+                            mainGUI.setAllText();
+                        }
+                        else
+                        {
+                            dataBuffer[0] = dataBuffer[1];
+                            dataBuffer[1] = dataBuffer[2];
+                            bufferCounter = 2;
+                        }
                     }
                     else
                     {
-                    dataBuffer[0] = dataBuffer[1];
-                    dataBuffer[1] = dataBuffer[2];
-                    bufferCounter = 2;
+                        bufferCounter ++;
                     }
-                }
-                else
-                {
-                bufferCounter ++;
                 }
             } 
             catch(Exception e)
@@ -337,11 +349,27 @@ public class Interface implements SerialPortEventListener{
         try
         {
             outputData.write(dataByte);
-            //System.out.println(dataByte);
         } 
         catch(Exception e)
         {
             System.err.println("Något gick fel med att skicka data.");
+        }
+        //waitForAcknowledge(dataByte);
+    }
+    
+    public void waitForAcknowledge (byte dataByte)
+    {
+        try
+        {
+            Thread.sleep(1);                 //1000 milliseconds is one second.
+        } 
+        catch(InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+        }
+        if (acknowledge != dataByte)
+        {
+            sendData(dataByte);
         }
     }
     
