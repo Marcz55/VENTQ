@@ -12,6 +12,12 @@
 #include <stdlib.h>
 #include <avr/pgmspace.h>
 #include <math.h>
+#include "SPI.h"
+
+int recievedHeader = 0;
+int transmitStatus = 0;
+uint8_t transmitDataByte1 = 0;
+uint8_t transmitDataByte2 = 0;
 
 int tempReading;
 
@@ -48,6 +54,9 @@ int sideDistance3; // Beror på sensor 5 och 6
 int sideDistance4; // Beror på sensor 7 och 8
 
 
+int leakFound = 0; // "Bool" 1=true, 0=false
+
+
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
 // Måste skapa en per sensor
 //										   00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160
@@ -80,9 +89,14 @@ int sideDistance4; // Beror på sensor 7 och 8
 #define sidelenght	175U	// Sidan mellan två sensorer, 175 millimeter, U för att undvika overflow för värden större än 46
 #define displayE	PORTB1	// E på displayen
 #define displayRS	PORTB0	// RS på displayen
+#define MISO        PORTB6
 #define ADC_notComplete	!(ADCSRA & (1<<ADIF)) // Boolvariabel för ADC complete
 #define leakBit		PORTC1	// Output hos IR-mottagaren
 #define pi			3.141592
+#define NO_TRANSMIT 0
+#define FIRST_BYTE_TRANSMITTED 1
+#define SECOND_BYTE_TRANSMITTED 2
+
 
 int angleTable[differentAngles];
 
@@ -104,10 +118,11 @@ void writeDisplay(int asciiCode)
 	_delay_ms(1); // Väntar på att instruktion utförs
 }
 
-void initDisplay()
+void initPorts() // Initierar display och slave
 {
 	DDRD = 0xFF; // Sätter PD till outport, tror jag
-	DDRB = 0xFF; // Sätter PB 0 och 1 till ut PB0= RS, PB1 = E
+	DDRB = (1<<PORTB0)|(1<<PORTB1)|(1<<PORTB6); // Sätter PB0,1,6 till ut PB0= RS, PB1 = E PB6 = MISO
+    SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI    
 	
 	_delay_ms(30);
 	PORTB = (1<<displayE);
@@ -350,21 +365,115 @@ void calculateAngle() // Räknar ut vinklar hos varje sida, och ett genomsnitt av
 			}
 }
 
-/*
-void leakAlert()
+void splitDataBytes(int recievedHeader)
 {
-	
+    int dataToSplit = 0;
+    switch(recievedHeader)
+    {
+        case DISTANCE_NORTH:
+        {
+            dataToSplit = sideDistance1;
+            break;
+        }
+        case DISTANCE_EAST:
+        {
+            dataToSplit = sideDistance2;
+            break;
+        }
+        case DISTANCE_SOUTH:
+        {
+            dataToSplit = sideDistance3;
+            break;
+        }
+        case DISTANCE_WEST:
+        {
+            dataToSplit = sideDistance4;
+            break;
+        }
+        case ANGLE_NORTH:
+        {
+            dataToSplit = sideAngle1;
+            break;
+        }
+        case ANGLE_EAST:
+        {
+            dataToSplit = sideAngle2;
+            break;
+        }
+        case ANGLE_SOUTH:
+        {
+            dataToSplit = sideAngle3;
+            break;
+        }
+        case ANGLE_WEST:
+        {
+            dataToSplit = sideAngle4;
+            break;
+        }
+        case TOTAL_ANGLE:
+        {
+            dataToSplit = totalAngle;
+            break;
+        }
+        case LEAK_HEADER:
+        {
+            dataToSplit = leakFound;
+            break;
+        }
+    }
+    transmitDataByte1 = (dataToSplit >> 8);
+    transmitDataByte2 = (dataToSplit & 0b0000000011111111);
 }
-*/
+
+
+
+ISR(SPISTC_vect)//SPI-överföring klar
+{
+    switch(transmitStatus)
+    {
+        case NO_TRANSMIT:
+        {
+            recievedHeader = SPDR;
+            if (SPDR != TRASH)
+            {
+                splitDataBytes(SPDR);
+            }
+            else
+            {
+                transmitDataByte1 = 0;
+                transmitDataByte2 = 0;
+            }                        
+            SPDR = transmitDataByte1;
+            transmitStatus = FIRST_BYTE_TRANSMITTED;
+            break;
+        }
+        case FIRST_BYTE_TRANSMITTED:
+        {
+            SPDR = transmitDataByte2;
+            transmitStatus = SECOND_BYTE_TRANSMITTED;
+            break;
+        }
+        case SECOND_BYTE_TRANSMITTED:
+        {
+            transmitStatus = NO_TRANSMIT;
+            break;
+        }
+        default:
+        {
+            transmitStatus = NO_TRANSMIT;
+            break;
+        }
+    }    
+}
 
 int main(void)
 {	
-	initDisplay();
-	
-  	int leakFound = 0; // "Bool" 1=true, 0=false
+	initPorts();
+    
 	int iteration = 0; // Iterator för vilken avläsning på sensorn som görs
 	
 	makeAngleTable();
+    sei();
 
 
     while(1)
@@ -428,10 +537,10 @@ int main(void)
 			PORTB = (0<<displayE);
 			_delay_ms(1);
 
-			writeSensor(totalAngle);
-			writeSensor(sideAngle2);
-			writeSensor(sideAngle3);
-			writeSensor(sideAngle4);
+			writeSensor(transmitStatus);
+			writeSensor(recievedHeader);
+			writeSensor(transmitDataByte1);
+			writeSensor(transmitDataByte2);
 		
 			PORTB = (1<<displayE);
 			PORTD = (1<<PORTD7); // Rad 1
