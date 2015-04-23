@@ -151,7 +151,7 @@ int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int gaitResolutionTime_g = INCREMENT_PERIOD_30;
+int gaitResolutionTime_g = INCREMENT_PERIOD_500; // tid i timerloopen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 
@@ -874,9 +874,7 @@ int directionHasChanged = 0;
 ISR(INT0_vect) // avbrott från kommunikationsenheten
 {
     
-    PORTA = (0<<PORTA2);
-    spiTransmit(0x44); // Skicka iväg skräp för att kunna ta emot det som finns i kommunikationsenhetens SPDR
-    PORTA = (1<<PORTA2);
+    spiTransmitToCommUnit(TRASH); // Skicka iväg skräp för att kunna ta emot det som finns i kommunikationsenhetens SPDR
     int instruction = inbuffer;
     currentDirectionInstruction = (instruction & 0b00001111);
     currentRotationInstruction = (instruction & 0b11110000) >> 4;
@@ -885,6 +883,8 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 
 ISR(INT1_vect) 
 {   
+    
+    
     directionHasChanged = 1;
     switch(currentDirection)
     {
@@ -1160,9 +1160,9 @@ void MakeTrotGait(int cycleResolution)
     }
 }
 
-
 int main(void)
 {
+    
     initUSART();
     spiMasterInit();
     EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
@@ -1176,6 +1176,7 @@ int main(void)
     nextPos_g = 1;
    
     timer0Init();
+    
 
     MakeTrotGait(gaitResolution_g);
     MoveToStartPosition();
@@ -1186,15 +1187,25 @@ int main(void)
     
     int posToCalcGait = (gaitResolution_g/4 - 1);
 
-    
+    int testData;
     // ---- Main-Loop ----
     while (1)
     { 
-        
+        // Timerstyrd loop. Vi kommer in här så ofta som anges i gaitResolutionTime_g
         if (totOverflow_g >= timerOverflowMax_g)
         {
             if (TCNT0 >= timerRemainingTicks_g)
             {
+                // Skicka lite sensordata till datorn. Det här ska ske på en egen timer egentligen
+                testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
+                transmitDataToCommUnit(DISTANCE_NORTH, testData);
+                testData = fetchDataFromSensorUnit(DISTANCE_EAST);
+                transmitDataToCommUnit(DISTANCE_EAST, testData);
+                testData = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+                transmitDataToCommUnit(DISTANCE_SOUTH, testData);
+                testData = fetchDataFromSensorUnit(DISTANCE_WEST);
+                transmitDataToCommUnit(DISTANCE_WEST, testData);
+                
                 move();
                 TCNT0 = 0;          // Återställ räknaren
                 totOverflow_g = 0;

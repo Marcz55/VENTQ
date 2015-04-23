@@ -27,10 +27,11 @@ unsigned char inbuffer;
 
 void spiMasterInit(void);
 void spiSlaveInit();
-void spiTransmit(unsigned char data);
+void spiTransmitToSensorUnit(unsigned char data);
+void spiTransmitToCommUnit(unsigned char data);
 void transmitDataToCommUnit(int header_, int data);
 void transmitDataToSensorUnit(int header_, int data);
-
+int fetchDataFromSensorUnit(int header_);
 
 
 #endif /* SPI_H_ */
