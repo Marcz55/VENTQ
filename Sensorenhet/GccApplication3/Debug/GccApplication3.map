@@ -813,10 +813,10 @@ END GROUP
  *(.debug_frame)
  .debug_frame   0x00000000      0x174 GccApplication3.o
 
-.debug_str      0x00000000      0x53d
+.debug_str      0x00000000      0x543
  *(.debug_str)
- .debug_str     0x00000000      0x53d GccApplication3.o
-                                0x571 (size before relaxing)
+ .debug_str     0x00000000      0x543 GccApplication3.o
+                                0x577 (size before relaxing)
 
 .debug_loc      0x00000000      0x7f5
  *(.debug_loc)

@@ -68,19 +68,22 @@ uint8_t actualLeak_g = 0;
 uint8_t validChange_g = 0;
 uint8_t currentDirection_g = north;
 uint8_t leaksFound_g = 0;
+uint8_t currentTcrossing_g = 0;
+uint8_t TcrossingsFound_g = 0;
 
 struct node
 {
-    uint8_t     whatNode;        // Alla typer av noder är definade som siffror
-    uint8_t     nodeID;          // Nodens unika id
+    uint8_t     whatNode;        	// Alla typer av noder är definade som siffror
+    uint8_t     nodeID;          	// Nodens unika id
+    uint8_t		waysExplored		// Är bägge hållen utforskade är denna 2
     uint8_t     wayIn;
-    uint8_t     nextDirection;   // Väderstrecken är siffror som är definade
-    uint8_t     northAvailible;  // Finns riktningen norr i noden?   Om sant => 1, annars 0
+    uint8_t     nextDirection;   	// Väderstrecken är siffror som är definade
+    uint8_t     northAvailible;  	// Finns riktningen norr i noden?   Om sant => 1, annars 0
     uint8_t     eastAvailible;
     uint8_t     southAvailible;
     uint8_t     westAvailible;
-    uint8_t     containsLeak;    // Finns läcka i "noden", kan bara finnas om det är en korridor
-    uint8_t		leakID;			 // Fanns en läcka får den ett unikt id, annars är denna 0
+    uint8_t     containsLeak;    	// Finns läcka i "noden", kan bara finnas om det är en korridor
+    uint8_t		leakID;			 	// Fanns en läcka får den ett unikt id, annars är denna 0
 };
 
 struct node nodeArray[maxNodes];
@@ -151,8 +154,8 @@ void updateLeakInfo()
 	if ((validLeak() == true) &&                              // Faktisk läcka?
 	(nodeArray[currentNode_g].containsLeak == false) &&   // Innehåller noden redan en läcka?
 	(nodeArray[currentNode_g].whatNode == corridor))      // Läckor får bara finnas i nodtypen "corridor"
-	{
-		leaksFound_g ++;
+	{													  // Kollen ovan gör även att när roboten inte gör nya noder så kan inte läckor läggas till
+		leaksFound_g ++;								  // eftersom whatNode i det fallet är Tcrossing eller deadEnd
 
 		nodeArray[currentNode_g].containsLeak = true;         // Uppdaterar att korridornoden har en läcka sig
 		nodeArray[currentNode_g].leakID = leaksFound_g;		  // Läckans id får det nummer som den aktuella läckan har
@@ -162,15 +165,23 @@ void updateLeakInfo()
 // Ska bara finnas i MapMode
 uint8_t canMakeNew()
 {
-	if ((nodeArray[currentNode_g].whatNode == deadEnd) &&                                               // Var senaste noden en återvändsgränd (deadEnd)?
-	!(tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3))    // Detta kollar om roboten står i en T-korsning
+	if ((nodeArray[currentNode_g].whatNode == deadEnd) &&                                               	// Var senaste noden en återvändsgränd (deadEnd)?
+		!(tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3))    // Detta kollar om roboten står i en T-korsning
 	{
 		return false; // Alltså: om senaste noden var en deadEnd och den nuvarande inte är en T-korsning ska inte nya noder göras
+	}
+	else if ((nodeArray[currentNode_g].whatNode == Tcrossing) &&											  // Var senaste noden en Tcrossing
+			 (nodeArray[currentNode_g].waysExplored == 2) &&											  // Om senaste noden va en Tcrossing, har den untforskats helt?
+			 !(tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)) // isåfall ska inte nya noder göras
+	{
+		return false;
 	}
 	else
 	{
 		return true;
 	}
+
+	// Lägg till saker här: på vägen tillbaka efter en Tcrossing ska inte nya noder göras
 }
 
 uint8_t isChangeDetected()
@@ -193,11 +204,12 @@ uint8_t isChangeDetected()
 }
 
 // MapMode
+// Denna funktion hanterar konstiga fenomen i Zcrossing, hanteras dock som två st 2vägskorsningar
 uint8_t checkIfNewNode()
 {
 	if ((isChangeDetected() == true) && (distanceToFrontWall_g > maxWallDistance))
 	{
-		return true;	// I detta fall är det en Tcrossing från sidan
+		return true;	// I detta fall är det en Tcrossing från sidan, eller ut från en korsning
 	}
 	else if ((isChangeDetected() == true) && (distanceToFrontWall_g < closeEnoughToWall))
 	{
@@ -231,21 +243,72 @@ uint8_t whatNodeType()
 	}
 }
 
-// Får finnas i bägge, behövs i MapMode
-uint8_t whatWayIn()
-{
-	return currentDirection_g;
-}
-
 uint8_t TcrossingID()
 {
 	if (nodeArray[currentNode_g].whatNode == Tcrossing)
 	{
-		// Räkna ut vilken nodjävel det är
-		// Funkar detta blir navigering asenkel
-		// Börjar med ID = 1
-		// Om det inte är en Tcrossing ska 0 returneras
+		if (currentTcrossing_g == 0)	// Första T-korsningen
+		{
+			currentTcrossing_g = 1;
+			TcrossingsFound_g = 1;
+			return currentTcrossing_g;	
+		}
+		else if (nodeArray[currentNode_g - 1].whatNode == deadEnd)
+		{
+			return currentTcrossing_g;
+		}
+		else if (nodeArray[currentNode_g - 1].whatNode == Tcrossing)
+		{
+			int j = currentTcrossing_g;
+			for (j; j > 0 ; j--)				// Den här magiska forloopen letar rätt på en Tcrossing från höger
+			{									// i arrayen och kollar om den var "fylld" med waysExplored
+				for (int i = 120; i>1 ; i--)	// och va den fylld kollar den på den tidigare T-korsningen
+				{
+					if (nodeArray[i].nodeID == j - 1)
+					{
+						if(nodeArray[i].waysExplored == 2))
+						{
+							currentTcrossing_g --;
+						}
+						else
+						{
+							currentTcrossing_g --;
+							return currentTcrossing_g;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			TcrossingsFound_g ++;
+			currentTcrossing_g = TcrossingsFound_g;
+			return currentTcrossing_g;
+		}
 	}
+}
+
+uint8_t calcWaysExplored()
+{
+	int ways = 0;
+
+	if (nodeArray[currentNode_g].whatNode == Tcrossing)
+	{
+		int ID = nodeArray[currentNode_g].nodeID;
+
+		for(int i = 0; i < currentNode_g; i++)
+		{
+			if (nodeArray[i].nodeID == ID)
+				ways ++;
+		}
+	}
+	return ways;
+}
+
+// Får finnas i bägge, behövs i MapMode
+uint8_t whatWayIn()
+{
+	return currentDirection_g;
 }
 
 // Får finnas i bägge, behövs i MapMode
@@ -258,7 +321,8 @@ uint8_t whatsNextDirection()
 void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 {
     nodeArray[currentNode_g].whatNode = whatNodeType();
-    nodeArray[currentNode_g].nodeID = TcrossingID();		// Är alltid 0 om det inte är en Tcrossing
+    nodeArray[currentNode_g].nodeID = TcrossingID();		      // Är alltid 0 om det inte är en Tcrossing
+    nodeArray[currentNode_g].waysExplored = calcWaysExplored()	  // Är alltid 0 om det inte är en Tcrossing
     nodeArray[currentNode_g].wayIn = whatWayIn();
     nodeArray[currentNode_g].nextDirection = whatsNextDirection();
     nodeArray[currentNode_g].northAvailible = tempNorthAvailible_g;
@@ -273,7 +337,8 @@ int main()
 {
     // Börjar i en återvändsgränd med norr som frammåt
     nodeArray[0].whatNode = deadEnd;
-    nodeArray[0].nodeID = 0;                // Nodens ID börjar på 0, för att vara samma som currentNode_g
+    nodeArray[0].nodeID = 0;                // Nodens ID initieras som 0, ändras om det är en Tcrossing
+    nodeArray[0].waysExplored = 0;
     nodeArray[0].wayIn = north;
     nodeArray[0].nextDirection = north;
     nodeArray[0].northAvailible = true;     // Börjar i återvändsgränd med tillgänglig rikt. norr

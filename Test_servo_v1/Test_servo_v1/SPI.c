@@ -1,5 +1,5 @@
 ﻿/*
- * CFile1.c
+ * SPI.c
  *
  * Created: 4/20/2015 11:26:24 AM
  *  Author: marwa828
@@ -26,11 +26,22 @@ void spiSlaveInit()
     DDRB = (1<<PORTB6); //Alla utom MISO ska vara ingångar.
     SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI    
 }    
-void spiTransmit(unsigned char data)
+void spiTransmitToSensorUnit(unsigned char data)
 {
+    PORTA = (1<<PORTA2) | (0<<PORTA1); //Slave select
     SPDR = data;
     while(!(SPSR & (1<<SPIF))); //Vänta på att överföring är klar
     inbuffer = SPDR;
+    PORTA = (1<<PORTA2) | (1<<PORTA1); //Slave deselect
+}
+
+void spiTransmitToCommUnit(unsigned char data)
+{
+    PORTA = (1<<PORTA1) | (0<<PORTA2); //Slave select
+    SPDR = data;
+    while(!(SPSR & (1<<SPIF))); //Vänta på att överföring är klar
+    inbuffer = SPDR;
+    PORTA = (1<<PORTA1) | (1<<PORTA2); //Slave deselect
 }
 
 
@@ -38,17 +49,11 @@ void transmitDataToCommUnit(int header_, int data)
 {
     uint8_t lowDataByte = data;
     uint8_t highDataByte = (data >> 8);
-    PORTA = (0<<PORTA2); //Slave select
-    spiTransmit(header_);
-    PORTA = (1<<PORTA2); //Slave deselect
+    spiTransmitToCommUnit(header_);
     _delay_us(5);
-    PORTA = (0<<PORTA2);
-    spiTransmit(highDataByte);
-    PORTA = (1<<PORTA2);
+    spiTransmitToCommUnit(highDataByte);
     _delay_us(5);
-    PORTA = (0<<PORTA2);
-    spiTransmit(lowDataByte);
-    PORTA = (1<<PORTA2);
+    spiTransmitToCommUnit(lowDataByte);
     _delay_us(5);
 }
 
@@ -56,17 +61,26 @@ void transmitDataToSensorUnit(int header_, int data)
 {
     uint8_t lowDataByte = data;
     uint8_t highDataByte = (data >> 8);
-    PORTA = (0<<PORTA1); //Slave select
-    spiTransmit(header_);
-    PORTA = (1<<PORTA1); //Slave deselect
+    spiTransmitToSensorUnit(header_);
     _delay_us(5);
-    PORTA = (0<<PORTA1);
-    spiTransmit(highDataByte);
-    PORTA = (1<<PORTA1);
+    spiTransmitToSensorUnit(highDataByte);
     _delay_us(5);
-    PORTA = (0<<PORTA1);
-    spiTransmit(lowDataByte);
-    PORTA = (1<<PORTA1);
+    spiTransmitToSensorUnit(lowDataByte);
     _delay_us(5);
 }
 
+
+// Ger tillbaka värde motsvarande den headern som skickades.
+int fetchDataFromSensorUnit(int header_)
+{
+    uint8_t lowDataByte;
+    uint8_t highDataByte;
+    spiTransmitToSensorUnit(header_);
+    _delay_us(5);
+    spiTransmitToSensorUnit(TRASH);
+    highDataByte = inbuffer;
+    _delay_us(5);
+    spiTransmitToSensorUnit(TRASH);
+    lowDataByte = inbuffer;
+    return lowDataByte + (highDataByte << 8);
+}
