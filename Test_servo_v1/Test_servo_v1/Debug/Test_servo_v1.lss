@@ -21,11 +21,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_frame  000008b4  00000000  00000000  0000af50  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00000a43  00000000  00000000  0000b804  2**0
+  9 .debug_str    00000a83  00000000  00000000  0000b804  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    00003799  00000000  00000000  0000c247  2**0
+ 10 .debug_loc    00003799  00000000  00000000  0000c287  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000178  00000000  00000000  0000f9e0  2**0
+ 11 .debug_ranges 00000178  00000000  00000000  0000fa20  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -229,12 +229,6 @@ void spiTransmit(unsigned char data)
      158:	08 95       	ret
 
 0000015a <initUSART>:
-        // Vänta tills den sänt klart det sista
-    }
-    USART0RecieveMode();
-    sei(); // Tillåt interrupts igen
-    
-}
      15a:	80 e1       	ldi	r24, 0x10	; 16
      15c:	8a b9       	out	0x0a, r24	; 10
      15e:	1b b8       	out	0x0b, r1	; 11
@@ -256,8 +250,6 @@ void spiTransmit(unsigned char data)
      184:	08 95       	ret
 
 00000186 <USARTSendInstruction5>:
-void USARTSendInstruction5(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3, int parameter4)
-{
      186:	cf 92       	push	r12
      188:	ef 92       	push	r14
      18a:	ff 92       	push	r15
@@ -269,57 +261,33 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
      196:	d6 2f       	mov	r29, r22
      198:	14 2f       	mov	r17, r20
      19a:	f2 2e       	mov	r15, r18
-    PORTD = (0<<PORTD4);
-}
-
-void USART0SendMode()
-{
-    PORTD = (1<<PORTD4);
      19c:	80 e1       	ldi	r24, 0x10	; 16
      19e:	8b b9       	out	0x0b, r24	; 11
-}
-void USARTSendInstruction5(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3, int parameter4)
-{
-    // sätt USART till sändläge
-    USART0SendMode();
-    UCSR0A = UCSR0A | (0 << 6); // Gjorde så att vi kunde skicka en instruktion efter en instruktion/read.
      1a0:	e0 ec       	ldi	r30, 0xC0	; 192
      1a2:	f0 e0       	ldi	r31, 0x00	; 0
      1a4:	80 81       	ld	r24, Z
      1a6:	80 83       	st	Z, r24
-    USARTWriteChar(0xFF);
      1a8:	8f ef       	ldi	r24, 0xFF	; 255
      1aa:	e5 df       	rcall	.-54     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(0xFF);
      1ac:	8f ef       	ldi	r24, 0xFF	; 255
      1ae:	e3 df       	rcall	.-58     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(ID);
      1b0:	8c 2f       	mov	r24, r28
      1b2:	e1 df       	rcall	.-62     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(7); // Paketets längd.
      1b4:	87 e0       	ldi	r24, 0x07	; 7
      1b6:	df df       	rcall	.-66     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(instruction);
      1b8:	8d 2f       	mov	r24, r29
      1ba:	dd df       	rcall	.-70     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(parameter0);
      1bc:	81 2f       	mov	r24, r17
      1be:	db df       	rcall	.-74     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(parameter1);
      1c0:	8f 2d       	mov	r24, r15
      1c2:	d9 df       	rcall	.-78     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(parameter2);
      1c4:	80 2f       	mov	r24, r16
      1c6:	d7 df       	rcall	.-82     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(parameter3);
      1c8:	8e 2d       	mov	r24, r14
      1ca:	d5 df       	rcall	.-86     	; 0x176 <USARTWriteChar>
-    USARTWriteChar(parameter4);
      1cc:	8c 2d       	mov	r24, r12
      1ce:	d3 df       	rcall	.-90     	; 0x176 <USARTWriteChar>
-    cli();
      1d0:	f8 94       	cli
-    USARTWriteChar(~(ID+7+instruction+parameter0+parameter1+parameter2+parameter3+parameter4)); // Checksum
      1d2:	87 e0       	ldi	r24, 0x07	; 7
      1d4:	8c 0d       	add	r24, r12
      1d6:	e8 0e       	add	r14, r24
@@ -331,28 +299,13 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
      1e2:	8c 0f       	add	r24, r28
      1e4:	80 95       	com	r24
      1e6:	c7 df       	rcall	.-114    	; 0x176 <USARTWriteChar>
-    while(!TXD0_FINISHED) //TXD0 sätts till 1 då all data shiftats ut ifrån usarten
      1e8:	e0 ec       	ldi	r30, 0xC0	; 192
      1ea:	f0 e0       	ldi	r31, 0x00	; 0
      1ec:	80 81       	ld	r24, Z
      1ee:	86 ff       	sbrs	r24, 6
      1f0:	fd cf       	rjmp	.-6      	; 0x1ec <USARTSendInstruction5+0x66>
-#define TXD0_DATA (UDR0)
-#define RXD0_DATA (UDR0)
-
-void USART0RecieveMode() 
-{
-    PORTD = (0<<PORTD4);
      1f2:	1b b8       	out	0x0b, r1	; 11
-        // Vänta tills den sänt klart det sista
-    }
-    ;
-    USART0RecieveMode();
-    //char test1 = RXD0_DATA; // För att läsa det som är i reciever bufferten, används nu för att readchar ska funka
-    sei(); // Tillåt interrupts igen
      1f4:	78 94       	sei
-    
-}
      1f6:	df 91       	pop	r29
      1f8:	cf 91       	pop	r28
      1fa:	1f 91       	pop	r17

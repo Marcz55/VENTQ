@@ -1011,14 +1011,14 @@ END GROUP
  .debug_frame   0x0000007c      0x1a0 USART.o
  .debug_frame   0x0000021c      0x698 Test_servo_v1.o
 
-.debug_str      0x00000000      0xa43
+.debug_str      0x00000000      0xa83
  *(.debug_str)
- .debug_str     0x00000000      0x1ea SPI.o
-                                0x21e (size before relaxing)
- .debug_str     0x000001ea      0x1b2 USART.o
+ .debug_str     0x00000000      0x1f5 SPI.o
+                                0x229 (size before relaxing)
+ .debug_str     0x000001f5      0x1e7 USART.o
                                 0x30b (size before relaxing)
- .debug_str     0x0000039c      0x6a7 Test_servo_v1.o
-                                0x845 (size before relaxing)
+ .debug_str     0x000003dc      0x6a7 Test_servo_v1.o
+                                0x850 (size before relaxing)
 
 .debug_loc      0x00000000     0x3799
  *(.debug_loc)
