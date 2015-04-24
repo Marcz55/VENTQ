@@ -28,20 +28,24 @@ void spiSlaveInit()
 }    
 void spiTransmitToSensorUnit(unsigned char data)
 {
+    cli();
     PORTA = (1<<PORTA2) | (0<<PORTA1); //Slave select
     SPDR = data;
     while(!(SPSR & (1<<SPIF))); //Vänta på att överföring är klar
     inbuffer = SPDR;
     PORTA = (1<<PORTA2) | (1<<PORTA1); //Slave deselect
+    sei();
 }
 
 void spiTransmitToCommUnit(unsigned char data)
 {
+    cli();
     PORTA = (1<<PORTA1) | (0<<PORTA2); //Slave select
     SPDR = data;
     while(!(SPSR & (1<<SPIF))); //Vänta på att överföring är klar
     inbuffer = SPDR;
     PORTA = (1<<PORTA1) | (1<<PORTA2); //Slave deselect
+    sei();
 }
 
 
@@ -55,6 +59,7 @@ void transmitDataToCommUnit(int header_, int data)
     _delay_us(5);
     spiTransmitToCommUnit(lowDataByte);
     _delay_us(5);
+    
 }
 
 void transmitDataToSensorUnit(int header_, int data)
@@ -67,6 +72,7 @@ void transmitDataToSensorUnit(int header_, int data)
     _delay_us(5);
     spiTransmitToSensorUnit(lowDataByte);
     _delay_us(5);
+    
 }
 
 

@@ -154,13 +154,13 @@ int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int gaitResolutionTime_g = INCREMENT_PERIOD_500; // tid i timerloopen för benstyrningen i ms
+int gaitResolutionTime_g = INCREMENT_PERIOD_30; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 
 
 // ------ Inställningar för robot-datorkommunikation ------
-int commUnitUpdatePeriod = INCREMENT_PERIOD_200;
+int commUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
 
 
@@ -1283,25 +1283,25 @@ int main(void)
     while (1)
     {
 	
-	if (legTimerPeriodEnd())
-	{
-	    move();
-	    resetLegTimer();
-	}
-	if (commTimerPeriodEnd())
-	{
-	    testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
-	    transmitDataToCommUnit(DISTANCE_NORTH, testData);
-	    
-	    testData = fetchDataFromSensorUnit(DISTANCE_EAST);
-	    transmitDataToCommUnit(DISTANCE_EAST, testData);
-	    
-	    testData = fetchDataFromSensorUnit(DISTANCE_SOUTH);
-	    transmitDataToCommUnit(DISTANCE_SOUTH, testData);
-	    
-	    testData = fetchDataFromSensorUnit(DISTANCE_WEST);
-	    transmitDataToCommUnit(DISTANCE_WEST, testData);
-	}
+    	if (legTimerPeriodEnd())
+    	{
+    	    move();
+    	    resetLegTimer();
+    	}
+    	if (commTimerPeriodEnd())
+    	{
+    	    testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
+    	    transmitDataToCommUnit(DISTANCE_NORTH, testData);
+    	    
+    	    testData = fetchDataFromSensorUnit(DISTANCE_EAST);
+    	    transmitDataToCommUnit(DISTANCE_EAST, testData);
+    	    
+    	    testData = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+    	    transmitDataToCommUnit(DISTANCE_SOUTH, testData);
+    	    
+    	    testData = fetchDataFromSensorUnit(DISTANCE_WEST);
+    	    transmitDataToCommUnit(DISTANCE_WEST, testData);
+    	}
         if ((currentPos_g == posToCalcGait) & directionHasChanged)
         {
             switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
