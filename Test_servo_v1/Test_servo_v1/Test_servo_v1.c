@@ -151,7 +151,7 @@ int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int gaitResolutionTime_g = INCREMENT_PERIOD_500; // tid i timerloopen i ms
+int gaitResolutionTime_g = INCREMENT_PERIOD_200; // tid i timerloopen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 
@@ -1197,6 +1197,7 @@ int main(void)
             if (TCNT0 >= timerRemainingTicks_g)
             {
                 // Skicka lite sensordata till datorn. Det här ska ske på en egen timer egentligen
+                
                 testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
                 transmitDataToCommUnit(DISTANCE_NORTH, testData);
                 testData = fetchDataFromSensorUnit(DISTANCE_EAST);
@@ -1205,6 +1206,20 @@ int main(void)
                 transmitDataToCommUnit(DISTANCE_SOUTH, testData);
                 testData = fetchDataFromSensorUnit(DISTANCE_WEST);
                 transmitDataToCommUnit(DISTANCE_WEST, testData);
+                testData = fetchDataFromSensorUnit(ANGLE_NORTH);
+                transmitDataToCommUnit(ANGLE_NORTH, testData);
+                testData = fetchDataFromSensorUnit(ANGLE_EAST);
+                transmitDataToCommUnit(ANGLE_EAST, testData);
+                testData = fetchDataFromSensorUnit(ANGLE_SOUTH);
+                transmitDataToCommUnit(ANGLE_SOUTH, testData);
+                testData = fetchDataFromSensorUnit(ANGLE_WEST);
+                transmitDataToCommUnit(ANGLE_WEST, testData);
+                testData = fetchDataFromSensorUnit(TOTAL_ANGLE);
+                transmitDataToCommUnit(TOTAL_ANGLE, testData);
+                testData = fetchDataFromSensorUnit(LEAK_HEADER);
+                transmitDataToCommUnit(LEAK_HEADER, testData);
+                testData = fetchDataFromSensorUnit(NODE_INFO);
+                transmitDataToCommUnit(NODE_INFO, testData);
                 
                 move();
                 TCNT0 = 0;          // Återställ räknaren
