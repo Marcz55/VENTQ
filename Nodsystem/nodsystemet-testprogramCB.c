@@ -13,29 +13,29 @@
 #include <stdio.h>
 
 
-#define false (uint8_t)0
-#define true  (uint8_t)1
+#define false 0
+#define true  1
 
 #define maxNodes 121        // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
-#define corridor  (uint8_t)0         // Dessa är möjliga tal i whatNode
-#define turn	  (uint8_t)1
-#define deadEnd   (uint8_t)2
-#define Tcrossing (uint8_t)3
-#define Zcrossing (uint8_t)4
+#define corridor  0         // Dessa är möjliga tal i whatNode
+#define turn	  1
+#define deadEnd   2
+#define Tcrossing 3
+#define Zcrossing 4
 
 
 //------------------------------------------------ Jocke har definierat dessa i sin kod
-#define north (uint8_t)0
-#define east  (uint8_t)1
-#define south (uint8_t)2
-#define west  (uint8_t)3
+#define north 0
+#define east  1
+#define south 2
+#define west  3
 //------------------------------------------------ Ta bort dessa när denna kod integreras
 
 
 
 
-uint8_t isLeakVisible_g = 0;
+int isLeakVisible_g = 0;
 int 	northSensor_g = 0;
 int 	eastSensor_g = 0;
 int 	southSensor_g = 0;
@@ -67,34 +67,35 @@ int eastSensor4_g
 
 
 
-#define closeEnoughToWall (uint8_t)350  // Roboten går rakt fram tills den här längden
-#define maxWallDistance (uint16_t)570   // Utanför denna längd är det ingen vägg
+#define closeEnoughToWall 350  // Roboten går rakt fram tills den här längden
+#define maxWallDistance 570   // Utanför denna längd är det ingen vägg
 
-uint8_t tempNorthAvailible_g = true;
-uint8_t tempEastAvailible_g = false;
-uint8_t tempSouthAvailible_g = false;
-uint8_t tempWestAvailible_g = false;
-uint8_t currentNode_g = 0;
-uint8_t actualLeak_g = 0;
-uint8_t validChange_g = 0;
-uint8_t currentDirection_g = north;
-uint8_t leaksFound_g = 0;
-uint8_t currentTcrossing_g = 0;
-uint8_t TcrossingsFound_g = 0;
+int tempNorthAvailible_g = true;
+int tempEastAvailible_g = false;
+int tempSouthAvailible_g = false;
+int tempWestAvailible_g = false;
+int currentNode_g = 0;
+int actualLeak_g = 0;
+int validChange_g = 0;
+int currentDirection_g = north;
+int leaksFound_g = 0;
+int currentTcrossing_g = 0;
+int TcrossingsFound_g = 0;
+int distanceToFrontWall_g = 0;
 
 struct node
 {
-    uint8_t     whatNode;        	// Alla typer av noder är definade som siffror
-    uint8_t     nodeID;          	// Nodens unika id
-    uint8_t		waysExplored		// Är bägge hållen utforskade är denna 2
-    uint8_t     wayIn;
-    uint8_t     nextDirection;   	// Väderstrecken är siffror som är definade
-    uint8_t     northAvailible;  	// Finns riktningen norr i noden?   Om sant => 1, annars 0
-    uint8_t     eastAvailible;
-    uint8_t     southAvailible;
-    uint8_t     westAvailible;
-    uint8_t     containsLeak;    	// Finns läcka i "noden", kan bara finnas om det är en korridor
-    uint8_t		leakID;			 	// Fanns en läcka får den ett unikt id, annars är denna 0
+    int     whatNode;        	// Alla typer av noder är definade som siffror
+    int     nodeID;          	// Nodens unika id
+    int		waysExplored;		// Är bägge hållen utforskade är denna 2
+    int     wayIn;
+    int     nextDirection;   	// Väderstrecken är siffror som är definade
+    int     northAvailible;  	// Finns riktningen norr i noden?   Om sant => 1, annars 0
+    int     eastAvailible;
+    int     southAvailible;
+    int     westAvailible;
+    int     containsLeak;    	// Finns läcka i "noden", kan bara finnas om det är en korridor
+    int		leakID;			 	// Fanns en läcka får den ett unikt id, annars är denna 0
 };
 
 struct node nodeArray[maxNodes];
@@ -137,7 +138,7 @@ void updateTempDirections()
 }
 
 // Ska finnas i bägge modes
-uint8_t validLeak()
+int validLeak()
 {
 	if (isLeakVisible_g == true)
 	{
@@ -174,9 +175,11 @@ void updateLeakInfo()
 }
 
 // Ska bara finnas i MapMode
-uint8_t canMakeNew()
+int canMakeNew()
 {
-	if ((nodeArray[currentNode_g].whatNode == deadEnd) &&                                               	// Var senaste noden en återvändsgränd (deadEnd)?
+    if (currentTcrossing_g == 0)
+        return true;
+	else if ((nodeArray[currentNode_g].whatNode == deadEnd) &&                                               	// Var senaste noden en återvändsgränd (deadEnd)?
 		!(tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3))    // Detta kollar om roboten står i en T-korsning
 	{
 		return false; // Alltså: om senaste noden var en deadEnd och den nuvarande inte är en T-korsning ska inte nya noder göras
@@ -195,7 +198,7 @@ uint8_t canMakeNew()
 	// Lägg till saker här: på vägen tillbaka efter en Tcrossing ska inte nya noder göras
 }
 
-uint8_t isChangeDetected()
+int isChangeDetected()
 {
 	if ((nodeArray[currentNode_g].northAvailible == tempNorthAvailible_g) && (nodeArray[currentNode_g].eastAvailible == tempEastAvailible_g) &&
 		(nodeArray[currentNode_g].southAvailible == tempSouthAvailible_g) && (nodeArray[currentNode_g].westAvailible == tempWestAvailible_g))
@@ -216,7 +219,7 @@ uint8_t isChangeDetected()
 
 // MapMode
 // Denna funktion hanterar konstiga fenomen i Zcrossing, hanteras dock som två st 2vägskorsningar
-uint8_t checkIfNewNode()
+int checkIfNewNode()
 {
 	if ((isChangeDetected() == true) && (distanceToFrontWall_g > maxWallDistance))
 	{
@@ -231,7 +234,7 @@ uint8_t checkIfNewNode()
 }
 
 // MapMode
-uint8_t whatNodeType()
+int whatNodeType()
 {
 	if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)
 	{
@@ -240,9 +243,9 @@ uint8_t whatNodeType()
 	else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 2)
 	{
 		if (tempNorthAvailible_g == tempSouthAvailible_g)
-		return corridor;        // Detta måste vara en korridor
+            return corridor;        // Detta måste vara en korridor
 		else
-		return turn; // Detta måste vara en 2vägskorsning
+            return turn; // Detta måste vara en 2vägskorsning
 	}
 	else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 1)
 	{
@@ -254,7 +257,7 @@ uint8_t whatNodeType()
 	}
 }
 
-uint8_t TcrossingID()
+int TcrossingID()
 {
 	if (nodeArray[currentNode_g].whatNode == Tcrossing)
 	{
@@ -271,15 +274,17 @@ uint8_t TcrossingID()
 		else if (nodeArray[currentNode_g - 1].whatNode == Tcrossing)
 		{
 			int j = currentTcrossing_g;
-			for (j; j > 0 ; j--)				// Den här magiska forloopen letar rätt på en Tcrossing från höger
-			{									// i arrayen och kollar om den var "fylld" med waysExplored
-				for (int i = 120; i>1 ; i--)	// och va den fylld kollar den på den tidigare T-korsningen
+			for (j; j > 0 ; j--)				    // Den här magiska forloopen letar rätt på en Tcrossing från höger
+			{
+			    int i;								// i arrayen och kollar om den var "fylld" med waysExplored
+				for (i = 120; i>1 ; i--)	        // och va den fylld kollar den på den tidigare T-korsningen
 				{
 					if (nodeArray[i].nodeID == j - 1)
 					{
-						if(nodeArray[i].waysExplored == 2))
+						if(nodeArray[i].waysExplored == 2)
 						{
 							currentTcrossing_g --;
+							break;
 						}
 						else
 						{
@@ -301,7 +306,7 @@ uint8_t TcrossingID()
 		return 0;
 }
 
-uint8_t calcWaysExplored()
+int calcWaysExplored()
 {
 	int ways = 0;
 
@@ -309,7 +314,8 @@ uint8_t calcWaysExplored()
 	{
 		int ID = nodeArray[currentNode_g].nodeID;
 
-		for(int i = 0; i < currentNode_g; i++)
+        int i;
+		for(i = 0; i < currentNode_g; i++)
 		{
 			if (nodeArray[i].nodeID == ID)
 				ways ++;
@@ -319,13 +325,13 @@ uint8_t calcWaysExplored()
 }
 
 // Får finnas i bägge, behövs i MapMode
-uint8_t whatWayIn()
+int whatWayIn()
 {
 	return currentDirection_g;
 }
 
 // Får finnas i bägge, behövs i MapMode
-uint8_t whatsNextDirection()
+int whatsNextDirection()
 {
 	return HARDCODEDDIRECTION;
 }
@@ -335,7 +341,7 @@ void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 {
     nodeArray[currentNode_g].whatNode = whatNodeType();
     nodeArray[currentNode_g].nodeID = TcrossingID();		      // Är alltid 0 om det inte är en Tcrossing
-    nodeArray[currentNode_g].waysExplored = calcWaysExplored()	  // Är alltid 0 om det inte är en Tcrossing
+    nodeArray[currentNode_g].waysExplored = calcWaysExplored();	  // Är alltid 0 om det inte är en Tcrossing
     nodeArray[currentNode_g].wayIn = whatWayIn();
     nodeArray[currentNode_g].nextDirection = whatsNextDirection();
     nodeArray[currentNode_g].northAvailible = tempNorthAvailible_g;
@@ -349,7 +355,7 @@ void createNewNode()    // Skapar en ny nod och lägger den i arrayen
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
 
-void simulatedeadEnd(uint8_t openDir_)
+void simulatedeadEnd(int openDir_)
 {
 	if (openDir_ == north)
 	{
@@ -440,241 +446,242 @@ void simulateNorthToWest()
 
 void simulateTest()
 {
-	if ((testHelper > 0) && (testHelper < 4))
+	if ((testHelper >= 0) && (testHelper < 10))
 	{
 		simulateCorridorNorth();
+		currentDirection_g = north;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 3) && (testHelper < 7))
+	else if ((testHelper > 9) && (testHelper < 20))
 	{
 		simulateTcrossing1();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 6) && (testHelper < 10))
+	else if ((testHelper > 19) && (testHelper < 30))
 	{
 		simulateCorridorEast();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 9) && (testHelper < 13))
+	else if ((testHelper > 29) && (testHelper < 40))
 	{
 		simulateEastToNorth();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 12) && (testHelper < 16))
+	else if ((testHelper > 39) && (testHelper < 50))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 15) && (testHelper < 19))
+	else if ((testHelper > 49) && (testHelper < 60))
 	{
 		simulateTcrossing2();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 18) && (testHelper < 22))
+	else if ((testHelper > 59) && (testHelper < 70))
 	{
 		simulateCorridorEast();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = east;
 
 	}
-	else if ((testHelper > 21) && (testHelper < 25))
+	else if ((testHelper > 69) && (testHelper < 80))
 	{
 		simulatedeadEnd(west);
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 24) && (testHelper < 29))
+	else if ((testHelper > 79) && (testHelper < 90))
 	{
 		simulateCorridorEast();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 28) && (testHelper < 32))
+	else if ((testHelper > 89) && (testHelper < 100))
 	{
 		simulateTcrossing2();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 31) && (testHelper < 35))
+	else if ((testHelper > 99) && (testHelper < 110))
 	{
 		simulateCorridorEast();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 34) && (testHelper < 39))
+	else if ((testHelper > 109) && (testHelper < 120))
 	{
 		simulateTcrossing1();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 38) && (testHelper < 42))
+	else if ((testHelper > 119) && (testHelper < 130))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 41) && (testHelper < 45))
+	else if ((testHelper > 129) && (testHelper < 140))
 	{
 		simulatedeadEnd(south);
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 44) && (testHelper < 49))
+	else if ((testHelper > 139) && (testHelper < 150))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 48) && (testHelper < 52))
+	else if ((testHelper > 149) && (testHelper < 160))
 	{
 		simulateTcrossing1();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 51) && (testHelper < 55))
+	else if ((testHelper > 159) && (testHelper < 170))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 54) && (testHelper < 59))
+	else if ((testHelper > 169) && (testHelper < 180))
 	{
 		simulatedeadEnd(north);
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 58) && (testHelper < 62))
+	else if ((testHelper > 179) && (testHelper < 190))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 61) && (testHelper < 65))
+	else if ((testHelper > 189) && (testHelper < 200))
 	{
 		simulateTcrossing1();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 64) && (testHelper < 68))
+	else if ((testHelper > 199) && (testHelper < 210))
 	{
 		simulateCorridorEast();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 67) && (testHelper < 71))
+	else if ((testHelper > 209) && (testHelper < 220))
 	{
 		simulateTcrossing2();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 70) && (testHelper < 74))
+	else if ((testHelper > 219) && (testHelper < 230))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 73) && (testHelper < 77))
+	else if ((testHelper > 229) && (testHelper < 240))
 	{
 		simulateEastToNorth();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 76) && (testHelper < 80))
+	else if ((testHelper > 239) && (testHelper < 250))
 	{
 		simulateCorridorEast();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 79) && (testHelper < 83))
+	else if ((testHelper > 249) && (testHelper < 260))
 	{
 		simulateTcrossing1();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 82) && (testHelper < 86))
+	else if ((testHelper > 259) && (testHelper < 270))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = north;
 	}
-	else if ((testHelper > 85) && (testHelper < 89))
+	else if ((testHelper > 269) && (testHelper < 280))
 	{
 		simulateTcrossing2();
 		currentDirection_g = north;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 88) && (testHelper < 92))
+	else if ((testHelper > 279) && (testHelper < 290))
 	{
 		simulateCorridorEast();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 91) && (testHelper < 95))
+	else if ((testHelper > 289) && (testHelper < 300))
 	{
 		simulatedeadEnd(west);
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 94) && (testHelper < 98))
+	else if ((testHelper > 299) && (testHelper < 310))
 	{
 		simulateCorridorEast();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 97) && (testHelper < 101))
+	else if ((testHelper > 309) && (testHelper < 320))
 	{
 		simulateTcrossing2();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 100) && (testHelper < 104))
+	else if ((testHelper > 319) && (testHelper < 330))
 	{
 		simulateCorridorEast();
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = west;
 	}
-	else if ((testHelper > 103) && (testHelper < 107))
+	else if ((testHelper > 329) && (testHelper < 340))
 	{
 		simulatedeadEnd(east);
 		currentDirection_g = west;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 106) && (testHelper < 110))
+	else if ((testHelper > 339) && (testHelper < 350))
 	{
 		simulateCorridorEast();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = east;
 	}
-	else if ((testHelper > 109) && (testHelper < 113))
+	else if ((testHelper > 349) && (testHelper < 360))
 	{
 		simulateTcrossing2();
 		currentDirection_g = east;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 112) && (testHelper < 116))
+	else if ((testHelper > 359) && (testHelper < 370))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 115) && (testHelper < 119))
+	else if ((testHelper > 369) && (testHelper < 380))
 	{
 		simulateTcrossing1();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 118) && (testHelper < 122))
+	else if ((testHelper > 379) && (testHelper < 390))
 	{
 		simulateCorridorNorth();
 		currentDirection_g = south;
 		HARDCODEDDIRECTION = south;
 	}
-	else if ((testHelper > 121) && (testHelper < 125))
+	else if ((testHelper > 389) && (testHelper < 400))
 	{
 		simulatedeadEnd(north);
 		currentDirection_g = south;
@@ -685,6 +692,37 @@ void simulateTest()
 }
 
 //---------------------------------------------------------------------------------------------------------------------------------------------
+
+void print() {
+    int i=0;
+
+    for (i=0; i<31; i++) {
+        printf("Nod nummer: %d\n" , i + 1);
+
+        if (nodeArray[i].whatNode == 0)
+            printf("whatNode: corridor \n", 0);
+        else if(nodeArray[i].whatNode == 1)
+            printf("whatNode: turn \n", 0);
+        else if(nodeArray[i].whatNode == 2)
+            printf("whatNode: deadEnd \n", 0);
+        else
+            printf("whatNode: Tcrossing \n", 0);
+
+        printf("nodeID: %d\n", nodeArray[i].nodeID);
+        printf("waysExplored: %d\n", nodeArray[i].waysExplored);
+
+        if (nodeArray[i].wayIn == 0)
+            printf("wayIn: north \n", 0);
+        else if(nodeArray[i].wayIn == 1)
+            printf("wayIn: east \n", 0);
+        else if(nodeArray[i].wayIn == 2)
+            printf("wayIn: south \n", 0);
+        else
+            printf("wayIn: west \n", 0);
+
+        printf("------------------------- \n", 0);
+    }
+}
 
 int main()
 {
@@ -701,12 +739,10 @@ int main()
     nodeArray[0].containsLeak = false;
     nodeArray[0].leakID = 0;
 
-    while(testHelper < 125)
+    while(testHelper < 400)
     {
 
     	simulateTest();
-
-    	// delayfunktion
 
         updateTempDirections();
         updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
@@ -718,14 +754,6 @@ int main()
             createNewNode();
         }
     }
-    FILE p*;
-    if((p=fopen("doc.txt","wb"))==NULL)
-    {
-      printf("\nUnable to open file doc.txt");
-      exit(1);
-    }
-    fwrite(nodeArray,sizeof(nodeArray,1,p))
-    fclose(p);
-    return 0;
 
+    print();
 }
