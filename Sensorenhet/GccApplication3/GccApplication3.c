@@ -14,7 +14,7 @@
 #include <math.h>
 #include "SPI.h"
 
-int recievedHeader = 0;
+int recievedHeader = 0; // Test för utskrift, kan tas bort
 int transmitStatus = 0;
 uint8_t transmitDataByte1 = 0;
 uint8_t transmitDataByte2 = 0;
@@ -433,18 +433,17 @@ ISR(SPISTC_vect)//SPI-överföring klar
     {
         case NO_TRANSMIT:
         {
-            recievedHeader = SPDR;
+            recievedHeader = SPDR; // Test för utskrift, kan tas bort
             if (SPDR != TRASH)
             {
                 splitDataBytes(SPDR);
+                transmitStatus = FIRST_BYTE_TRANSMITTED;
+                SPDR = transmitDataByte1;
             }
             else
             {
-                transmitDataByte1 = 0;
-                transmitDataByte2 = 0;
-            }                        
-            SPDR = transmitDataByte1;
-            transmitStatus = FIRST_BYTE_TRANSMITTED;
+                SPDR = 0;
+            }
             break;
         }
         case FIRST_BYTE_TRANSMITTED:
