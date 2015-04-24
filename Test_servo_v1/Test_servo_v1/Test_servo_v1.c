@@ -143,6 +143,9 @@
  #define CCW_ROTATION 2
  #define NO_ROTATION 0
 
+#define TRUE 1
+#define FALSE 0
+
 
 int stepLength_g = 70;
 int startPositionX_g = 100;
@@ -151,9 +154,15 @@ int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int gaitResolutionTime_g = INCREMENT_PERIOD_500; // tid i timerloopen i ms
+int gaitResolutionTime_g = INCREMENT_PERIOD_500; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
+
+
+// ------ Inställningar för robot-datorkommunikation ------
+int commUnitUpdatePeriod = INCREMENT_PERIOD_200;
+
+
 
 /*
 // Joakims coola gångstil,
@@ -189,15 +198,20 @@ int statusPackEnabled = 0;
 
  // gaitResolutionTime_g represent the time between ticks in ms. 
  // timerOverflowMax_g 
-int timerOverflowMax_g = 73;
-int timerRemainingTicks_g = 62;
+#define TIMER_0 0
+#define TIMER_2 2
+
+int timer0OverflowMax_g = 73;
+int timer0RemainingTicks_g = 62;
+
+int timer2OverFlowMax_g = 73;
+int timer2RemainingTicks_g = 62;
 
 
 
 
-
-volatile uint8_t totOverflow_g;
-
+volatile uint8_t timer0TotOverflow_g;
+volatile uint8_t timer2TotOverFlow_g;
 // klockfrekvensen är 16MHz. 
 void timer0Init()
 {
@@ -211,121 +225,193 @@ void timer0Init()
     
     TIMSK0 |= (1 << TOIE0);
     
-    sei();
     
-    totOverflow_g = 0;
+    timer0TotOverflow_g = 0;
 
 }
 
-// timerPeriod ska väljas från fördefinierade tider 
-void SetGaitResolutionPeriod(int newPeriod)
+void timer2Init()
 {
+  // prescaler 256, denna timer har dock större upplösning här, därav andra värden
+  TCCR2B |= (1 << CS22) | (1 << CS21);
+
+  // initiera counter
+  TCNT2 = 0;
+
+  // tillåt timer2 overflow interrupt
+
+  TIMSK2 |= (1 << TOIE2);
+
+  timer2TotOverFlow_g = 0;
+}
+  
+
+
+
+// timerPeriod ska väljas från fördefinierade tider 
+void setTimerPeriod(int timer, int newPeriod)
+{
+    
+    
     switch(newPeriod)
     {
         case INCREMENT_PERIOD_10:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 2;
-            timerRemainingTicks_g = 113;
+            newTimerOverflowMax = 2;
+            newTimerRemainingTicks = 113;
             break;
         }
         case INCREMENT_PERIOD_20:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 4;
-            timerRemainingTicks_g = 226;
+         
+            newTimerOverflowMax = 4;
+            newTimerRemainingTicks = 226;
             break;
         }
         case INCREMENT_PERIOD_30:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 7;
-            timerRemainingTicks_g = 83;
+         
+            newTimerOverflowMax = 7;
+            newTimerRemainingTicks = 83;
             break;
         }
         case INCREMENT_PERIOD_40:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 9;
-            timerRemainingTicks_g = 196;
+         
+            newTimerOverflowMax = 9;
+            newTimerRemainingTicks = 196;
             break;
         }
         case INCREMENT_PERIOD_50:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 12;
-            timerRemainingTicks_g = 53;
+         
+            newTimerOverflowMax = 12;
+            newTimerRemainingTicks = 53;
             break;
         }
         case INCREMENT_PERIOD_60:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 14;
-            timerRemainingTicks_g = 166;
+         
+            newTimerOverflowMax = 14;
+            newTimerRemainingTicks = 166;
             break;
         }
         case INCREMENT_PERIOD_70:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 17;
-            timerRemainingTicks_g = 23;
+         
+            newTimerOverflowMax = 17;
+            newTimerRemainingTicks = 23;
             break;
         }
         case INCREMENT_PERIOD_80:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 19;
-            timerRemainingTicks_g = 136;
+         
+            newTimerOverflowMax = 19;
+            newTimerRemainingTicks = 136;
             break;
         }
         case INCREMENT_PERIOD_90:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 21;
-            timerRemainingTicks_g = 249;
+         
+            newTimerOverflowMax = 21;
+            newTimerRemainingTicks = 249;
             break;
         }
         case INCREMENT_PERIOD_100:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 24;
-            timerRemainingTicks_g = 106;
+         
+            newTimerOverflowMax = 24;
+            newTimerRemainingTicks = 106;
             break;
         }
         case INCREMENT_PERIOD_200:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 48;
-            timerRemainingTicks_g = 212;
+
+            newTimerOverflowMax = 48;
+            newTimerRemainingTicks = 212;
             break;
         }
         case INCREMENT_PERIOD_300:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 73;
-            timerRemainingTicks_g = 62;
+
+            newTimerOverflowMax = 73;
+            newTimerRemainingTicks = 62;
             break;
         }
         case INCREMENT_PERIOD_400:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 97;
-            timerRemainingTicks_g = 168;
+
+            newTimerOverflowMax = 97;
+            newTimerRemainingTicks = 168;
             break;
         }
         case INCREMENT_PERIOD_500:
         {
-            gaitResolutionTime_g = newPeriod;
-            timerOverflowMax_g = 122;
-            timerRemainingTicks_g = 18;
+
+            newTimerOverflowMax = 122;
+            newTimerRemainingTicks = 18;
             break;
         }
         // default:
             // Här kan man ha någon typ av felhantering om man vill
 
     }
+    switch(timer)
+    {
+        case TIMER_0:
+        {
+	    gaitResolutionTime_g = newPeriod;
+	    timer0OverflowMax_g = newTimerOverflow;
+	    timer0RemainingTicks_g = newRemainingTicks;
+	    break;
+	}
+        case TIMER_2:
+	{
+	    commUnitUpdatePeriod = newPeriod;
+	    timer2OverflowMax_g = newTimerOverflow;
+	    timer2RemainingTicks_g = newRemainingTicks;
+	    break;
+	}
+    }
     return;
 }
+
+int legTimerPeriodEnd()
+{
+    if (timer0TotOverflow_g >= timer0OverflowMax_g)
+    {
+      if (TCNT0 >= timer0RemainingTicks_g)
+	  {
+	      return TRUE;
+	  }
+    }
+    return FALSE;
+}
+
+int commTimerPeriodEnd()
+{
+    if (timer2TotOverflow_g >= timer2OverflowMax_g)
+    {
+	    if (TCNT2 >= timer2RemainingTicks_g)
+	    {
+		return TRUE;
+	    }
+    } 
+    return FALSE;
+}
+	    
+void resetLegTimer()
+{
+    TCNT0 = 0;
+    timer0TotOverflow_g = 0;
+}
+
+void resetCommTimer()
+{
+    TCNT2 = 0;
+    timer2TotOverflow_g = 0;
+}
+
 
 // calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
 // hastighet som gör att slutpositionen uppnås på periodtiden.
@@ -344,8 +430,14 @@ long int calcDynamixelSpeed(long int deltaAngle)
 
 ISR(TIMER0_OVF_vect)
 {
-    // räkna antalet avbrott som skett
-    totOverflow_g++;
+    // räkna antalet avbrott från timer0  som skett
+    timer0TotOverflow_g++;
+}
+
+ISR(TIMER1_OVF_vect)
+{
+    // antalet avbrott från timer2
+    timer2TotOverflow_g++;
 }
 
 
@@ -1170,47 +1262,46 @@ int main(void)
     //PORTA = 0xff;
     // MCUCR = (MCUCR | (1 << PUD)); Något som testades för att se om det gjorde något
     //PORTA |= (1 << PORTA0);
-     // Möjliggör globala avbrott
-    sei();
+
     currentPos_g = 0;
     nextPos_g = 1;
    
     timer0Init();
-    
-
+    timer2Init();
+    sei();
     MakeTrotGait(gaitResolution_g);
     MoveToStartPosition();
     //moveToCreepStartPosition();
     //makeCreepGait(gaitResolution_g);
-    SetGaitResolutionPeriod(gaitResolutionTime_g);
-
+    setTimerPeriod(TIMER0, gaitResolutionTime_g);
+    setTimerPeriod(TIMER2, commUnitUpdatePeriod);
     
     int posToCalcGait = (gaitResolution_g/4 - 1);
 
     int testData;
     // ---- Main-Loop ----
     while (1)
-    { 
-        // Timerstyrd loop. Vi kommer in här så ofta som anges i gaitResolutionTime_g
-        if (totOverflow_g >= timerOverflowMax_g)
-        {
-            if (TCNT0 >= timerRemainingTicks_g)
-            {
-                // Skicka lite sensordata till datorn. Det här ska ske på en egen timer egentligen
-                testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
-                transmitDataToCommUnit(DISTANCE_NORTH, testData);
-                testData = fetchDataFromSensorUnit(DISTANCE_EAST);
-                transmitDataToCommUnit(DISTANCE_EAST, testData);
-                testData = fetchDataFromSensorUnit(DISTANCE_SOUTH);
-                transmitDataToCommUnit(DISTANCE_SOUTH, testData);
-                testData = fetchDataFromSensorUnit(DISTANCE_WEST);
-                transmitDataToCommUnit(DISTANCE_WEST, testData);
-                
-                move();
-                TCNT0 = 0;          // Återställ räknaren
-                totOverflow_g = 0;
-            }
-        }
+    {
+	
+	if (legTimerPeriodEnd())
+	{
+	    move();
+	    resetLegTimer();
+	}
+	if (commTimerPeriodEnd())
+	{
+	    testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
+	    transmitDataToCommUnit(DISTANCE_NORTH, testData);
+	    
+	    testData = fetchDataFromSensorUnit(DISTANCE_EAST);
+	    transmitDataToCommUnit(DISTANCE_EAST, testData);
+	    
+	    testData = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+	    transmitDataToCommUnit(DISTANCE_SOUTH, testData);
+	    
+	    testData = fetchDataFromSensorUnit(DISTANCE_WEST);
+	    transmitDataToCommUnit(DISTANCE_WEST, testData);
+	}
         if ((currentPos_g == posToCalcGait) & directionHasChanged)
         {
             switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
