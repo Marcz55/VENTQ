@@ -103,6 +103,8 @@ char USARTReadChar();
 int USARTReadStatusPacket();
 void disableStatusPacketsFromActuator(int ID);
 void enableStatusPacketsFromActuator(int ID);
-
+int ReadTemperatureLimitFromActuator(int ID);
+int readCurrentTemperatureFromActuator(int ID);
+int readAlarmShutdownStatus(int ID);
 
 #endif /* USART_H_ */

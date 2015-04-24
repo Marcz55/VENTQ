@@ -204,14 +204,14 @@ int statusPackEnabled = 0;
 int timer0OverflowMax_g = 73;
 int timer0RemainingTicks_g = 62;
 
-int timer2OverFlowMax_g = 73;
+int timer2OverflowMax_g = 73;
 int timer2RemainingTicks_g = 62;
 
 
 
 
 volatile uint8_t timer0TotOverflow_g;
-volatile uint8_t timer2TotOverFlow_g;
+volatile uint8_t timer2TotOverflow_g;
 // klockfrekvensen är 16MHz. 
 void timer0Init()
 {
@@ -242,7 +242,7 @@ void timer2Init()
 
   TIMSK2 |= (1 << TOIE2);
 
-  timer2TotOverFlow_g = 0;
+  timer2TotOverflow_g = 0;
 }
   
 
@@ -252,7 +252,8 @@ void timer2Init()
 void setTimerPeriod(int timer, int newPeriod)
 {
     
-    
+    int newTimerRemainingTicks;
+    int newTimerOverflowMax;
     switch(newPeriod)
     {
         case INCREMENT_PERIOD_10:
@@ -361,17 +362,17 @@ void setTimerPeriod(int timer, int newPeriod)
         case TIMER_0:
         {
 	    gaitResolutionTime_g = newPeriod;
-	    timer0OverflowMax_g = newTimerOverflow;
-	    timer0RemainingTicks_g = newRemainingTicks;
+	    timer0OverflowMax_g = newTimerOverflowMax;
+	    timer0RemainingTicks_g = newTimerRemainingTicks;
 	    break;
-	}
+	    }
         case TIMER_2:
-	{
+	    {
 	    commUnitUpdatePeriod = newPeriod;
-	    timer2OverflowMax_g = newTimerOverflow;
-	    timer2RemainingTicks_g = newRemainingTicks;
+	    timer2OverflowMax_g = newTimerOverflowMax;
+	    timer2RemainingTicks_g = newTimerRemainingTicks;
 	    break;
-	}
+	    }
     }
     return;
 }
@@ -952,12 +953,10 @@ void MoveLegToNextPosition(leg Leg)
 
 void move()
 {
-    
     MoveLegToNextPosition(frontLeftLeg);
     MoveLegToNextPosition(frontRightLeg);
     MoveLegToNextPosition(rearLeftLeg);
     MoveLegToNextPosition(rearRightLeg);
-
     increasePositionIndexes();
 }
 
@@ -975,6 +974,10 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 
 ISR(INT1_vect) 
 {   
+    transmitDataToCommUnit(DISTANCE_NORTH,fetchDataFromSensorUnit(DISTANCE_NORTH));
+    transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
+    transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
+    transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
     
     
     directionHasChanged = 1;
@@ -1273,8 +1276,8 @@ int main(void)
     MoveToStartPosition();
     //moveToCreepStartPosition();
     //makeCreepGait(gaitResolution_g);
-    setTimerPeriod(TIMER0, gaitResolutionTime_g);
-    setTimerPeriod(TIMER2, commUnitUpdatePeriod);
+    setTimerPeriod(TIMER_0, gaitResolutionTime_g);
+    setTimerPeriod(TIMER_2, commUnitUpdatePeriod);
     
     int posToCalcGait = (gaitResolution_g/4 - 1);
 
@@ -1290,17 +1293,13 @@ int main(void)
     	}
     	if (commTimerPeriodEnd())
     	{
-    	    testData = fetchDataFromSensorUnit(DISTANCE_NORTH);
-    	    transmitDataToCommUnit(DISTANCE_NORTH, testData);
-    	    
-    	    testData = fetchDataFromSensorUnit(DISTANCE_EAST);
-    	    transmitDataToCommUnit(DISTANCE_EAST, testData);
-    	    
-    	    testData = fetchDataFromSensorUnit(DISTANCE_SOUTH);
-    	    transmitDataToCommUnit(DISTANCE_SOUTH, testData);
-    	    
-    	    testData = fetchDataFromSensorUnit(DISTANCE_WEST);
-    	    transmitDataToCommUnit(DISTANCE_WEST, testData);
+            transmitDataToCommUnit(ANGLE_NORTH,readCurrentTemperatureFromActuator(3));
+            transmitDataToCommUnit(ANGLE_EAST, readCurrentTemperatureFromActuator(4));
+            transmitDataToCommUnit(ANGLE_SOUTH, readCurrentTemperatureFromActuator(9));
+            //transmitDataToCommUnit(ANGLE_WEST, readCurrentTemperatureFromActuator(10));
+            transmitDataToCommUnit(ANGLE_WEST, ReadTemperatureLimitFromActuator(10));
+            transmitDataToCommUnit(TOTAL_ANGLE, readAlarmShutdownStatus(3));
+            resetCommTimer();
     	}
         if ((currentPos_g == posToCalcGait) & directionHasChanged)
         {

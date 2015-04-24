@@ -216,7 +216,6 @@ char USARTReadChar()
 
 int USARTReadStatusPacket()
 {   
-    PORTA = 0xff; 
     int ValueOfParameters = 0;
     //if ((USARTReadChar() == 0xFF) & (USARTReadChar() == 0xFF)) // Kollar om två startbitar
     //{
@@ -237,7 +236,6 @@ int USARTReadStatusPacket()
         
         char CheckSum = USARTReadChar();
     //}
-    PORTA = 0x0f;
     return ValueOfParameters;
     
 }
@@ -249,4 +247,27 @@ void disableStatusPacketsFromActuator(int ID)
 void enableStatusPacketsFromActuator(int ID)
 {
     USARTSendInstruction2(ID,INST_WRITE,P_RETURN_LEVEL,0x02);
+}
+
+int ReadTemperatureLimitFromActuator(int ID)
+{
+    USARTSendInstruction2(ID,INST_READ,P_LIMIT_TEMPERATURE,0x01);
+    return USARTReadStatusPacket();
+}
+
+int readCurrentTemperatureFromActuator(int ID)
+{
+    USARTSendInstruction2(ID,INST_READ,P_PRESENT_TEMPERATURE,0x01);
+    return USARTReadStatusPacket();
+}
+
+void setMaxTemperatureLimitToActuator(int ID)
+{
+    USARTSendInstruction2(ID,INST_WRITE,P_LIMIT_TEMPERATURE,85);
+}
+
+int readAlarmShutdownStatus(int ID)
+{
+    USARTSendInstruction2(ID,INST_READ,P_ALARM_SHUTDOWN,0x01);
+    return USARTReadStatusPacket();
 }
