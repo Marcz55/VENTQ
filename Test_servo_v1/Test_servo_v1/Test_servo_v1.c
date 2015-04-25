@@ -25,14 +25,14 @@
 */
 
 
-int stepLength_g = 70;
+int stepLength_g = 90;
 int startPositionX_g = 100;
 int startPositionY_g = 100;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_30; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_50; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 int posToCalcGait;
@@ -53,10 +53,10 @@ int gaitResolution_g = 12;
 int gaitResolutionTime_g = INCREMENT_PERIOD_60;
 */
 enum controlMode{
-    manuell,
+    manual,
     autonomous
 };
-enum controlMode currentControlMode = manuell;
+enum controlMode currentControlMode = manual;
 
 enum direction{
     none,
@@ -658,7 +658,7 @@ ISR(INT1_vect)
             break;
         }
     }
-   
+    
 } 
 
 void transmitAllDataToCommUnit()
@@ -766,18 +766,46 @@ void calcRegulation()
 
 /*
 / 
-/ ej klar
+/ ej klar och fungerar ej just nu. Kolla upp vad som finns i legPositions
 /
 */
 void returnToStartPosition()
 {
-    long int currentLegPositionsCopy[13];
+    int tempRes = 6;
+    long int copy[13];
+    maxGaitCyclePos_g = tempRes - 1;
+    posToCalcGait = maxGaitCyclePos_g;
     for (int i = 0; i < 13; i++)
     {
-        currentLegPositionsCopy[i] = legPositions_g[i][currentPos_g];
+        copy[i] = legPositions_g[i][currentPos_g];
     }
     // flytta ner alla benen till marknivå
-    //CalcStraightPath(frontLeftLeg, 2, 0, )
+    CalcStraightPath(frontLeftLeg, 2, 0, -copy[FRONT_LEFT_LEG_X],copy[FRONT_LEFT_LEG_Y], copy[FRONT_LEFT_LEG_Z],
+                                         -copy[FRONT_LEFT_LEG_X], copy[FRONT_LEFT_LEG_Y], startPositionZ_g);
+    CalcStraightPath(frontRightLeg, 2, 0, copy[FRONT_RIGHT_LEG_X], copy[FRONT_RIGHT_LEG_Y], copy[FRONT_LEFT_LEG_Z],
+                                          copy[FRONT_RIGHT_LEG_X], copy[FRONT_RIGHT_LEG_Y], startPositionZ_g);
+    CalcStraightPath(rearLeftLeg, 2, 0, -copy[REAR_LEFT_LEG_X], -copy[REAR_LEFT_LEG_Y], copy[REAR_LEFT_LEG_Z],
+                                        -copy[REAR_LEFT_LEG_X], -copy[REAR_LEFT_LEG_Y], startPositionZ_g);
+    CalcStraightPath(rearRightLeg, 2, 0, copy[REAR_RIGHT_LEG_X], -copy[REAR_RIGHT_LEG_Y], copy[REAR_RIGHT_LEG_Z],
+                                         copy[REAR_RIGHT_LEG_X], -copy[REAR_RIGHT_LEG_Y], startPositionZ_g);
+    // lyft vänster fram och höger bak till startpositionerna.
+    CalcCurvedPath(frontLeftLeg, 2, 2, -copy[FRONT_LEFT_LEG_X], copy[FRONT_LEFT_LEG_Y], startPositionZ_g,
+                                       -startPositionX_g, startPositionY_g, startPositionZ_g);
+    CalcStraightPath(frontRightLeg, 2, 2, copy[REAR_LEFT_LEG_X], copy[REAR_LEFT_LEG_Y], startPositionZ_g,
+                                          copy[REAR_LEFT_LEG_X], copy[REAR_LEFT_LEG_Y], startPositionZ_g);
+    CalcStraightPath(rearLeftLeg, 2, 2, -copy[REAR_LEFT_LEG_X], -copy[REAR_LEFT_LEG_Y], startPositionZ_g,
+                                        -copy[REAR_LEFT_LEG_X], -copy[REAR_LEFT_LEG_Y], startPositionZ_g);
+    CalcCurvedPath(rearRightLeg, 2, 2, copy[REAR_RIGHT_LEG_X], -copy[REAR_RIGHT_LEG_Y], startPositionZ_g,
+                                       startPositionX_g, -startPositionY_g, startPositionZ_g);
+    // lyft höger fram och vänster bak till startpositionerna
+    CalcStraightPath(frontLeftLeg, 2, 4, -startPositionX_g, startPositionY_g, startPositionZ_g, 
+                                         -startPositionX_g, startPositionY_g, startPositionZ_g);
+    CalcCurvedPath(frontRightLeg, 2, 4, copy[REAR_LEFT_LEG_X], copy[REAR_LEFT_LEG_Y], startPositionZ_g,
+                                        startPositionX_g, startPositionY_g, startPositionZ_g);
+    CalcCurvedPath(rearLeftLeg, 2, 4, -copy[REAR_LEFT_LEG_X], -copy[REAR_LEFT_LEG_Y], startPositionZ_g,
+                                      -startPositionX_g, -startPositionY_g, startPositionZ_g);
+    CalcStraightPath(rearRightLeg, 2, 4, startPositionX_g, -startPositionY_g, startPositionZ_g,
+                                         startPositionX_g, -startPositionY_g, startPositionZ_g);
 }
 
 void moveToCreepStartPosition()
@@ -831,10 +859,7 @@ void MakeTrotGait(int cycleResolution)
     int res = cycleResolution/2;
     maxGaitCyclePos_g = cycleResolution - 1;
     posToCalcGait = (cycleResolution/4 - 1);
-    if(currentControlMode == autonomous)
-    {
-        calcRegulation();    
-    }
+    
     
     // om ej autonomt läge kommer den manuella styrningen i main-loopen att använda reglerparametrarna till diagonal gång och rotation.
     int translationRight = regulation_g[0];
@@ -932,6 +957,126 @@ void MakeTrotGait(int cycleResolution)
         }
     }
 }
+void makeGaitTransition(int newGait)
+{
+    switch(newGait)
+    {
+        case TROT_GAIT:
+        {
+            
+        }
+    }
+}
+void gaitController()
+{
+    if(currentControlMode == autonomous)
+    {
+        calcRegulation();
+    }
+    if(currentControlMode == manual)
+    {
+        
+    }
+    if ((currentPos_g == posToCalcGait) && directionHasChanged)
+    {
+        switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
+        {
+            case CW_ROTATION:
+            {
+                regulation_g[1] = stepLengthRotationAdjust;
+                regulation_g[2] = -stepLengthRotationAdjust;
+                directionHasChanged = 0;
+                break;
+            }
+            case CCW_ROTATION:
+            {
+                regulation_g[1] = -stepLengthRotationAdjust;
+                regulation_g[2] = stepLengthRotationAdjust;
+                directionHasChanged = 0;
+                break;
+            }
+            case NO_ROTATION:
+            {
+                regulation_g[1] = 0;
+                regulation_g[2] = 0;
+                directionHasChanged = 0;
+                break;
+            }
+        }
+        switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
+        {
+            case NORTH:
+            {
+                currentDirection = north;
+                regulation_g[0] = 0;
+                directionHasChanged = 0;
+                break;
+            }
+            case NORTH_EAST:
+            {
+                // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
+                currentDirection = north;
+                regulation_g[0] = stepLength_g;
+                directionHasChanged = 0;
+                break;
+            }
+            case EAST:
+            {
+                currentDirection = east;
+                regulation_g[0] = 0;
+                directionHasChanged = 0;
+                break;
+                }
+            case SOUTH_EAST:
+            {
+                // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
+                currentDirection = east;
+                regulation_g[0] = stepLength_g;
+                directionHasChanged = 0;
+                break;
+            }
+            case SOUTH:
+            {
+                // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
+                currentDirection = south;
+                regulation_g[0] = 0;
+                directionHasChanged = 0;
+                break;
+            }
+            case SOUTH_WEST:
+            {
+                // Huvudsaklig rörelseriktning söder. Västlig offset hanteres genom en hårdkodad reglering åt höger
+                currentDirection = south;
+                regulation_g[0] = stepLength_g;
+                directionHasChanged = 0;
+                break;
+            }
+            case WEST:
+            {
+                currentDirection = west;
+                regulation_g[0] = 0;
+                directionHasChanged = 0;
+                break;
+            }
+            case NORTH_WEST:
+            {
+                // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
+                currentDirection = west;
+                regulation_g[0] = stepLength_g;
+                directionHasChanged = 0;
+                break;
+            }
+            case NO_MOVEMENT_DIRECTION:
+            {
+                currentDirection = none;
+                regulation_g[0] = 0;
+                directionHasChanged = 0;
+                break;
+            }
+        }
+        MakeTrotGait(gaitResolution_g);
+    }
+}
 
 int main(void)
 {
@@ -982,106 +1127,7 @@ int main(void)
             transmitAllDataToCommUnit();
             resetCommTimer();
     	}
-        if ((currentPos_g == posToCalcGait) && directionHasChanged)
-        {
-            switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
-            {
-                case CW_ROTATION:
-                {
-                    regulation_g[1] = stepLengthRotationAdjust;
-                    regulation_g[2] = -stepLengthRotationAdjust;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case CCW_ROTATION:
-                {
-                    regulation_g[1] = -stepLengthRotationAdjust;
-                    regulation_g[2] = stepLengthRotationAdjust;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case NO_ROTATION:
-                {
-                    regulation_g[1] = 0;
-                    regulation_g[2] = 0;
-                    directionHasChanged = 0;
-                    break;
-                }
-            }
-            switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
-            {
-                case NORTH:
-                {
-                    currentDirection = north;
-                    regulation_g[0] = 0;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case NORTH_EAST:
-                {
-                    // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentDirection = north;
-                    regulation_g[0] = stepLength_g; 
-                    directionHasChanged = 0;
-                    break;
-                }
-                case EAST:
-                {
-                    currentDirection = east;
-                    regulation_g[0] = 0;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case SOUTH_EAST:
-                {
-                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentDirection = east;
-                    regulation_g[0] = stepLength_g; 
-                    directionHasChanged = 0;
-                    break;
-                }
-                case SOUTH:
-                {
-                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentDirection = south;
-                    regulation_g[0] = 0;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case SOUTH_WEST:
-                {
-                    // Huvudsaklig rörelseriktning söder. Västlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentDirection = south;
-                    regulation_g[0] = stepLength_g;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case WEST:
-                {
-                    currentDirection = west;
-                    regulation_g[0] = 0;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case NORTH_WEST:
-                {
-                    // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentDirection = west;
-                    regulation_g[0] = stepLength_g;
-                    directionHasChanged = 0;
-                    break;
-                }
-                case NO_MOVEMENT_DIRECTION:
-                {
-                    currentDirection = none;
-                    regulation_g[0] = 0;
-                    directionHasChanged = 0;
-                    break;
-                }
-                
-            }                
-            MakeTrotGait(gaitResolution_g);
-        }
+        gaitController();
     }
 }
 

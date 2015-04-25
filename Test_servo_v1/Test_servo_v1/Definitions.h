@@ -136,7 +136,12 @@
 #define TRUE 1
 #define FALSE 0
 
+// -- Gångstilar
 
+
+#define STAND_STILL_GAIT 0
+#define TROT_GAIT 1
+#define CREEP_GAIT 2
 
 
 #endif /* DEFINITIONS_H_ */
