@@ -11,140 +11,18 @@
 #include <util/delay.h>
 #include "SPI.h"
 #include "USART.h"
+#include "Timer.h"
+#include "Definitions.h"
 #include <stdlib.h>
 
+
+/*
 #define TXD0_READY bit_is_set(UCSR0A,5)
 #define TXD0_FINISHED bit_is_set(UCSR0A,6)
 #define RXD0_READY bit_is_set(UCSR0A,7)
 #define TXD0_DATA (UDR0)
 #define RXD0_DATA (UDR0)
-
-//--- Control Table Address ---
-//EEPROM AREA
-#define P_MODEL_NUMBER_L 0
-#define P_MODOEL_NUMBER_H 1
-#define P_VERSION 2
-#define P_ID 3
-#define P_BAUD_RATE 4
-#define P_RETURN_DELAY_TIME 5
-#define P_CW_ANGLE_LIMIT_L 6
-#define P_CW_ANGLE_LIMIT_H 7
-#define P_CCW_ANGLE_LIMIT_L 8
-#define P_CCW_ANGLE_LIMIT_H 9
-#define P_SYSTEM_DATA2 10
-#define P_LIMIT_TEMPERATURE 11
-#define P_DOWN_LIMIT_VOLTAGE 12
-#define P_UP_LIMIT_VOLTAGE 13
-#define P_MAX_TORQUE_L 14
-#define P_MAX_TORQUE_H 15
-#define P_RETURN_LEVEL 16
-#define P_ALARM_LED 17
-#define P_ALARM_SHUTDOWN 18
-#define P_OPERATING_MODE 19
-#define P_DOWN_CALIBRATION_L 20
-#define P_DOWN_CALIBRATION_H 21
-#define P_UP_CALIBRATION_L 22
-#define P_UP_CALIBRATION_H 23
-#define P_TORQUE_ENABLE (24)
-#define P_LED (25)
-#define P_CW_COMPLIANCE_MARGIN (26)
-#define P_CCW_COMPLIANCE_MARGIN (27)
-#define P_CW_COMPLIANCE_SLOPE (28)
-#define P_CCW_COMPLIANCE_SLOPE (29)
-#define P_GOAL_POSITION_L (30)
-#define P_GOAL_POSITION_H (31)
-#define P_GOAL_SPEED_L (32)
-#define P_GOAL_SPEED_H (33)
-#define P_TORQUE_LIMIT_L (34)
-#define P_TORQUE_LIMIT_H (35)
-#define P_PRESENT_POSITION_L (36)
-#define P_PRESENT_POSITION_H (37)
-#define P_PRESENT_SPEED_L (38)
-#define P_PRESENT_SPEED_H (39)
-#define P_PRESENT_LOAD_L (40)
-#define P_PRESENT_LOAD_H (41)
-#define P_PRESENT_VOLTAGE (42)
-#define P_PRESENT_TEMPERATURE (43)
-#define P_REGISTERED_INSTRUCTION (44)
-#define P_PAUSE_TIME (45)
-#define P_MOVING (46)
-#define P_LOCK (47)
-#define P_PUNCH_L (48)
-#define P_PUNCH_H (49)
-
-//--- Instruction ---
-#define INST_PING 0x01
-#define INST_READ 0x02
-#define INST_WRITE 0x03
-#define INST_REG_WRITE 0x04
-#define INST_ACTION 0x05
-#define INST_RESET 0x06
-#define INST_DIGITAL_RESET 0x07
-#define INST_SYSTEM_READ 0x0C
-#define INST_SYSTEM_WRITE 0x0D
-#define INST_SYNC_WRITE 0x83
-#define INST_SYNC_REG_WRITE 0x84
-
-
-//----Konstanter-Inverskinematik----
-#define a1 50 
-#define a2 67
-#define a3 130
-#define a1Square 2500 
-#define a2Square 4489
-#define a3Square 16900
-#define PI 3.141592
-
-#define FRONT_LEFT_LEG 1
-#define FRONT_RIGHT_LEG 2
-#define REAR_LEFT_LEG 3
-#define REAR_RIGHT_LEG 4
-
-#define FRONT_LEFT_LEG_X 1
-#define FRONT_LEFT_LEG_Y 2
-#define FRONT_LEFT_LEG_Z 3
-#define FRONT_RIGHT_LEG_X 4
-#define FRONT_RIGHT_LEG_Y 5
-#define FRONT_RIGHT_LEG_Z 6
-#define REAR_LEFT_LEG_X 7
-#define REAR_LEFT_LEG_Y 8
-#define REAR_LEFT_LEG_Z 9
-#define REAR_RIGHT_LEG_X 10
-#define REAR_RIGHT_LEG_Y 11
-#define REAR_RIGHT_LEG_Z 12
-
-#define INCREMENT_PERIOD_10 10
-#define INCREMENT_PERIOD_20 20
-#define INCREMENT_PERIOD_30 30
-#define INCREMENT_PERIOD_40 40
-#define INCREMENT_PERIOD_50 50
-#define INCREMENT_PERIOD_60 60
-#define INCREMENT_PERIOD_70 70
-#define INCREMENT_PERIOD_80 80
-#define INCREMENT_PERIOD_90 90
-#define INCREMENT_PERIOD_100 100
-#define INCREMENT_PERIOD_200 200
-#define INCREMENT_PERIOD_300 300
-#define INCREMENT_PERIOD_400 400
-#define INCREMENT_PERIOD_500 500
-
-
- #define NORTH 1
- #define NORTH_EAST 5
- #define EAST 4
- #define SOUTH_EAST 6
- #define SOUTH 2
- #define SOUTH_WEST 10
- #define WEST 8
- #define NORTH_WEST 9
- #define NO_MOVEMENT_DIRECTION 0
-
- #define CW_ROTATION 1
- #define CCW_ROTATION 2
- #define NO_ROTATION 0
-
-#define TRUE 1
-#define FALSE 0
+*/
 
 
 int stepLength_g = 70;
@@ -154,13 +32,13 @@ int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int gaitResolutionTime_g = INCREMENT_PERIOD_30; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_30; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
-
+int posToCalcGait;
 
 // ------ Inställningar för robot-datorkommunikation ------
-int commUnitUpdatePeriod = INCREMENT_PERIOD_500;
+int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
 
 
@@ -194,224 +72,6 @@ int standardSpeed_g = 20;
 int statusPackEnabled = 0;
 
 
-//---- Globala variabler ---
-
- // gaitResolutionTime_g represent the time between ticks in ms. 
- // timerOverflowMax_g 
-#define TIMER_0 0
-#define TIMER_2 2
-
-int timer0OverflowMax_g = 73;
-int timer0RemainingTicks_g = 62;
-
-int timer2OverflowMax_g = 73;
-int timer2RemainingTicks_g = 62;
-
-
-
-
-volatile uint8_t timer0TotOverflow_g;
-volatile uint8_t timer2TotOverflow_g;
-// klockfrekvensen är 16MHz. 
-void timer0Init()
-{
-    // prescaler 256
-    TCCR0B |= (1 << CS02);
-    
-    // initiera counter
-    TCNT0 = 0;
-    
-    // tillåt timer0 overflow interrupt
-    
-    TIMSK0 |= (1 << TOIE0);
-    
-    
-    timer0TotOverflow_g = 0;
-
-}
-
-void timer2Init()
-{
-  // prescaler 256, denna timer har dock större upplösning här, därav andra värden
-  TCCR2B |= (1 << CS22) | (1 << CS21);
-
-  // initiera counter
-  TCNT2 = 0;
-
-  // tillåt timer2 overflow interrupt
-
-  TIMSK2 |= (1 << TOIE2);
-
-  timer2TotOverflow_g = 0;
-}
-  
-
-
-
-// timerPeriod ska väljas från fördefinierade tider 
-void setTimerPeriod(int timer, int newPeriod)
-{
-    
-    int newTimerRemainingTicks;
-    int newTimerOverflowMax;
-    switch(newPeriod)
-    {
-        case INCREMENT_PERIOD_10:
-        {
-            newTimerOverflowMax = 2;
-            newTimerRemainingTicks = 113;
-            break;
-        }
-        case INCREMENT_PERIOD_20:
-        {
-         
-            newTimerOverflowMax = 4;
-            newTimerRemainingTicks = 226;
-            break;
-        }
-        case INCREMENT_PERIOD_30:
-        {
-         
-            newTimerOverflowMax = 7;
-            newTimerRemainingTicks = 83;
-            break;
-        }
-        case INCREMENT_PERIOD_40:
-        {
-         
-            newTimerOverflowMax = 9;
-            newTimerRemainingTicks = 196;
-            break;
-        }
-        case INCREMENT_PERIOD_50:
-        {
-         
-            newTimerOverflowMax = 12;
-            newTimerRemainingTicks = 53;
-            break;
-        }
-        case INCREMENT_PERIOD_60:
-        {
-         
-            newTimerOverflowMax = 14;
-            newTimerRemainingTicks = 166;
-            break;
-        }
-        case INCREMENT_PERIOD_70:
-        {
-         
-            newTimerOverflowMax = 17;
-            newTimerRemainingTicks = 23;
-            break;
-        }
-        case INCREMENT_PERIOD_80:
-        {
-         
-            newTimerOverflowMax = 19;
-            newTimerRemainingTicks = 136;
-            break;
-        }
-        case INCREMENT_PERIOD_90:
-        {
-         
-            newTimerOverflowMax = 21;
-            newTimerRemainingTicks = 249;
-            break;
-        }
-        case INCREMENT_PERIOD_100:
-        {
-         
-            newTimerOverflowMax = 24;
-            newTimerRemainingTicks = 106;
-            break;
-        }
-        case INCREMENT_PERIOD_200:
-        {
-
-            newTimerOverflowMax = 48;
-            newTimerRemainingTicks = 212;
-            break;
-        }
-        case INCREMENT_PERIOD_300:
-        {
-
-            newTimerOverflowMax = 73;
-            newTimerRemainingTicks = 62;
-            break;
-        }
-        case INCREMENT_PERIOD_400:
-        {
-
-            newTimerOverflowMax = 97;
-            newTimerRemainingTicks = 168;
-            break;
-        }
-        case INCREMENT_PERIOD_500:
-        {
-
-            newTimerOverflowMax = 122;
-            newTimerRemainingTicks = 18;
-            break;
-        }
-        // default:
-            // Här kan man ha någon typ av felhantering om man vill
-
-    }
-    switch(timer)
-    {
-        case TIMER_0:
-        {
-	    gaitResolutionTime_g = newPeriod;
-	    timer0OverflowMax_g = newTimerOverflowMax;
-	    timer0RemainingTicks_g = newTimerRemainingTicks;
-	    break;
-	    }
-        case TIMER_2:
-	    {
-	    commUnitUpdatePeriod = newPeriod;
-	    timer2OverflowMax_g = newTimerOverflowMax;
-	    timer2RemainingTicks_g = newTimerRemainingTicks;
-	    break;
-	    }
-    }
-    return;
-}
-
-int legTimerPeriodEnd()
-{
-    if (timer0TotOverflow_g >= timer0OverflowMax_g)
-    {
-      if (TCNT0 >= timer0RemainingTicks_g)
-	  {
-	      return TRUE;
-	  }
-    }
-    return FALSE;
-}
-
-int commTimerPeriodEnd()
-{
-    if (timer2TotOverflow_g >= timer2OverflowMax_g)
-    {
-	    if (TCNT2 >= timer2RemainingTicks_g)
-	    {
-		return TRUE;
-	    }
-    } 
-    return FALSE;
-}
-	    
-void resetLegTimer()
-{
-    TCNT0 = 0;
-    timer0TotOverflow_g = 0;
-}
-
-void resetCommTimer()
-{
-    TCNT2 = 0;
-    timer2TotOverflow_g = 0;
-}
 
 
 // calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
@@ -429,17 +89,6 @@ long int calcDynamixelSpeed(long int deltaAngle)
     }
 }
 
-ISR(TIMER0_OVF_vect)
-{
-    // räkna antalet avbrott från timer0  som skett
-    timer0TotOverflow_g++;
-}
-
-ISR(TIMER1_OVF_vect)
-{
-    // antalet avbrott från timer2
-    timer2TotOverflow_g++;
-}
 
 
 
@@ -985,29 +634,47 @@ ISR(INT1_vect)
     {
         case north:
         {
-           currentDirection = east;
+           currentDirectionInstruction = EAST;
            break;
         }
         case east:
         {
-            currentDirection = south;
+            currentDirectionInstruction = SOUTH;
             break;
         }
         case south:
         {
-            currentDirection = west;
+            currentDirectionInstruction = WEST;
             break;
         }
         case west:
         {
-            currentDirection = north;
+            currentDirectionInstruction = NORTH;
+            break;
+        }
+        case none:
+        {
+            currentDirectionInstruction = NORTH;
             break;
         }
     }
-   // move();
+   
 } 
 
-
+void transmitAllDataToCommUnit()
+{
+    transmitDataToCommUnit(DISTANCE_NORTH, fetchDataFromSensorUnit(DISTANCE_NORTH));
+    transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
+    transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
+    transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
+    transmitDataToCommUnit(ANGLE_NORTH, fetchDataFromSensorUnit(ANGLE_NORTH));
+    transmitDataToCommUnit(ANGLE_EAST, fetchDataFromSensorUnit(ANGLE_EAST));
+    transmitDataToCommUnit(ANGLE_SOUTH, fetchDataFromSensorUnit(ANGLE_SOUTH));
+    transmitDataToCommUnit(ANGLE_WEST, fetchDataFromSensorUnit(ANGLE_WEST));
+    transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
+    transmitDataToCommUnit(TOTAL_ANGLE, fetchDataFromSensorUnit(TOTAL_ANGLE));
+    return;
+}
 
 void getSensorData()
 {
@@ -1017,6 +684,7 @@ void getSensorData()
     *
     *
     */
+    
 }
 
 // arrays som värden hämtade ifrån sensorenheten skall ligga i
@@ -1146,13 +814,23 @@ void makeCreepGait(int cycleResolution)
 }
 
 
+void standStillGait()
+{
+    maxGaitCyclePos_g = 1;
+    posToCalcGait = 1;
+    CalcStraightPath(frontLeftLeg,2,0,-startPositionX_g,startPositionY_g,startPositionZ_g,-startPositionX_g,startPositionY_g,startPositionZ_g);
+    CalcStraightPath(frontRightLeg,2,0,startPositionX_g,startPositionY_g,startPositionZ_g,startPositionX_g,startPositionY_g,startPositionZ_g);
+    CalcStraightPath(rearLeftLeg,2,0,-startPositionX_g,-startPositionY_g,startPositionZ_g,-startPositionX_g,-startPositionY_g,startPositionZ_g);
+    CalcStraightPath(rearRightLeg,2,0,startPositionX_g,-startPositionY_g,startPositionZ_g,startPositionX_g,-startPositionY_g,startPositionZ_g);
+}
+
 // gör rörelsemönstret för travet, beror på vilken direction som är satt på currentDirection
 void MakeTrotGait(int cycleResolution)
 {
     // cycleResolution är antaletpunkter på kurvan som benen följer. Måste vara jämnt tal!
     int res = cycleResolution/2;
     maxGaitCyclePos_g = cycleResolution - 1;
-    
+    posToCalcGait = (cycleResolution/4 - 1);
     if(currentControlMode == autonomous)
     {
         calcRegulation();    
@@ -1272,16 +950,16 @@ int main(void)
     timer0Init();
     timer2Init();
     sei();
-    MakeTrotGait(gaitResolution_g);
+    standStillGait();
+    //MakeTrotGait(gaitResolution_g);
     MoveToStartPosition();
     //moveToCreepStartPosition();
     //makeCreepGait(gaitResolution_g);
-    setTimerPeriod(TIMER_0, gaitResolutionTime_g);
-    setTimerPeriod(TIMER_2, commUnitUpdatePeriod);
+    setTimerPeriod(TIMER_0, newGaitResolutionTime);
+    setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
-    int posToCalcGait = (gaitResolution_g/4 - 1);
+    
 
-    int testData;
     // ---- Main-Loop ----
     while (1)
     {
@@ -1293,15 +971,18 @@ int main(void)
     	}
     	if (commTimerPeriodEnd())
     	{
+            /*
             transmitDataToCommUnit(ANGLE_NORTH,readCurrentTemperatureFromActuator(3));
             transmitDataToCommUnit(ANGLE_EAST, readCurrentTemperatureFromActuator(4));
             transmitDataToCommUnit(ANGLE_SOUTH, readCurrentTemperatureFromActuator(9));
-            //transmitDataToCommUnit(ANGLE_WEST, readCurrentTemperatureFromActuator(10));
+            transmitDataToCommUnit(ANGLE_WEST, readCurrentTemperatureFromActuator(10));
             transmitDataToCommUnit(ANGLE_WEST, ReadTemperatureLimitFromActuator(10));
             transmitDataToCommUnit(TOTAL_ANGLE, readAlarmShutdownStatus(3));
+            */
+            transmitAllDataToCommUnit();
             resetCommTimer();
     	}
-        if ((currentPos_g == posToCalcGait) & directionHasChanged)
+        if ((currentPos_g == posToCalcGait) && directionHasChanged)
         {
             switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
             {
