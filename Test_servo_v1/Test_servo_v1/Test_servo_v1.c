@@ -291,7 +291,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array
+        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
@@ -299,7 +299,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
-                legPositions_g[FRONT_LEFT_LEG_X][i] = x;
+                legPositions_g[FRONT_LEFT_LEG_X][i] = -x;
                 legPositions_g[FRONT_LEFT_LEG_Y][i] = y;
                 legPositions_g[FRONT_LEFT_LEG_Z][i] = z;
                 break;
@@ -309,7 +309,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
-                legPositions_g[FRONT_RIGHT_LEG_X][i] = x;
+                legPositions_g[FRONT_RIGHT_LEG_X][i] = -x;
                 legPositions_g[FRONT_RIGHT_LEG_Y][i] = y;
                 legPositions_g[FRONT_RIGHT_LEG_Z][i] = z;
                 break;
@@ -320,7 +320,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_LEFT_LEG_X][i] = x;
-                legPositions_g[REAR_LEFT_LEG_Y][i] = y;
+                legPositions_g[REAR_LEFT_LEG_Y][i] = -y;
                 legPositions_g[REAR_LEFT_LEG_Z][i] = z;
                 break;
             }
@@ -330,7 +330,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
-                legPositions_g[REAR_RIGHT_LEG_Y][i] = y;
+                legPositions_g[REAR_RIGHT_LEG_Y][i] = -y;
                 legPositions_g[REAR_RIGHT_LEG_Z][i] = z;
                 break;
             }
@@ -380,7 +380,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array
+        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
@@ -388,7 +388,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
-                legPositions_g[FRONT_LEFT_LEG_X][i] = x;
+                legPositions_g[FRONT_LEFT_LEG_X][i] = -x;
                 legPositions_g[FRONT_LEFT_LEG_Y][i] = y;
                 legPositions_g[FRONT_LEFT_LEG_Z][i] = z;
                 break;
@@ -398,7 +398,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
-                legPositions_g[FRONT_RIGHT_LEG_X][i] = x;
+                legPositions_g[FRONT_RIGHT_LEG_X][i] = -x;
                 legPositions_g[FRONT_RIGHT_LEG_Y][i] = y;
                 legPositions_g[FRONT_RIGHT_LEG_Z][i] = z;
                 break;
@@ -409,7 +409,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_LEFT_LEG_X][i] = x;
-                legPositions_g[REAR_LEFT_LEG_Y][i] = y;
+                legPositions_g[REAR_LEFT_LEG_Y][i] = -y;
                 legPositions_g[REAR_LEFT_LEG_Z][i] = z;
                 break;
             }
@@ -419,7 +419,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
-                legPositions_g[REAR_RIGHT_LEG_Y][i] = y;
+                legPositions_g[REAR_RIGHT_LEG_Y][i] = -y;
                 legPositions_g[REAR_RIGHT_LEG_Z][i] = z;
                 break;
             }
@@ -470,7 +470,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array
+        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
@@ -478,7 +478,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
-                legPositions_g[FRONT_LEFT_LEG_X][i] = x;
+                legPositions_g[FRONT_LEFT_LEG_X][i] = -x;
                 legPositions_g[FRONT_LEFT_LEG_Y][i] = y;
                 legPositions_g[FRONT_LEFT_LEG_Z][i] = z;
                 break;
@@ -488,7 +488,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                 actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
-                legPositions_g[FRONT_RIGHT_LEG_X][i] = x;
+                legPositions_g[FRONT_RIGHT_LEG_X][i] = -x;
                 legPositions_g[FRONT_RIGHT_LEG_Y][i] = y;
                 legPositions_g[FRONT_RIGHT_LEG_Z][i] = z;
                 break;
@@ -499,7 +499,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_LEFT_LEG_X][i] = x;
-                legPositions_g[REAR_LEFT_LEG_Y][i] = y;
+                legPositions_g[REAR_LEFT_LEG_Y][i] = -y;
                 legPositions_g[REAR_LEFT_LEG_Z][i] = z;
                 break;
             }
@@ -509,7 +509,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
-                legPositions_g[REAR_RIGHT_LEG_Y][i] = y;
+                legPositions_g[REAR_RIGHT_LEG_Y][i] = -y;
                 legPositions_g[REAR_RIGHT_LEG_Z][i] = z;
                 break;
             }
@@ -537,7 +537,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 1;
-               legPositions_g[FRONT_LEFT_LEG_X][i] = x;
+               legPositions_g[FRONT_LEFT_LEG_X][i] = -x;
                legPositions_g[FRONT_LEFT_LEG_Y][i] = y;
                legPositions_g[FRONT_LEFT_LEG_Z][i] = z;
                break;
@@ -547,7 +547,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 193;
                actuatorPositions_g[currentLeg.femurJoint][i] =  theta2 + 75;
                actuatorPositions_g[currentLeg.tibiaJoint][i] =  theta3 + 3;
-               legPositions_g[FRONT_RIGHT_LEG_X][i] = x;
+               legPositions_g[FRONT_RIGHT_LEG_X][i] = -x;
                legPositions_g[FRONT_RIGHT_LEG_Y][i] = y;
                legPositions_g[FRONT_RIGHT_LEG_Z][i] = z;
                break;
@@ -558,7 +558,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                legPositions_g[REAR_LEFT_LEG_X][i] = x;
-               legPositions_g[REAR_LEFT_LEG_Y][i] = y;
+               legPositions_g[REAR_LEFT_LEG_Y][i] = -y;
                legPositions_g[REAR_LEFT_LEG_Z][i] = z;
                break;
            }
@@ -568,7 +568,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                legPositions_g[REAR_RIGHT_LEG_X][i] = x;
-               legPositions_g[REAR_RIGHT_LEG_Y][i] = y;
+               legPositions_g[REAR_RIGHT_LEG_Y][i] = -y;
                legPositions_g[REAR_RIGHT_LEG_Z][i] = z;
                break;
            }
