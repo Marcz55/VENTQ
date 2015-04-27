@@ -83,7 +83,6 @@ legPositions_g      0x410             Test_servo_v1.o
 regulation_g        0x6               Test_servo_v1.o
 commUnitUpdatePeriod_g
                     0x2               Timer.o
-sensorValue_g       0x10              Test_servo_v1.o
 timer2TotOverflow_g
                     0x1               Timer.o
 actuatorPositions_g
@@ -152,13 +151,17 @@ Discarded input sections
                 0x00000000        0x2 Test_servo_v1.o
  .text.calcRegulation
                 0x00000000       0x1a Test_servo_v1.o
+ .text.applyAction
+                0x00000000       0xbc Test_servo_v1.o
  .text.moveToCreepStartPosition
                 0x00000000      0x25a Test_servo_v1.o
  .text.makeCreepGait
                 0x00000000      0x974 Test_servo_v1.o
  .text.makeGaitTransition
                 0x00000000       0x20 Test_servo_v1.o
- .data.pathWidth_g
+ .bss.currentAction_g
+                0x00000000        0x1 Test_servo_v1.o
+ .data.halfPathWidth_g
                 0x00000000        0x2 Test_servo_v1.o
  .bss.statusPackEnabled
                 0x00000000        0x2 Test_servo_v1.o
@@ -730,10 +733,10 @@ END GROUP
                 0x00003bb6     0x2390 Test_servo_v1.o
                 0x00003bb6                MakeTrotGait
  .text.gaitController
-                0x00005f46      0x284 Test_servo_v1.o
+                0x00005f46      0x282 Test_servo_v1.o
                 0x00005f46                gaitController
- .text.main     0x000061ca       0x94 Test_servo_v1.o
-                0x000061ca                main
+ .text.main     0x000061c8       0x96 Test_servo_v1.o
+                0x000061c8                main
  .text.avr-libc.fplib
                 0x0000625e       0x1c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(acos.o)
                 0x0000625e                acos
@@ -864,7 +867,7 @@ END GROUP
  *(.fini0)
                 0x0000691c                _etext = .
 
-.data           0x00800100       0x42 load address 0x0000691c
+.data           0x00800100       0x44 load address 0x0000691c
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -901,94 +904,94 @@ END GROUP
  .data.standardSpeed_g
                 0x0080012c        0x2 Test_servo_v1.o
                 0x0080012c                standardSpeed_g
+ .data.currentDirection
+                0x0080012e        0x1 Test_servo_v1.o
+                0x0080012e                currentDirection
  .data.newCommUnitUpdatePeriod
-                0x0080012e        0x2 Test_servo_v1.o
-                0x0080012e                newCommUnitUpdatePeriod
+                0x0080012f        0x2 Test_servo_v1.o
+                0x0080012f                newCommUnitUpdatePeriod
  .data.needToCalcGait
-                0x00800130        0x2 Test_servo_v1.o
-                0x00800130                needToCalcGait
+                0x00800131        0x2 Test_servo_v1.o
+                0x00800131                needToCalcGait
  .data.newGaitResolutionTime
-                0x00800132        0x2 Test_servo_v1.o
-                0x00800132                newGaitResolutionTime
+                0x00800133        0x2 Test_servo_v1.o
+                0x00800133                newGaitResolutionTime
  .data.stepLengthRotationAdjust
-                0x00800134        0x2 Test_servo_v1.o
-                0x00800134                stepLengthRotationAdjust
+                0x00800135        0x2 Test_servo_v1.o
+                0x00800135                stepLengthRotationAdjust
  .data.gaitResolution_g
-                0x00800136        0x2 Test_servo_v1.o
-                0x00800136                gaitResolution_g
+                0x00800137        0x2 Test_servo_v1.o
+                0x00800137                gaitResolution_g
  .data.stepHeight_g
-                0x00800138        0x2 Test_servo_v1.o
-                0x00800138                stepHeight_g
+                0x00800139        0x2 Test_servo_v1.o
+                0x00800139                stepHeight_g
  .data.startPositionZ_g
-                0x0080013a        0x2 Test_servo_v1.o
-                0x0080013a                startPositionZ_g
+                0x0080013b        0x2 Test_servo_v1.o
+                0x0080013b                startPositionZ_g
  .data.startPositionY_g
-                0x0080013c        0x2 Test_servo_v1.o
-                0x0080013c                startPositionY_g
+                0x0080013d        0x2 Test_servo_v1.o
+                0x0080013d                startPositionY_g
  .data.startPositionX_g
-                0x0080013e        0x2 Test_servo_v1.o
-                0x0080013e                startPositionX_g
+                0x0080013f        0x2 Test_servo_v1.o
+                0x0080013f                startPositionX_g
  .data.stepLength_g
-                0x00800140        0x2 Test_servo_v1.o
-                0x00800140                stepLength_g
+                0x00800141        0x2 Test_servo_v1.o
+                0x00800141                stepLength_g
  *(.rodata)
  *(.rodata*)
  *(.gnu.linkonce.d*)
-                0x00800142                . = ALIGN (0x2)
-                0x00800142                _edata = .
-                0x00800142                PROVIDE (__data_end, .)
+                0x00800144                . = ALIGN (0x2)
+ *fill*         0x00800143        0x1 
+                0x00800144                _edata = .
+                0x00800144                PROVIDE (__data_end, .)
 
-.bss            0x00800142      0x85a
-                0x00800142                PROVIDE (__bss_start, .)
+.bss            0x00800144      0x849
+                0x00800144                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
  .bss.directionHasChanged
-                0x00800142        0x2 Test_servo_v1.o
-                0x00800142                directionHasChanged
- .bss.currentPos_g
                 0x00800144        0x2 Test_servo_v1.o
-                0x00800144                currentPos_g
+                0x00800144                directionHasChanged
+ .bss.currentPos_g
+                0x00800146        0x2 Test_servo_v1.o
+                0x00800146                currentPos_g
  .bss.currentGait
-                0x00800146        0x1 Test_servo_v1.o
-                0x00800146                currentGait
- .bss.currentDirection
-                0x00800147        0x1 Test_servo_v1.o
-                0x00800147                currentDirection
- .bss.currentControlMode
                 0x00800148        0x1 Test_servo_v1.o
-                0x00800148                currentControlMode
+                0x00800148                currentGait
+ .bss.currentControlMode
+                0x00800149        0x1 Test_servo_v1.o
+                0x00800149                currentControlMode
  .bss.currentRotationInstruction
-                0x00800149        0x2 Test_servo_v1.o
-                0x00800149                currentRotationInstruction
+                0x0080014a        0x2 Test_servo_v1.o
+                0x0080014a                currentRotationInstruction
  .bss.currentDirectionInstruction
-                0x0080014b        0x2 Test_servo_v1.o
-                0x0080014b                currentDirectionInstruction
+                0x0080014c        0x2 Test_servo_v1.o
+                0x0080014c                currentDirectionInstruction
  *(COMMON)
- COMMON         0x0080014d        0x6 Timer.o
-                0x0080014d                commUnitUpdatePeriod_g
-                0x0080014f                timer2TotOverflow_g
-                0x00800150                timer0TotOverflow_g
-                0x00800151                gaitResolutionTime_g
- COMMON         0x00800153        0x1 SPI.o
-                0x00800153                inbuffer
- COMMON         0x00800154      0x848 Test_servo_v1.o
-                0x00800154                legPositions_g
-                0x00800564                regulation_g
-                0x0080056a                sensorValue_g
-                0x0080057a                actuatorPositions_g
-                0x0080098a                posToCalcGait
-                0x0080098c                angleValue_g
-                0x00800994                distanceValue_g
-                0x0080099c                PROVIDE (__bss_end, .)
+ COMMON         0x0080014e        0x6 Timer.o
+                0x0080014e                commUnitUpdatePeriod_g
+                0x00800150                timer2TotOverflow_g
+                0x00800151                timer0TotOverflow_g
+                0x00800152                gaitResolutionTime_g
+ COMMON         0x00800154        0x1 SPI.o
+                0x00800154                inbuffer
+ COMMON         0x00800155      0x838 Test_servo_v1.o
+                0x00800155                legPositions_g
+                0x00800565                regulation_g
+                0x0080056b                actuatorPositions_g
+                0x0080097b                posToCalcGait
+                0x0080097d                angleValue_g
+                0x00800985                distanceValue_g
+                0x0080098d                PROVIDE (__bss_end, .)
                 0x0000691c                __data_load_start = LOADADDR (.data)
-                0x0000695e                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x00006960                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x0080099c        0x0
-                0x0080099c                PROVIDE (__noinit_start, .)
+.noinit         0x0080098d        0x0
+                0x0080098d                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x0080099c                PROVIDE (__noinit_end, .)
-                0x0080099c                _end = .
-                0x0080099c                PROVIDE (__heap_start, .)
+                0x0080098d                PROVIDE (__noinit_end, .)
+                0x0080098d                _end = .
+                0x0080098d                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
  *(.eeprom*)
@@ -1050,7 +1053,7 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x00000000      0x248
+.debug_aranges  0x00000000      0x250
  *(.debug_aranges)
  .debug_aranges
                 0x00000000       0x60 Timer.o
@@ -1059,49 +1062,49 @@ END GROUP
  .debug_aranges
                 0x000000b0       0xa8 USART.o
  .debug_aranges
-                0x00000158       0xf0 Test_servo_v1.o
+                0x00000158       0xf8 Test_servo_v1.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x3ded
+.debug_info     0x00000000     0x3e40
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x00000000      0x211 Timer.o
  .debug_info    0x00000211      0x48c SPI.o
  .debug_info    0x0000069d      0xb1f USART.o
- .debug_info    0x000011bc     0x2c31 Test_servo_v1.o
+ .debug_info    0x000011bc     0x2c84 Test_servo_v1.o
 
-.debug_abbrev   0x00000000      0x820
+.debug_abbrev   0x00000000      0x83e
  *(.debug_abbrev)
  .debug_abbrev  0x00000000       0xcf Timer.o
  .debug_abbrev  0x000000cf      0x195 SPI.o
  .debug_abbrev  0x00000264      0x1e5 USART.o
- .debug_abbrev  0x00000449      0x3d7 Test_servo_v1.o
+ .debug_abbrev  0x00000449      0x3f5 Test_servo_v1.o
 
-.debug_line     0x00000000     0x1b7e
+.debug_line     0x00000000     0x1bba
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x00000000      0x307 Timer.o
  .debug_line    0x00000307      0x2bd SPI.o
  .debug_line    0x000005c4      0x552 USART.o
- .debug_line    0x00000b16     0x1068 Test_servo_v1.o
+ .debug_line    0x00000b16     0x10a4 Test_servo_v1.o
 
-.debug_frame    0x00000000      0xce8
+.debug_frame    0x00000000      0xcf8
  *(.debug_frame)
  .debug_frame   0x00000000       0xc4 Timer.o
  .debug_frame   0x000000c4       0xa4 SPI.o
  .debug_frame   0x00000168      0x1e0 USART.o
- .debug_frame   0x00000348      0x9a0 Test_servo_v1.o
+ .debug_frame   0x00000348      0x9b0 Test_servo_v1.o
 
-.debug_str      0x00000000      0xcb7
+.debug_str      0x00000000      0xd6c
  *(.debug_str)
  .debug_str     0x00000000      0x27f Timer.o
                                 0x2b3 (size before relaxing)
  .debug_str     0x0000027f      0x116 SPI.o
                                 0x258 (size before relaxing)
- .debug_str     0x00000395      0x22f USART.o
-                                0x388 (size before relaxing)
- .debug_str     0x000005c4      0x6f3 Test_servo_v1.o
-                                0x992 (size before relaxing)
+ .debug_str     0x00000395      0x26a USART.o
+                                0x38e (size before relaxing)
+ .debug_str     0x000005ff      0x76d Test_servo_v1.o
+                                0xa12 (size before relaxing)
 
 .debug_loc      0x00000000     0x42aa
  *(.debug_loc)
@@ -1128,12 +1131,12 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x00000000      0x208
+.debug_ranges   0x00000000      0x210
  *(.debug_ranges)
  .debug_ranges  0x00000000       0x50 Timer.o
  .debug_ranges  0x00000050       0x40 SPI.o
  .debug_ranges  0x00000090       0x98 USART.o
- .debug_ranges  0x00000128       0xe0 Test_servo_v1.o
+ .debug_ranges  0x00000128       0xe8 Test_servo_v1.o
 
 .debug_macro
  *(.debug_macro)

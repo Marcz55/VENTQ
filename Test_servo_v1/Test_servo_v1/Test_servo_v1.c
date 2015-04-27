@@ -25,6 +25,7 @@
 */
 
 
+
 int stepLength_g = 40;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
@@ -59,11 +60,11 @@ enum controlMode{
 enum controlMode currentControlMode = manual;
 
 enum direction{
-    none,
     north,
     east,
     south,
-    west
+    west,
+    none
     }; 
 enum direction currentDirection = none;
 
@@ -700,13 +701,15 @@ void getSensorData()
 
 // arrays som värden hämtade ifrån sensorenheten skall ligga i
 int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
-int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna
-int sensorValue_g[8]; // innehåller avstånden från varje separat sensor till väggarna
-int pathWidth_g = 570; // Avståndet mellan väggar
+int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
+int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
-void calcRegulation()
+
+
+#define TRUE 1
+#define FALSE 0
+void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 {
-    
     //static int  regulation[3]; // skapar en array som innehåller hur roboten ska reglera
     /*
     * 
@@ -727,41 +730,129 @@ void calcRegulation()
     int kProportionalTranslation = 1;
     int kProportionalAngle = 1;
 
+
+
     //Reglering vid gång i kooridor
     switch (currentDirection)
     {
-        case north:
+        case north: // går vi åt norr kan vi reglera mot väst eller öster
         {
-            translationRegulationError = (distanceValue_g[east] + sensorOffset) - pathWidth_g;
-            angleRegulationError = angleValue_g[east]; 
+            switch(regulationDirection)
+            {
+                case east:
+                {
+                    translationRegulationError = (distanceValue_g[east] + sensorOffset) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
+                    break;
+                }
+
+                case west:
+                {
+                    translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset);
+                    break;
+                }
+                case none:
+                {
+                    translationRegulationError = 0;
+                    angleRegulationError = 0;
+                    break;
+                }
+            }
             break;
         }
 
         case east:
         {
-            translationRegulationError = (distanceValue_g[south] + sensorOffset) - pathWidth_g;
-            angleRegulationError = angleValue_g[south];
+            switch(regulationDirection)
+            {
+                case south:
+                {
+                    translationRegulationError = (distanceValue_g[south] + sensorOffset) - halfPathWidth_g;
+                    break;
+                }
+
+                case north:
+                {
+                    translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset);
+                    break;
+                }
+
+                case none:
+                {
+                    translationRegulationError = 0;
+                    angleRegulationError = 0;
+                    break;
+                }
+            }
             break;
         }
 
         case south:
         {
-            translationRegulationError = (distanceValue_g[west] + sensorOffset) - pathWidth_g;
-            angleRegulationError = angleValue_g[west];
+            switch(regulationDirection)
+            {
+                case west:
+                {
+                    translationRegulationError = (distanceValue_g[west] + sensorOffset) - halfPathWidth_g;
+                    break;
+                }
+
+                case east:
+                {
+                    translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset);
+                    break;
+                }
+
+                case none:
+                {
+                    translationRegulationError = 0;
+                    angleRegulationError = 0;
+                    break;
+                }
+            }
             break;
-        }
+        } 
 
         case west:
         {
-            translationRegulationError = (distanceValue_g[north] + sensorOffset) - pathWidth_g;
-            angleRegulationError = angleValue_g[north];
+            switch(regulationDirection)
+            {
+                case north:
+                {
+                    translationRegulationError = (distanceValue_g[north] + sensorOffset) - halfPathWidth_g;
+                    break;
+                }
+
+                case south:
+                {
+                    translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset);
+                    break;
+                }
+
+                case none:
+                {
+                    translationRegulationError = 0;
+                    angleRegulationError = 0;
+                    break;
+                }
+            }
             break;
         }
     }
 
+    if (useRotateRegulation)
+    {
+        angleRegulationError = angleValue_g[regulationDirection];
+    }
+    else
+    {
+        angleRegulationError = 0;
+    }
+
+
+
     translationRight = kProportionalTranslation * translationRegulationError;
-    int leftSideStepLengthAdjust = kProportionalAngle/2 * angleRegulationError; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-    int rightSideStepLengthAdjust = kProportionalAngle/2 * (-angleRegulationError);
+    int leftSideStepLengthAdjust = (kProportionalAngle * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+    int rightSideStepLengthAdjust = kProportionalAngle * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
     regulation_g[0] =  translationRight;
     regulation_g[1] = leftSideStepLengthAdjust;
     regulation_g[2] = rightSideStepLengthAdjust;
@@ -775,6 +866,52 @@ void calcRegulation()
 
 }
 
+
+
+
+// används som en globalvariabel för att veta vilken typ av "action" vi ska göra.
+enum action{
+	noAction, // inte utföra något
+	turnRight, // svänga höger med möjlighet att reglera mot en vägg framför roboten
+	turnLeft, // svänga vänster -"-
+	turnRightBlind, // svänga höger utan möjlighet att reglera mot någon vägg framför roboten
+	turnLeftBlind, // svänga vänster -"-
+};
+enum action currentAction_g = noAction;
+
+// en funktion som utför det currentAction_g anger
+void applyAction()
+{
+	switch(currentAction_g)
+	{
+		case turnRight:
+		{
+			// vi ska svänga åt höger när väggen framför oss är ungefär en halv korridorsbredd framför oss
+			if(distanceValue_g[currentDirection] < stepLength_g/2 - halfPathWidth_g)
+			{
+				currentDirection = (currentDirection + 1) % 4; // ökar currentDirection med ett vilket medför att vi svänger åt höger
+				currentAction_g = noAction; 
+			}
+			break;
+		}
+
+		case turnLeft:
+		{
+			// vi ska svänga åt vänster när väggen framför oss är ungefär en halv korridorsbredd framför oss
+			if(distanceValue_g[currentDirection] < stepLength_g/2 - halfPathWidth_g)
+			{
+				currentDirection = (abs(currentDirection - 1)) % 4; // minskar currentDirection med ett vilket medför att vi svänger åt vänster
+				currentAction_g = noAction;
+			}
+			break;
+		}
+
+		case turnRightBlind:
+		{
+			
+		}
+	}
+}
 /*
 / 
 / ej klar och fungerar ej just nu. Kolla upp vad som finns i legPositions
