@@ -36,6 +36,8 @@ int stepLengthRotationAdjust = 30;
 int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
+int currentVentilatorOptionInstruction_g = 0; // nuvarande instruktion för inställningar av ventilators egenskaper
+int ventilatorOptionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
 // ------ Inställningar för robot-datorkommunikation ------
@@ -618,14 +620,31 @@ void move()
 
 int directionHasChanged = 0;
 
+int isMovementInstruction(int instruction)
+{
+	if ((0b10000000 & instruction) == 0b10000000)
+	{
+		return FALSE;
+	}
+	return TRUE;
+}
+
 ISR(INT0_vect) // avbrott från kommunikationsenheten
 {
     
     spiTransmitToCommUnit(TRASH); // Skicka iväg skräp för att kunna ta emot det som finns i kommunikationsenhetens SPDR
     int instruction = inbuffer;
-    currentDirectionInstruction = (instruction & 0b00001111);
-    currentRotationInstruction = (instruction & 0b11110000) >> 4;
-    directionHasChanged = 1;
+	if(isMovementInstruction(instruction))
+	{
+		currentDirectionInstruction = (instruction & 0b00001111);
+		currentRotationInstruction = (instruction & 0b11110000) >> 4;
+		directionHasChanged = 1;
+	}
+	else
+	{
+		ventilatorOptionsHasChanged_g = 1;
+		currentVentilatorOptionInstruction_g = instruction;
+	}
 }
 
 
@@ -679,12 +698,12 @@ void transmitAllDataToCommUnit()
     transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
     transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
     transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
-    transmitDataToCommUnit(ANGLE_NORTH, fetchDataFromSensorUnit(ANGLE_NORTH));
-    transmitDataToCommUnit(ANGLE_EAST, fetchDataFromSensorUnit(ANGLE_EAST));
-    transmitDataToCommUnit(ANGLE_SOUTH, fetchDataFromSensorUnit(ANGLE_SOUTH));
-    transmitDataToCommUnit(ANGLE_WEST, fetchDataFromSensorUnit(ANGLE_WEST));
+    transmitDataToCommUnit(ANGLE_NORTH, -100 /*fetchDataFromSensorUnit(ANGLE_NORTH)*/);
+    transmitDataToCommUnit(ANGLE_EAST, -100 /*fetchDataFromSensorUnit(ANGLE_EAST)*/);
+    transmitDataToCommUnit(ANGLE_SOUTH, -100 /*fetchDataFromSensorUnit(ANGLE_SOUTH)*/);
+    transmitDataToCommUnit(ANGLE_WEST, -100 /*fetchDataFromSensorUnit(ANGLE_WEST)*/);
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
-    transmitDataToCommUnit(TOTAL_ANGLE, fetchDataFromSensorUnit(TOTAL_ANGLE));
+    transmitDataToCommUnit(TOTAL_ANGLE, -100 /*fetchDataFromSensorUnit(TOTAL_ANGLE)*/);
     return;
 }
 
@@ -887,7 +906,7 @@ void applyAction()
 		case turnRight:
 		{
 			// vi ska svänga åt höger när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection] < stepLength_g/2 - halfPathWidth_g)
+			if(distanceValue_g[currentDirection] < stepLength_g/2 + halfPathWidth_g)
 			{
 				currentDirection = (currentDirection + 1) % 4; // ökar currentDirection med ett vilket medför att vi svänger åt höger
 				currentAction_g = noAction; 
@@ -898,11 +917,11 @@ void applyAction()
 		case turnLeft:
 		{
 			// vi ska svänga åt vänster när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection] < stepLength_g/2 - halfPathWidth_g)
+			if(distanceValue_g[currentDirection] < stepLength_g/2 + halfPathWidth_g)
 			{
 				currentDirection = (abs(currentDirection - 1)) % 4; // minskar currentDirection med ett vilket medför att vi svänger åt vänster
 				currentAction_g = noAction;
-			}
+			}        
 			break;
 		}
 
@@ -1125,6 +1144,102 @@ void MakeTrotGait(int cycleResolution)
     }
 }
 
+// funktioner som används för att optimera gångstilen
+void increaseLegWidth()
+{
+	if ((startPositionX_g < 150) && (startPositionY_g < 150))
+	{
+		startPositionX_g = startPositionX_g + 2;
+		startPositionY_g = startPositionY_g + 2;
+	}
+	return;
+}
+
+void decreaseLegWidth()
+{
+	if ((startPositionX_g > 0) && (startPositionY_g > 0))
+	{
+		startPositionX_g = startPositionX_g - 2;
+		startPositionY_g = startPositionY_g - 2;
+	}
+	return;
+}
+
+void decreaseLegHeight()
+{
+	if (startPositionZ_g < -60)
+	{
+		startPositionZ_g = startPositionZ_g + 2;
+	}
+	return;
+}
+
+void increaseLegHeight()
+{
+	if (startPositionZ_g > -160)
+	{
+		startPositionZ_g = startPositionZ_g - 2;
+	}
+	return;
+}
+
+void increaseStepLength()
+{
+	if (stepLength_g < 100)
+	{
+		stepLength_g = stepLength_g + 2;
+	}
+	return;
+}
+
+void decreaseStepLength()
+{
+	if (stepLength_g > 10)
+	{
+		stepLength_g = stepLength_g - 2;
+	}
+	return;
+}
+
+void increaseGaitResolutionTime()
+{
+	if (newGaitResolutionTime < 100)
+	{
+		newGaitResolutionTime = newGaitResolutionTime + 10;
+		setTimerPeriod(TIMER_0, newGaitResolutionTime);
+	}
+	return;
+}
+
+void decreaseGaitResolutionTime()
+{
+	if (newGaitResolutionTime > 30)
+	{
+		newGaitResolutionTime = newGaitResolutionTime - 10;
+		setTimerPeriod(TIMER_0, newGaitResolutionTime);
+	}
+	return;
+}
+
+void increaseStepHeight()
+{
+	if (stepHeight_g < 80)
+	{
+		stepHeight_g = stepHeight_g + 2;
+	}
+	return;
+}
+
+void decreaseStepHeight()
+{
+	if (stepHeight_g > 10)
+	{
+		stepHeight_g = stepHeight_g - 2;
+	}
+	return;
+}
+
+
 
 void makeGaitTransition(enum gait newGait)
 {
@@ -1313,8 +1428,76 @@ void gaitController()
                 }
             }
         }
-    }
+		if(ventilatorOptionsHasChanged_g == 1)
+		{
+			ventilatorOptionsHasChanged_g = 0;
+			switch (currentVentilatorOptionInstruction_g)
+			{
+				case INCREASE_LEG_WIDTH:
+				{
+					increaseLegWidth();
+					break;
+				}
+				
+				case DECREASE_LEG_WIDTH:
+				{
+					decreaseLegWidth();
+					break;
+				}
+				
+				case INCREASE_LEG_HEIGHT:
+				{
+					increaseLegHeight();
+					break;
+				}
+				
+				case DECREASE_LEG_HEIGHT:
+				{
+					decreaseLegHeight();
+					break;
+				}
+				
+				case INCREASE_STEP_LENGTH:
+				{
+					increaseStepLength();
+					break;
+				}
+				
+				case DECREASE_STEP_LENGTH:
+				{
+					decreaseStepLength();
+					break;
+				}
+				
+				case INCREASE_STEP_HEIGHT:
+				{
+					increaseStepHeight();
+					break;
+				}
+				
+				case DECREASE_STEP_HEIGHT:
+				{
+					decreaseStepHeight();
+					break;
+				}
+				
+				case INCREASE_GAIT_RESOLUTION_TIME:
+				{
+					increaseGaitResolutionTime();
+					break;
+				}
+				
+				case DECREASE_GAIT_RESOLUTION_TIME:
+				{
+					decreaseGaitResolutionTime();
+					break;
+				}
+			}
+		}
+	}
 }
+
+
 
 int main(void)
 {
