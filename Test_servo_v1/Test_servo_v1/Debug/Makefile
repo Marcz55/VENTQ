@@ -38,6 +38,7 @@ SUBDIRS :=  \
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../Timer.c \
 ../SPI.c \
 ../USART.c \
 ../Test_servo_v1.c
@@ -50,21 +51,25 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+Timer.o \
 SPI.o \
 USART.o \
 Test_servo_v1.o
 
 OBJS_AS_ARGS +=  \
+Timer.o \
 SPI.o \
 USART.o \
 Test_servo_v1.o
 
 C_DEPS +=  \
+Timer.d \
 SPI.d \
 USART.d \
 Test_servo_v1.d
 
 C_DEPS_AS_ARGS +=  \
+Timer.d \
 SPI.d \
 USART.d \
 Test_servo_v1.d
@@ -83,6 +88,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

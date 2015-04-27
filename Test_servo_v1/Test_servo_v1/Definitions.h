@@ -1,26 +1,13 @@
 ﻿/*
- * USART.h
+ * Definitions.h
  *
- * Created: 4/21/2015 8:31:14 AM
+ * Created: 4/25/2015 2:57:20 PM
  *  Author: isawi527
  */ 
 
 
-#ifndef USART_H_
-#define USART_H_
-
-
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#define F_CPU 16000000UL
-#include <util/delay.h>
-
-// -- USART definitioner
-#define TXD0_READY bit_is_set(UCSR0A,5)
-#define TXD0_FINISHED bit_is_set(UCSR0A,6)
-#define RXD0_READY bit_is_set(UCSR0A,7)
-#define TXD0_DATA (UDR0)
-#define RXD0_DATA (UDR0)
+#ifndef DEFINITIONS_H_
+#define DEFINITIONS_H_
 
 //--- Control Table Address ---
 //EEPROM AREA
@@ -89,22 +76,68 @@
 #define INST_SYNC_REG_WRITE 0x84
 
 
-void USART0RecieveMode();
-void USART0SendMode();
-void initUSART();
-void USARTWriteChar(char data);
-void USARTSendInstruction0(int ID, int instruction);
-void USARTSendInstruction1(int ID, int instruction, int parameter0);
-void USARTSendInstruction2(int ID, int instruction, int parameter0, int parameter1);
-void USARTSendInstruction3(int ID, int instruction, int parameter0, int parameter1, int parameter2);
-void USARTSendInstruction4(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3);
-void USARTSendInstruction5(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3, int parameter4);
-char USARTReadChar();
-int USARTReadStatusPacket();
-void disableStatusPacketsFromActuator(int ID);
-void enableStatusPacketsFromActuator(int ID);
-int ReadTemperatureLimitFromActuator(int ID);
-int readCurrentTemperatureFromActuator(int ID);
-int readAlarmShutdownStatus(int ID);
+//----Konstanter-Inverskinematik----
+#define a1 50
+#define a2 67
+#define a3 130
+#define a1Square 2500
+#define a2Square 4489
+#define a3Square 16900
+#define PI 3.141592
 
-#endif /* USART_H_ */
+#define FRONT_LEFT_LEG 1
+#define FRONT_RIGHT_LEG 2
+#define REAR_LEFT_LEG 3
+#define REAR_RIGHT_LEG 4
+
+#define FRONT_LEFT_LEG_X 1
+#define FRONT_LEFT_LEG_Y 2
+#define FRONT_LEFT_LEG_Z 3
+#define FRONT_RIGHT_LEG_X 4
+#define FRONT_RIGHT_LEG_Y 5
+#define FRONT_RIGHT_LEG_Z 6
+#define REAR_LEFT_LEG_X 7
+#define REAR_LEFT_LEG_Y 8
+#define REAR_LEFT_LEG_Z 9
+#define REAR_RIGHT_LEG_X 10
+#define REAR_RIGHT_LEG_Y 11
+#define REAR_RIGHT_LEG_Z 12
+
+#define INCREMENT_PERIOD_10 10
+#define INCREMENT_PERIOD_20 20
+#define INCREMENT_PERIOD_30 30
+#define INCREMENT_PERIOD_40 40
+#define INCREMENT_PERIOD_50 50
+#define INCREMENT_PERIOD_60 60
+#define INCREMENT_PERIOD_70 70
+#define INCREMENT_PERIOD_80 80
+#define INCREMENT_PERIOD_90 90
+#define INCREMENT_PERIOD_100 100
+#define INCREMENT_PERIOD_200 200
+#define INCREMENT_PERIOD_300 300
+#define INCREMENT_PERIOD_400 400
+#define INCREMENT_PERIOD_500 500
+
+
+#define NORTH 1
+#define NORTH_EAST 5
+#define EAST 4
+#define SOUTH_EAST 6
+#define SOUTH 2
+#define SOUTH_WEST 10
+#define WEST 8
+#define NORTH_WEST 9
+#define NO_MOVEMENT_DIRECTION 0
+
+#define CW_ROTATION 1
+#define CCW_ROTATION 2
+#define NO_ROTATION 0
+
+#define TRUE 1
+#define FALSE 0
+
+// -- Gångstilar
+
+
+
+#endif /* DEFINITIONS_H_ */
