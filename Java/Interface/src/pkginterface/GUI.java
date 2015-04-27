@@ -7,14 +7,22 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Paint;
         
 public class GUI extends Application
 {
@@ -26,30 +34,56 @@ public class GUI extends Application
                                    // Om båda knapparna för motsvarande variabel är nedtryckt tar de ut varandra
                                    // och variabeln blir noll
     
-    Text angle1Text = new Text(); // Dessa texter skriver ut vinklar
-    Text angle2Text = new Text();
-    Text angle3Text = new Text();
-    Text angle4Text = new Text();
-    Text angleTotalText = new Text();
-    Text side1Text = new Text(); // Dessa texter skriver ut avstånd
-    Text side2Text = new Text();
-    Text side3Text = new Text();
-    Text side4Text = new Text();
-    Text leakText = new Text();  // leak, node, connected och autonomus visar robotens status
-    Text nodeText = new Text();
-    Text connectedText = new Text();
-    Text autonomusText = new Text("Autonomt läge av");
-    Text upArrow = new Text("^");   // Dessa texter använd för att visa riktning/vridning som nedtryckta
-    Text downArrow = new Text("v"); // knappar motsvarar
-    Text leftArrow = new Text("<");
-    Text rightArrow = new Text(">");
-    Text turnSymbol = new Text("");
+    TextArea angle1Text = new TextArea(""); // Dessa texter skriver ut vinklar
+    TextArea angle2Text = new TextArea("");
+    TextArea angle3Text = new TextArea("");
+    TextArea angle4Text = new TextArea("");
+    TextArea angleTotalText = new TextArea("");
+    TextArea side1Text = new TextArea(""); // Dessa texter skriver ut avstånd
+    TextArea side2Text = new TextArea("");
+    TextArea side3Text = new TextArea("");
+    TextArea side4Text = new TextArea("");
+    TextArea leakText = new TextArea("");  // leak, node, connected och autonomus visar robotens status
+    TextArea nodeText = new TextArea("");
+    TextArea connectedText = new TextArea("");
+    TextArea autonomusText = new TextArea("Autonomt\nläge av");
+    Label upArrow = new Label("");   // Dessa texter använd för att visa riktning/vridning som nedtryckta
+    Label downArrow = new Label(""); // knappar motsvarar
+    Label leftArrow = new Label("");
+    Label rightArrow = new Label("");
+    Label turnSymbol = new Label("");
     boolean wPressed = false;  // Dessa värden används för att komma ihåg om en knapp är nedtryckt, sätts till sann
     boolean aPressed = false;  // när motsvarande knapp trycks ner och till falsk när knapp släpps
     boolean sPressed = false;
     boolean dPressed = false;
     boolean qPressed = false;
     boolean ePressed = false;
+    
+    Background grayBackground = new Background(new BackgroundFill(Paint.valueOf("808080"),CornerRadii.EMPTY,Insets.EMPTY));
+    Background redBackground = new Background(new BackgroundFill(Paint.valueOf("F00000"),CornerRadii.EMPTY,Insets.EMPTY));
+    Background greenBackground = new Background(new BackgroundFill(Paint.valueOf("00F000"),CornerRadii.EMPTY,Insets.EMPTY));
+    Background blackBackground = new Background(new BackgroundFill(Paint.valueOf("00000F"),CornerRadii.EMPTY,Insets.EMPTY));
+    
+    int side1Iterator = 0;  // Iteratorer för vilken datapunkt som tagits emot
+    int side2Iterator = 0;
+    int side3Iterator = 0;
+    int side4Iterator = 0;
+    int angle1Iterator = 0;
+    int angle2Iterator = 0;
+    int angle3Iterator = 0;
+    int angle4Iterator = 0;
+    int angleTotalIterator = 0;
+    
+    XYChart.Series side1Data = new XYChart.Series();
+    XYChart.Series side2Data = new XYChart.Series();
+    XYChart.Series side3Data = new XYChart.Series();
+    XYChart.Series side4Data = new XYChart.Series();
+    XYChart.Series angle1Data = new XYChart.Series();
+    XYChart.Series angle2Data = new XYChart.Series();
+    XYChart.Series angle3Data = new XYChart.Series();
+    XYChart.Series angle4Data = new XYChart.Series();
+    XYChart.Series angleTotalData = new XYChart.Series();
+    
 
     void setMovement() // Omvandlar nedtryckta knappar till rörelseriktning och vridning. Skickar vidare
     {                  // eventuell rörelse via bluetooth och visar rörelse på GUI
@@ -58,44 +92,44 @@ public class GUI extends Application
         switch(upMovement) // Undersöker om rörelse uppåt är positiv, negativ eller noll
         {
             case 0: 
-                upArrow.setFill(Color.BLACK);
-                downArrow.setFill(Color.BLACK);
+                upArrow.setBackground(blackBackground);
+                downArrow.setBackground(blackBackground);
                 break;
             case 1:
-                upArrow.setFill(Color.LAWNGREEN); // Eventuell rörelse markeras med grönt
-                downArrow.setFill(Color.BLACK);
+                upArrow.setBackground(greenBackground); // Eventuell rörelse markeras med grönt
+                downArrow.setBackground(blackBackground);
                 movementByte_ = movementByte_ + 0b00000001;  // Bit 0 sätts till 1 om rörelsevektorn har rörelsekomponent uppåt
                 break;                                       
             case -1:
-                upArrow.setFill(Color.BLACK);
-                downArrow.setFill(Color.LAWNGREEN);
+                upArrow.setBackground(blackBackground);
+                downArrow.setBackground(greenBackground);
                 movementByte_ = movementByte_ + 0b00000010;  // Bit 1 sätts till 1 om rörelsevektorn har rörelsekomponent nedåt
                 break;
             default:
-                upArrow.setFill(Color.BLACK);
-                downArrow.setFill(Color.BLACK);
+                upArrow.setBackground(blackBackground);
+                downArrow.setBackground(blackBackground);
                 break;
                 
         }
         switch(rightMovement) // Undersöker om rörelse åt höger är positiv, negativ eller noll
         {
             case 0:
-                rightArrow.setFill(Color.BLACK);
-                leftArrow.setFill(Color.BLACK);
+                rightArrow.setBackground(blackBackground);
+                leftArrow.setBackground(blackBackground);
                 break;
             case 1:
-                rightArrow.setFill(Color.LAWNGREEN);
-                leftArrow.setFill(Color.BLACK);
+                rightArrow.setBackground(greenBackground);
+                leftArrow.setBackground(blackBackground);
                 movementByte_ = movementByte_ + 0b00000100;  // Bit 2 sätts till 1 om rörelsevektorn har rörelsekomponent åt höger
                 break;
             case -1:
-                rightArrow.setFill(Color.BLACK);
-                leftArrow.setFill(Color.LAWNGREEN);
+                rightArrow.setBackground(blackBackground);
+                leftArrow.setBackground(greenBackground);
                 movementByte_ = movementByte_ + 0b00001000;  // Bit 3 sätts till 1 om rörelsevektorn har rörelsekomponent åt vänster
                 break;
             default:
-                rightArrow.setFill(Color.BLACK);
-                leftArrow.setFill(Color.BLACK);
+                rightArrow.setBackground(blackBackground);
+                leftArrow.setBackground(blackBackground);
                 break; 
                 
         }
@@ -104,45 +138,132 @@ public class GUI extends Application
         {
             case 0:
                 turnSymbol.setText("");
+                turnSymbol.setBackground(blackBackground);
                 break;
             case 1:
-                turnSymbol.setText("H"); // Vridning markeras med bokstav för Höger eller Vänster
+                turnSymbol.setText("     H"); // Vridning markeras med bokstav för Höger eller Vänster
+                turnSymbol.setBackground(greenBackground);
                 movementByte_ = movementByte_ + 0b00010000;  // Bit 4 sätts till 1 om roboten ska vrida sig åt höger
                 break;
             case -1:
-                turnSymbol.setText("V");
+                turnSymbol.setText("     V");
+                turnSymbol.setBackground(greenBackground);
                 movementByte_ = movementByte_ + 0b00100000;  // Bit 5 sätts till 1 om roboten ska vrida sig åt vänster
                 break;
             default:
                 turnSymbol.setText("");
+                turnSymbol.setBackground(blackBackground);
                 break;
         }
         mainInterface.sendData((byte)movementByte_);
-        System.out.println(movementByte_);
+        //System.out.println(movementByte_);
         
     }
         
-    void setAllText() // Hämtar variabler från mainInterface och sätter motsvarande text.
+    void setText(String updatedData_) // Hämtar variabler från mainInterface och sätter motsvarande text.
     {
-        side1Text.setText(Integer.toString(mainInterface.allSides[0]));
-        side2Text.setText(Integer.toString(mainInterface.allSides[1]));
-        side3Text.setText(Integer.toString(mainInterface.allSides[2]));
-        side4Text.setText(Integer.toString(mainInterface.allSides[3]));
-        angle1Text.setText(Integer.toString(mainInterface.allAngles[0]));
-        angle2Text.setText(Integer.toString(mainInterface.allAngles[1]));
-        angle3Text.setText(Integer.toString(mainInterface.allAngles[2]));
-        angle4Text.setText(Integer.toString(mainInterface.allAngles[3]));
-        angleTotalText.setText(Integer.toString(mainInterface.allAngles[4]));
-        leakText.setText(mainInterface.leak);
-        nodeText.setText(mainInterface.currentNode);
-        connectedText.setText(mainInterface.portConnected);
-        if(mainInterface.portConnected == "Ansluten")
+        try
         {
-            connectedText.setFill(Color.LAWNGREEN);
+            switch (updatedData_)
+            {
+                case "side1":
+                {
+                    
+                    side1Data.getData().add(new XYChart.Data(side1Iterator,mainInterface.allSides[0]));
+                    side1Text.setText("Sida 1:\n" + Integer.toString(mainInterface.allSides[0]));
+                    side1Iterator ++;
+                    break;
+                }
+                case "side2":
+                {
+                    side2Data.getData().add(new XYChart.Data(side2Iterator,mainInterface.allSides[1]));
+                    side2Text.setText("Sida 2:\n" + Integer.toString(mainInterface.allSides[1]));
+                    side2Iterator ++;
+                    break;
+                }
+                case "side3":
+                {
+                    side3Data.getData().add(new XYChart.Data(side3Iterator,mainInterface.allSides[2]));
+                    side3Text.setText("Sida 3:\n" + Integer.toString(mainInterface.allSides[2]));
+                    side3Iterator ++;
+                    break;
+                }
+                case "side4":
+                {
+                    side4Data.getData().add(new XYChart.Data(side4Iterator,mainInterface.allSides[3]));
+                    side4Text.setText("Sida 4:\n" + Integer.toString(mainInterface.allSides[3]));
+                    side4Iterator ++;
+                    break;
+                }
+                case "angle1":
+                {
+                    angle1Data.getData().add(new XYChart.Data(angle1Iterator,mainInterface.allAngles[0]));
+                    angle1Text.setText("Vinkel 1:\n" + Integer.toString(mainInterface.allAngles[0]));
+                    angle1Iterator ++;
+                    break;
+                }
+                case "angle2":
+                {
+                    angle2Data.getData().add(new XYChart.Data(angle2Iterator,mainInterface.allAngles[1]));
+                    angle2Text.setText("Vinkel 2:\n" + Integer.toString(mainInterface.allAngles[1]));
+                    angle2Iterator ++;
+                    break;
+                }
+                case "angle3":
+                {
+                    angle3Data.getData().add(new XYChart.Data(angle3Iterator,mainInterface.allAngles[2]));
+                    angle3Text.setText("Vinkel 3:\n" + Integer.toString(mainInterface.allAngles[2]));
+                    angle3Iterator ++;
+                    break;
+                }
+                case "angle4":
+                {
+                    angle4Data.getData().add(new XYChart.Data(angle4Iterator,mainInterface.allAngles[3]));
+                    angle4Text.setText("Vinkel 4:\n" + Integer.toString(mainInterface.allAngles[3]));
+                    angle4Iterator ++;
+                    break;
+                }
+                case "angleTotal":
+                {
+                    angleTotalData.getData().add(new XYChart.Data(angleTotalIterator,mainInterface.allAngles[4]));
+                    angleTotalText.setText("Vinkel total:\n" + Integer.toString(mainInterface.allAngles[4]));
+                    angleTotalIterator ++;
+                    break;
+                }
+                case "leak":
+                {
+                    leakText.setText("Läcka:\n" + mainInterface.leak);
+                    break;
+                }
+                case "node":
+                {
+                    nodeText.setText("Nod:\n" +mainInterface.currentNode);
+                    break;
+                }
+                case "connection":
+                {
+                    connectedText.setText("Seriell port: \n" + mainInterface.portConnected);
+                    /*if(mainInterface.portConnected == "Ansluten")
+                    {
+                        connectedText.setTextFill(Paint.valueOf("00F000"));
+                    }
+                    else
+                    {
+                        connectedText.setTextFill(Paint.valueOf("F00000"));
+                    }*/
+                    break;
+                }
+                default:
+                {
+                    System.err.println("Faulty paramater to setText: " + updatedData_);
+                }
+
+
+            }
         }
-        else
+        catch(Exception e)
         {
-            connectedText.setFill(Color.CRIMSON);
+            System.err.println(e.toString());
         }
     }
     
@@ -164,10 +285,59 @@ public class GUI extends Application
     @Override
     public void start(Stage stage)
     {
+        side1Text.setEditable(false);
+        side2Text.setEditable(false);
+        side3Text.setEditable(false);
+        side4Text.setEditable(false);
+        angle1Text.setEditable(false);
+        angle2Text.setEditable(false);
+        angle3Text.setEditable(false);
+        angle4Text.setEditable(false);
+        angleTotalText.setEditable(false);
+        leakText.setEditable(false);
+        nodeText.setEditable(false);
+        
+        side1Data.setName("Sida 1");
+        side2Data.setName("Sida 2");
+        side3Data.setName("Sida 3");
+        side4Data.setName("Sida 4");
+        angle1Data.setName("Vinkel 1");
+        angle2Data.setName("Vinkel 2");
+        angle3Data.setName("Vinkel 3");
+        angle4Data.setName("Vinkel 4");
+        angleTotalData.setName("Vinkel total");
+        
+        
+        
+        final NumberAxis sideAllXAxis = new NumberAxis();
+        final NumberAxis sideAllYAxis = new NumberAxis();
+        final LineChart<Number,Number> sideAllGraph = new LineChart<Number,Number>(sideAllXAxis,sideAllYAxis);
+        sideAllGraph.setTitle("Alla sidor");
+        sideAllGraph.getData().addAll(side1Data,side2Data,side3Data,side4Data);
+        sideAllGraph.setCreateSymbols(false);
+        
+        
+        final NumberAxis angleAllXAxis = new NumberAxis();
+        final NumberAxis angleAllYAxis = new NumberAxis();
+        final LineChart<Number,Number> angleAllGraph = new LineChart<Number,Number>(angleAllXAxis,angleAllYAxis);
+        angleAllGraph.setTitle("Alla vinklar");
+        angleAllGraph.getData().addAll(angle1Data,angle2Data,angle3Data,angle4Data,angleTotalData);
+        angleAllGraph.setCreateSymbols(false);
+        
+       
+        sideAllGraph.setMinWidth(800);
+        angleAllGraph.setMinWidth(800);
+        
         
         mainInterface = new Interface(this);
         
         stage.setTitle("V.E.N.T:Q Control Room");
+        
+        TextField comXX = new TextField("COM15");
+        comXX.setPrefColumnCount(5);
+        
+        Group graphics = new Group();
+        //Rectangle rektangel1 = new Rectangle(100,100,);
         
         Button connectButton = new Button(); // Skapar knapp som används för att ansluta till/koppla från roboten.
         connectButton.setText("    Anslut    "); // Om datorn ej ansluten till roboten används knappen för att ansluta,
@@ -207,46 +377,36 @@ public class GUI extends Application
                 if (!autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
                 {                   // värde till robot och ändra på text och knapp
                     mainInterface.sendData((byte)0b10000000); 
-                    System.out.println((byte)0b10000000);
+                    //System.out.println((byte)0b10000000);
                     autonomusMode = true;
                     autonomusButton.setText("Avaktivera");
-                    autonomusText.setText("Autonomt läge på");
+                    autonomusText.setText("Autonomt\nläge på");
                     resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
                 }
                 else  // Om i autonomt läge, växla till manuellt
                 {
                     mainInterface.sendData((byte)0b11000000);
-                    System.out.println((byte)0b11000000);
+                   // System.out.println((byte)0b11000000);
                     autonomusMode = false;
                     autonomusButton.setText(" Aktivera ");
-                    autonomusText.setText("Autonomt läge av");
+                    autonomusText.setText("Autonomt\nläge av");
                 }
             }
         });
         
-        Label vinkel1 = new Label("Vinkel 1:"); // Labels för GUI:t
-        Label vinkel2 = new Label("Vinkel 2:");
-        Label vinkel3 = new Label("Vinkel 3:");
-        Label vinkel4 = new Label("Vinkel 4:");
-        Label vinkeltotal = new Label("Vinkel total:");
-        Label sida1 = new Label("Sida 1:");
-        Label sida2 = new Label("Sida 2:");
-        Label sida3 = new Label("Sida 3:");
-        Label sida4 = new Label("Sida 4:");
-        Label läcka = new Label("Läcka:");
-        Label nod = new Label("Nod:                  ");
-        Label connected  = new Label("Seriell port: ");
+ 
         
         
         GridPane root = new GridPane(); // Skapar en grid
-        Scene mainScene = new Scene(root,1000,500); // Storlek är 1000x500 pixlar
-        root.setAlignment(Pos.CENTER);
-        root.setHgap(50); // Bestämmer horisontella och vertikala avstånd
-        root.setVgap(10);
-        root.setPadding(new Insets(25,25,25,25));
+        Scene mainScene = new Scene(root,1350,700); // Storlek är 1000x500 pixlar
+        root.setAlignment(Pos.TOP_LEFT);
+        root.setHgap(0); // Bestämmer horisontella och vertikala avstånd
+        root.setVgap(0);
+        root.setPadding(new Insets(10,25,25,10));
         stage.setScene(mainScene);
         mainScene.getStylesheets().add(GUI.class.getResource("GUI.css").toExternalForm()); // Hämtar CSS där bakgrundsbild och vissa textdefinitioner finns
         stage.show(); 
+        
         
         root.setOnKeyPressed(new EventHandler<KeyEvent>() // Eventhandler som hanterar när knapp trycks ner
         {
@@ -382,52 +542,145 @@ public class GUI extends Application
         });
         
         
+        //root.setGridLinesVisible(true);
+        root.setBackground(grayBackground);
+        
+        side1Text.setMinHeight(80);
+        side1Text.setMinWidth(80);
+        side2Text.setMinHeight(80);
+        side2Text.setMinWidth(80);
+        side3Text.setMinHeight(80);
+        side3Text.setMinWidth(80);
+        side4Text.setMinHeight(80);
+        side4Text.setMinWidth(80);
+        angle1Text.setMinHeight(80);
+        angle1Text.setMinWidth(80);
+        angle2Text.setMinHeight(80);
+        angle2Text.setMinWidth(80);
+        angle3Text.setMinHeight(80);
+        angle3Text.setMinWidth(80);
+        angle4Text.setMinHeight(80);
+        angle4Text.setMinWidth(80);
+        angleTotalText.setMinHeight(80);
+        angleTotalText.setMinWidth(80);
+        leakText.setMinHeight(80);
+        leakText.setMinWidth(80);
+        nodeText.setMinHeight(80);
+        nodeText.setMinWidth(80);
+        connectedText.setMinHeight(45);
+        connectedText.setMinWidth(80);
+        autonomusText.setMinHeight(45);
+        autonomusText.setMinWidth(80);
+        
+        upArrow.setMinHeight(40);
+        upArrow.setMinWidth(40);
+        downArrow.setMinHeight(40);
+        downArrow.setMinWidth(40);
+        leftArrow.setMinHeight(40);
+        leftArrow.setMinWidth(40);
+        rightArrow.setMinHeight(40);
+        rightArrow.setMinWidth(40);
+        turnSymbol.setMinHeight(40);
+        turnSymbol.setMinWidth(40);
+        
+        side1Text.setMaxWidth(80);
+        side1Text.setMaxHeight(80);
+        side2Text.setMaxWidth(80);
+        side2Text.setMaxHeight(80);
+        side3Text.setMaxWidth(80);
+        side3Text.setMaxHeight(80);
+        side4Text.setMaxWidth(80);
+        side4Text.setMaxHeight(80);
+        angle1Text.setMaxWidth(80);
+        angle1Text.setMaxHeight(80);
+        angle2Text.setMaxWidth(80);
+        angle2Text.setMaxHeight(80);
+        angle3Text.setMaxWidth(80);
+        angle3Text.setMaxHeight(80);
+        angle4Text.setMaxWidth(80);
+        angle4Text.setMaxHeight(80);
+        angleTotalText.setMaxWidth(80);
+        angleTotalText.setMaxHeight(80);
+        nodeText.setMaxWidth(80);
+        nodeText.setMaxHeight(80);
+        leakText.setMaxWidth(80);
+        leakText.setMaxHeight(80);
+        connectedText.setMaxWidth(80);
+        connectedText.setMaxHeight(45);
+        autonomusText.setMaxWidth(80);
+        autonomusText.setMaxHeight(45);
         
         
-        root.add(sida1,2,0); // Lägger till alla labels i den grid som skapats
-        root.add(sida2,5,4);
-        root.add(sida3,3,12);
-        root.add(sida4,0,8);
-        root.add(vinkel1,3,0);
-        root.add(vinkel2,5,8);
-        root.add(vinkel3,2,12);
-        root.add(vinkel4,0,4);
-        root.add(vinkeltotal,3,4);
-        root.add(läcka,2,4);
-        root.add(nod,2,8);
         
-        root.add(side1Text,2,1); // Lägger till alla texter som hör till labels
-        root.add(side2Text,5,5);
-        root.add(side3Text,3,13);
-        root.add(side4Text,0,9);
-        root.add(angle1Text,3,1);
-        root.add(angle2Text,5,9);
-        root.add(angle3Text,2,13);
-        root.add(angle4Text,0,5);
-        root.add(angleTotalText,3,5);
-        root.add(leakText,2,5);
-        root.add(nodeText,2,9);
         
-        root.add(connectButton,7,13); // lägger till knappar och deras texter
-        root.add(connected,7,11);
-        root.add(connectedText,7,12);
+        side1Text.setBackground(grayBackground);
+        side2Text.setBackground(grayBackground);
+        side3Text.setBackground(grayBackground);
+        side4Text.setBackground(grayBackground);
+        angle1Text.setBackground(grayBackground);
+        angle2Text.setBackground(grayBackground);
+        angle3Text.setBackground(grayBackground);
+        angle4Text.setBackground(grayBackground);
+        angleTotalText.setBackground(grayBackground);
+        leakText.setBackground(grayBackground);
+        nodeText.setBackground(grayBackground);
         
-        root.add(autonomusText,7,0);
-        root.add(autonomusButton,7,1);
         
-        root.add(leftArrow,8,5); // Lägger till symboler för att visa rörelseriktning
-        root.add(rightArrow,10,5);
-        root.add(upArrow,9,3);
-        root.add(downArrow,9,8);
-        root.add(turnSymbol,9,5);
         
-        turnSymbol.setFill(Color.LAWNGREEN); // Ändrar utseende på symbolerna
-        upArrow.setId("boldText");
-        leftArrow.setId("boldText");
-        rightArrow.setId("boldText");
-        turnSymbol.setId("boldText");
+
         
-        setAllText();
+        root.add(side1Text,2,0,2,2); // Lägger till alla texter som hör till labels
+        root.add(side2Text,6,2,2,2);
+        root.add(side3Text,4,6,2,2);
+        root.add(side4Text,0,4,2,2);
+        root.add(angle1Text,4,0,2,2);
+        root.add(angle2Text,6,4,2,2);
+        root.add(angle3Text,2,6,2,2);
+        root.add(angle4Text,0,2,2,2);
+        root.add(angleTotalText,2,2,2,2);
+        root.add(leakText,4,2,5,2);
+        root.add(nodeText,2,4,2,2);
+        
+        
+        root.add(connectedText,8,0);
+        root.add(connectButton,8,1); // lägger till knappar och deras texter
+        
+        
+        root.add(autonomusText,8,6);
+        root.add(autonomusButton,8,7);
+        
+        //root.add(comXX,7,13); // Lägger till textfält för att välja comport
+        
+        root.add(leftArrow,9,3); // Lägger till symboler för att visa rörelseriktning
+        root.add(rightArrow,11,3);
+        root.add(upArrow,10,2);
+        root.add(downArrow,10,4);
+        root.add(turnSymbol,10,3);
+        
+        turnSymbol.setBackground(blackBackground); // Ändrar utseende på symbolerna
+        
+        
+        root.add(sideAllGraph,12,0,3,8);
+        root.add(angleAllGraph,12,8,3,8);
+        
+        
+        setText("side1");
+        setText("side2");
+        setText("side3");
+        setText("side4");
+        setText("angle1");
+        setText("angle2");
+        setText("angle3");
+        setText("angle4");
+        setText("angleTotal");
+        setText("leak");
+        setText("node");
+        setText("connection");
+        
+        upArrow.setBackground(blackBackground);
+        leftArrow.setBackground(blackBackground);
+        rightArrow.setBackground(blackBackground);
+        downArrow.setBackground(blackBackground);
     }
     
             

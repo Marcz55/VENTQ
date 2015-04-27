@@ -60,7 +60,7 @@ public class Interface implements SerialPortEventListener{
         {
             System.out.println(portName + " hittad.");
             portConnected = "Ansluten";
-            mainGUI.setAllText();
+            mainGUI.setText("connection");
         }
         else
         {
@@ -112,11 +112,11 @@ public class Interface implements SerialPortEventListener{
             outputData = null;
             mainSerialPort.close();
             portConnected = "Ej ansluten";
-            mainGUI.setAllText();
+            mainGUI.setText("connection");
             System.out.println("Seriell port bortkopplad");
             comPort = null;
         } 
-        catch (IOException ex) 
+        catch (Exception ex) 
         {
             Logger.getLogger(Interface.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -229,30 +229,39 @@ public class Interface implements SerialPortEventListener{
         {
             case 202:                         // Om avstånd eller vinkel behöver datan inte behandlas
                 allSides[0] = recievedData_;  // Sida 1 (Norr)
+                mainGUI.setText("side1");
                 break;
             case 208:
                 allSides[1] = recievedData_;  // Sida 2 (Öst)
+                mainGUI.setText("side2");
                 break;
             case 216:
                 allSides[2] = recievedData_;  // Sida 3 (Cyd)
+                mainGUI.setText("side3");
                 break;
             case 224:
                 allSides[3] = recievedData_;  // Sida 4 (Väst)
+                mainGUI.setText("side4");
                 break;
             case 232:
                 allAngles[0] = recievedData_;  // Vinkel 1 (Norr)
+                mainGUI.setText("angle1");
                 break;
             case 240:
                 allAngles[1] = recievedData_;  // Vinkel 2 (Öst)
+                mainGUI.setText("angle2");
                 break;
             case 248:
                 allAngles[2] = recievedData_;  // Vinkel 3 (Cyd)
+                mainGUI.setText("angle3");
                 break;
             case 136:
                 allAngles[3] = recievedData_;  // Vinkel 4 (Väst)
+                mainGUI.setText("angle4");
                 break;
             case 144:
                 allAngles[4] = recievedData_;  // Totalvinkel
+                mainGUI.setText("angleTotal");
                 break;
             case 152: // Recieved data motsvarar om läcka är sant eller falskt
                 if (recievedData_ == 1)
@@ -263,6 +272,7 @@ public class Interface implements SerialPortEventListener{
                 {
                     leak = "Nej";
                 }
+                mainGUI.setText("leak");
                 break;
             case 160: 
                 int northBit_ = (recievedData_ & 0b00001000)/8; // Bitarna 0,1,2,3 och  visar om det finns öppningar åt 
@@ -273,6 +283,7 @@ public class Interface implements SerialPortEventListener{
                                                                                                     // motsvarar åt vilket håll  roboten gick in i noden
                 int IDbyte_ = (recievedData_ & 0b0011111100000000)/256;                             // Bitarna 8 till 13 är ett tal som motsvarar nodens Id
                 setNodeInfo(northBit_,eastBit_,southBit_,westBit_,direction_,IDbyte_); // Beräknar vad det är för nod osv.
+                mainGUI.setText("node");
                 break;
             default: ;
         }  
@@ -303,6 +314,7 @@ public class Interface implements SerialPortEventListener{
             try
             {
                 response = inputData.read(); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande
+                //System.out.println(response);
                 if ((response == 184) && (bufferCounter == 0))
                 {
                     // 184 är en skräpheader som skickas ut vid kommunikationsenheten i samband med SPI-kommunkiation,
@@ -322,7 +334,6 @@ public class Interface implements SerialPortEventListener{
                             System.out.print(" ");
                             System.out.println(dataBuffer[2]);*/
                             setAllData(dataBuffer[0],combinedData);
-                            mainGUI.setAllText();
                         }
                         else
                         {
