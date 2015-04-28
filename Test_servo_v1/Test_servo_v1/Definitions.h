@@ -119,15 +119,15 @@
 #define INCREMENT_PERIOD_500 500
 
 
-#define NORTH 1
-#define NORTH_EAST 5
-#define EAST 4
-#define SOUTH_EAST 6
-#define SOUTH 2
-#define SOUTH_WEST 10
-#define WEST 8
-#define NORTH_WEST 9
-#define NO_MOVEMENT_DIRECTION 0
+#define NORTH_HEADER 1
+#define NORTH_EAST_HEADER 5
+#define EAST_HEADER 4
+#define SOUTH_EAST_HEADER 6
+#define SOUTH_HEADER 2
+#define SOUTH_WEST_HEADER 10
+#define WEST_HEADER 8
+#define NORTH_WEST_HEADER 9
+#define NO_MOVEMENT_DIRECTION_HEADER 0
 
 #define CW_ROTATION 1
 #define CCW_ROTATION 2

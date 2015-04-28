@@ -662,27 +662,27 @@ ISR(INT1_vect)
     {
         case north:
         {
-           currentDirectionInstruction = EAST;
+           currentDirectionInstruction = EAST_HEADER;
            break;
         }
         case east:
         {
-            currentDirectionInstruction = SOUTH;
+            currentDirectionInstruction = SOUTH_HEADER;
             break;
         }
         case south:
         {
-            currentDirectionInstruction = WEST;
+            currentDirectionInstruction = WEST_HEADER;
             break;
         }
         case west:
         {
-            currentDirectionInstruction = NORTH;
+            currentDirectionInstruction = NORTH_HEADER;
             break;
         }
         case none:
         {
-            currentDirectionInstruction = NORTH;
+            currentDirectionInstruction = NORTH_HEADER;
             break;
         }
     }
@@ -698,12 +698,12 @@ void transmitAllDataToCommUnit()
     transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
     transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
     transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
-    transmitDataToCommUnit(ANGLE_NORTH, -100 /*fetchDataFromSensorUnit(ANGLE_NORTH)*/);
-    transmitDataToCommUnit(ANGLE_EAST, -100 /*fetchDataFromSensorUnit(ANGLE_EAST)*/);
-    transmitDataToCommUnit(ANGLE_SOUTH, -100 /*fetchDataFromSensorUnit(ANGLE_SOUTH)*/);
-    transmitDataToCommUnit(ANGLE_WEST, -100 /*fetchDataFromSensorUnit(ANGLE_WEST)*/);
+    transmitDataToCommUnit(ANGLE_NORTH, fetchDataFromSensorUnit(ANGLE_NORTH));
+    transmitDataToCommUnit(ANGLE_EAST, fetchDataFromSensorUnit(ANGLE_EAST));
+    transmitDataToCommUnit(ANGLE_SOUTH, fetchDataFromSensorUnit(ANGLE_SOUTH));
+    transmitDataToCommUnit(ANGLE_WEST, fetchDataFromSensorUnit(ANGLE_WEST));
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
-    transmitDataToCommUnit(TOTAL_ANGLE, -100 /*fetchDataFromSensorUnit(TOTAL_ANGLE)*/);
+    transmitDataToCommUnit(TOTAL_ANGLE, fetchDataFromSensorUnit(TOTAL_ANGLE));
     return;
 }
 
@@ -1007,21 +1007,74 @@ void makeCreepGait(int cycleResolution)
     maxGaitCyclePos_g = cycleResolution -1;
     long int sixth = stepLength_g/6;
     long int half = stepLength_g/2;
+    switch(currentDirection)
+    {
+        case north:
+        {
+            CalcCurvedPath(rearRightLeg, res, 0, startPositionX_g, -startPositionY_g-half, startPositionZ_g, startPositionX_g, -startPositionY_g+half, startPositionZ_g);
+            CalcStraightPath(rearRightLeg, res*3, res, startPositionX_g, -startPositionY_g+half, startPositionZ_g, startPositionX_g, -startPositionY_g-half, startPositionZ_g);
 
-    CalcCurvedPath(rearRightLeg, res, 0, startPositionX_g, -startPositionY_g-half, startPositionZ_g, startPositionX_g, -startPositionY_g+half, startPositionZ_g);
-    CalcStraightPath(rearRightLeg, res*3, res, startPositionX_g, -startPositionY_g+half, startPositionZ_g, startPositionX_g, -startPositionY_g-half, startPositionZ_g);
+            CalcStraightPath(frontRightLeg, res, 0, startPositionX_g, startPositionY_g-sixth, startPositionZ_g, startPositionX_g, startPositionY_g-half, startPositionZ_g);
+            CalcCurvedPath(frontRightLeg, res, res, startPositionX_g, startPositionY_g-half, startPositionZ_g, startPositionX_g, startPositionY_g+half, startPositionZ_g);
+            CalcStraightPath(frontRightLeg, 2*res, 2*res, startPositionX_g, startPositionY_g+half, startPositionZ_g, startPositionX_g, startPositionY_g-sixth, startPositionZ_g);
 
-    CalcStraightPath(frontRightLeg, res, 0, startPositionX_g, startPositionY_g-sixth, startPositionZ_g, startPositionX_g, startPositionY_g-half, startPositionZ_g);
-    CalcCurvedPath(frontRightLeg, res, res, startPositionX_g, startPositionY_g-half, startPositionZ_g, startPositionX_g, startPositionY_g+stepLength_g, startPositionZ_g);
-    CalcStraightPath(frontRightLeg, 2*res, 2*res, startPositionX_g, startPositionY_g+half, startPositionZ_g, startPositionX_g, startPositionY_g-sixth, startPositionZ_g);
+            CalcStraightPath(rearLeftLeg, 2*res, 0, -startPositionX_g, -startPositionY_g+sixth, startPositionZ_g, -startPositionX_g, -startPositionY_g-half, startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg, res, 2*res, -startPositionX_g, -startPositionY_g-half, startPositionZ_g, -startPositionX_g, -startPositionY_g+half, startPositionZ_g);
+            CalcStraightPath(rearLeftLeg, res, 3*res, -startPositionX_g, -startPositionY_g+half, startPositionZ_g, -startPositionX_g, -startPositionY_g+sixth, startPositionZ_g);
 
-    CalcStraightPath(rearLeftLeg, 2*res, 0, -startPositionX_g, -startPositionY_g+sixth, startPositionZ_g, -startPositionX_g, -startPositionY_g-half, startPositionZ_g);
-    CalcCurvedPath(rearLeftLeg, res, 2*res, -startPositionX_g, -startPositionY_g-half, startPositionZ_g, -startPositionX_g, -startPositionY_g+half, startPositionZ_g);
-    CalcStraightPath(rearLeftLeg, res, 3*res, -startPositionX_g, -startPositionY_g+half, startPositionZ_g, -startPositionX_g, -startPositionY_g+sixth, startPositionZ_g);
+            CalcStraightPath(frontLeftLeg, 3*res, 0, -startPositionX_g, startPositionY_g+half, startPositionZ_g, -startPositionX_g, startPositionY_g-half, startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg, res, 3*res, -startPositionX_g, startPositionY_g-half, startPositionZ_g, -startPositionX_g, startPositionY_g+half, startPositionZ_g);
+        }
+        case east:
+        {
+            CalcCurvedPath(rearLeftLeg, res, 0, -startPositionX_g - half, -startPositionY_g, startPositionZ_g, -startPositionX_g + half, -startPositionY_g, startPositionZ_g);
+            CalcStraightPath(rearLeftLeg, res*3, res, -startPositionX_g + half, -startPositionY_g, startPositionZ_g, -startPositionX_g - half, -startPositionY_g, startPositionZ_g);
 
-    CalcStraightPath(frontLeftLeg, 3*res, 0, -startPositionX_g, startPositionY_g+half, startPositionZ_g, -startPositionX_g, startPositionY_g-half, startPositionZ_g);
-    CalcCurvedPath(frontLeftLeg, res, 3*res, -startPositionX_g, startPositionY_g-half, startPositionZ_g, -startPositionX_g, startPositionY_g+half, startPositionZ_g);
+            CalcStraightPath(rearRightLeg, res, 0, startPositionX_g-sixth, -startPositionY_g, startPositionZ_g, startPositionX_g-half, -startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(rearRightLeg, res, res, startPositionX_g-half, -startPositionY_g, startPositionZ_g, startPositionX_g+half, -startPositionY_g, startPositionZ_g);
+            CalcStraightPath(rearRightLeg, 2*res, 2*res, startPositionX_g+half, -startPositionY_g, startPositionZ_g, startPositionX_g-sixth, -startPositionY_g, startPositionZ_g);
 
+            CalcStraightPath(frontLeftLeg, 2*res, 0, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g, -startPositionX_g-half, startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg, res, 2*res, -startPositionX_g-half, startPositionY_g, startPositionZ_g, -startPositionX_g+half, startPositionY_g, startPositionZ_g);
+            CalcStraightPath(frontLeftLeg, res, 3*res, -startPositionX_g+half, startPositionY_g, startPositionZ_g, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g);
+
+            CalcStraightPath(frontRightLeg, 3*res, 0, startPositionX_g+half, startPositionY_g, startPositionZ_g, startPositionX_g-half, startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(frontRightLeg, res, 3*res, startPositionX_g-half, startPositionY_g, startPositionZ_g, startPositionX_g+half, startPositionY_g, startPositionZ_g);
+        }
+        case south:
+        {
+            CalcCurvedPath(frontLeftLeg, res, 0, -startPositionX_g, startPositionY_g+half, startPositionZ_g, -startPositionX_g, startPositionY_g-half, startPositionZ_g);
+            CalcStraightPath(frontLeftLeg, res*3, res, -startPositionX_g, startPositionY_g-half, startPositionZ_g, -startPositionX_g, startPositionY_g+half, startPositionZ_g);
+
+            CalcStraightPath(rearLeftLeg, res, 0, -startPositionX_g, -startPositionY_g+sixth, startPositionZ_g, -startPositionX_g, -startPositionY_g+half, startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg, res, res, -startPositionX_g, -startPositionY_g+half, startPositionZ_g, -startPositionX_g, -startPositionY_g-half, startPositionZ_g);
+            CalcStraightPath(rearLeftLeg, 2*res, 2*res, -startPositionX_g, -startPositionY_g-half, startPositionZ_g, -startPositionX_g, -startPositionY_g+sixth, startPositionZ_g);
+
+            CalcStraightPath(frontRightLeg, 2*res, 0, startPositionX_g, startPositionY_g-sixth, startPositionZ_g, startPositionX_g, startPositionY_g+half, startPositionZ_g);
+            CalcCurvedPath(frontRightLeg, res, 2*res, startPositionX_g, startPositionY_g+half, startPositionZ_g, startPositionX_g, startPositionY_g-half, startPositionZ_g);
+            CalcStraightPath(frontRightLeg, res, 3*res, startPositionX_g, startPositionY_g-half, startPositionZ_g, startPositionX_g, startPositionY_g-sixth, startPositionZ_g);
+
+            CalcStraightPath(rearRightLeg, 3*res, 0, startPositionX_g, startPositionY_g-half, startPositionZ_g, startPositionX_g, startPositionY_g+half, startPositionZ_g);
+            CalcCurvedPath(rearRightLeg, res, 3*res, startPositionX_g, startPositionY_g+half, startPositionZ_g, startPositionX_g, startPositionY_g-half, startPositionZ_g);
+        }
+        case west:
+        {
+            CalcCurvedPath(frontRightLeg, res, 0, startPositionX_g + half, startPositionY_g, startPositionZ_g, startPositionX_g - half, startPositionY_g, startPositionZ_g);
+            CalcStraightPath(frontRightLeg, res*3, res, startPositionX_g - half, startPositionY_g, startPositionZ_g, startPositionX_g + half, startPositionY_g, startPositionZ_g);
+
+            CalcStraightPath(frontLeftLeg, res, 0, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g, -startPositionX_g+half, startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg, res, res, -startPositionX_g+half, startPositionY_g, startPositionZ_g, -startPositionX_g-half, startPositionY_g, startPositionZ_g);
+            CalcStraightPath(frontLeftLeg, 2*res, 2*res, -startPositionX_g-half, startPositionY_g, startPositionZ_g, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g);
+
+            CalcStraightPath(frontLeftLeg, 2*res, 0, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g, -startPositionX_g-half, startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(frontLeftLeg, res, 2*res, -startPositionX_g-half, startPositionY_g, startPositionZ_g, -startPositionX_g+half, startPositionY_g, startPositionZ_g);
+            CalcStraightPath(frontLeftLeg, res, 3*res, -startPositionX_g+half, startPositionY_g, startPositionZ_g, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g);
+
+            CalcStraightPath(frontRightLeg, 3*res, 0, startPositionX_g+half, startPositionY_g, startPositionZ_g, startPositionX_g-half, startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(frontRightLeg, res, 3*res, startPositionX_g-half, startPositionY_g, startPositionZ_g, startPositionX_g+half, startPositionY_g, startPositionZ_g);
+        }
+    }
+    
 }
 
 
@@ -1323,7 +1376,7 @@ void gaitController()
             }
             switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
             {
-                case NORTH:
+                case NORTH_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1334,7 +1387,7 @@ void gaitController()
                     regulation_g[0] = 0;
                     break;
                 }
-                case NORTH_EAST:
+                case NORTH_EAST_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1346,7 +1399,7 @@ void gaitController()
                     regulation_g[0] = stepLength_g;
                     break;
                 }
-                case EAST:
+                case EAST_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1357,7 +1410,7 @@ void gaitController()
                     regulation_g[0] = 0;
                     break;
                     }
-                case SOUTH_EAST:
+                case SOUTH_EAST_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1369,7 +1422,7 @@ void gaitController()
                     regulation_g[0] = stepLength_g;
                     break;
                 }
-                case SOUTH:
+                case SOUTH_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1380,7 +1433,7 @@ void gaitController()
                     regulation_g[0] = 0;
                     break;
                 }
-                case SOUTH_WEST:
+                case SOUTH_WEST_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1392,7 +1445,7 @@ void gaitController()
                     regulation_g[0] = stepLength_g;
                     break;
                 }
-                case WEST:
+                case WEST_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1403,7 +1456,7 @@ void gaitController()
                     regulation_g[0] = 0;
                     break;
                 }
-                case NORTH_WEST:
+                case NORTH_WEST_HEADER:
                 {
                     if (currentGait == standStill)
                     {
@@ -1415,7 +1468,7 @@ void gaitController()
                     regulation_g[0] = stepLength_g;
                     break;
                 }
-                case NO_MOVEMENT_DIRECTION:
+                case NO_MOVEMENT_DIRECTION_HEADER:
                 {
                     if(currentRotationInstruction == NO_ROTATION)
                     {
@@ -1431,6 +1484,7 @@ void gaitController()
 		if(ventilatorOptionsHasChanged_g == 1)
 		{
 			ventilatorOptionsHasChanged_g = 0;
+            needToCalcGait = 1;
 			switch (currentVentilatorOptionInstruction_g)
 			{
 				case INCREASE_LEG_WIDTH:
@@ -1517,7 +1571,7 @@ int main(void)
     _delay_ms(1000);
     standStillGait();
     currentDirection = none;
-    //MakeTrotGait(gaitResolution_g);
+    
     
     
     //moveToCreepStartPosition();
