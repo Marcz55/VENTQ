@@ -26,14 +26,14 @@
 
 
 
-int stepLength_g = 40;
+int stepLength_g = 160;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 8; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_200; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 int currentVentilatorOptionInstruction_g = 0; // nuvarande instruktion för inställningar av ventilators egenskaper
@@ -72,7 +72,8 @@ enum direction currentDirection = none;
 
 enum gait{
     standStill,
-    trotGait
+    trotGait,
+    creepGait
     };
 
 enum gait currentGait = standStill;
@@ -1000,11 +1001,13 @@ void moveToCreepStartPosition()
     MoveRearLeftLeg(-startPositionX_g, -startPositionY_g+sixth, startPositionZ_g, 20);
     MoveFrontLeftLeg(-startPositionX_g, startPositionY_g+half, startPositionZ_g, 20);
 }
+
 // cycleResolution måste vara delbart med 8
 void makeCreepGait(int cycleResolution)
 {
     int res = cycleResolution/4;
     maxGaitCyclePos_g = cycleResolution -1;
+    posToCalcGait = maxGaitCyclePos_g;
     long int sixth = stepLength_g/6;
     long int half = stepLength_g/2;
     switch(currentDirection)
@@ -1024,6 +1027,7 @@ void makeCreepGait(int cycleResolution)
 
             CalcStraightPath(frontLeftLeg, 3*res, 0, -startPositionX_g, startPositionY_g+half, startPositionZ_g, -startPositionX_g, startPositionY_g-half, startPositionZ_g);
             CalcCurvedPath(frontLeftLeg, res, 3*res, -startPositionX_g, startPositionY_g-half, startPositionZ_g, -startPositionX_g, startPositionY_g+half, startPositionZ_g);
+            break;
         }
         case east:
         {
@@ -1040,6 +1044,7 @@ void makeCreepGait(int cycleResolution)
 
             CalcStraightPath(frontRightLeg, 3*res, 0, startPositionX_g+half, startPositionY_g, startPositionZ_g, startPositionX_g-half, startPositionY_g, startPositionZ_g);
             CalcCurvedPath(frontRightLeg, res, 3*res, startPositionX_g-half, startPositionY_g, startPositionZ_g, startPositionX_g+half, startPositionY_g, startPositionZ_g);
+            break;
         }
         case south:
         {
@@ -1054,8 +1059,9 @@ void makeCreepGait(int cycleResolution)
             CalcCurvedPath(frontRightLeg, res, 2*res, startPositionX_g, startPositionY_g+half, startPositionZ_g, startPositionX_g, startPositionY_g-half, startPositionZ_g);
             CalcStraightPath(frontRightLeg, res, 3*res, startPositionX_g, startPositionY_g-half, startPositionZ_g, startPositionX_g, startPositionY_g-sixth, startPositionZ_g);
 
-            CalcStraightPath(rearRightLeg, 3*res, 0, startPositionX_g, startPositionY_g-half, startPositionZ_g, startPositionX_g, startPositionY_g+half, startPositionZ_g);
-            CalcCurvedPath(rearRightLeg, res, 3*res, startPositionX_g, startPositionY_g+half, startPositionZ_g, startPositionX_g, startPositionY_g-half, startPositionZ_g);
+            CalcStraightPath(rearRightLeg, 3*res, 0, startPositionX_g, -startPositionY_g-half, startPositionZ_g, startPositionX_g, -startPositionY_g+half, startPositionZ_g);
+            CalcCurvedPath(rearRightLeg, res, 3*res, startPositionX_g, -startPositionY_g+half, startPositionZ_g, startPositionX_g, -startPositionY_g-half, startPositionZ_g);
+            break;
         }
         case west:
         {
@@ -1066,12 +1072,13 @@ void makeCreepGait(int cycleResolution)
             CalcCurvedPath(frontLeftLeg, res, res, -startPositionX_g+half, startPositionY_g, startPositionZ_g, -startPositionX_g-half, startPositionY_g, startPositionZ_g);
             CalcStraightPath(frontLeftLeg, 2*res, 2*res, -startPositionX_g-half, startPositionY_g, startPositionZ_g, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g);
 
-            CalcStraightPath(frontLeftLeg, 2*res, 0, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g, -startPositionX_g-half, startPositionY_g, startPositionZ_g);
-            CalcCurvedPath(frontLeftLeg, res, 2*res, -startPositionX_g-half, startPositionY_g, startPositionZ_g, -startPositionX_g+half, startPositionY_g, startPositionZ_g);
-            CalcStraightPath(frontLeftLeg, res, 3*res, -startPositionX_g+half, startPositionY_g, startPositionZ_g, -startPositionX_g+sixth, startPositionY_g, startPositionZ_g);
+            CalcStraightPath(rearRightLeg, 2*res, 0, startPositionX_g-sixth, -startPositionY_g, startPositionZ_g, startPositionX_g+half, -startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(rearRightLeg, res, 2*res, startPositionX_g+half, -startPositionY_g, startPositionZ_g, startPositionX_g-half, -startPositionY_g, startPositionZ_g);
+            CalcStraightPath(rearRightLeg, res, 3*res, startPositionX_g-half, -startPositionY_g, startPositionZ_g, startPositionX_g-sixth, -startPositionY_g, startPositionZ_g);
 
-            CalcStraightPath(frontRightLeg, 3*res, 0, startPositionX_g+half, startPositionY_g, startPositionZ_g, startPositionX_g-half, startPositionY_g, startPositionZ_g);
-            CalcCurvedPath(frontRightLeg, res, 3*res, startPositionX_g-half, startPositionY_g, startPositionZ_g, startPositionX_g+half, startPositionY_g, startPositionZ_g);
+            CalcStraightPath(rearLeftLeg, 3*res, 0, -startPositionX_g-half, -startPositionY_g, startPositionZ_g, -startPositionX_g+half, -startPositionY_g, startPositionZ_g);
+            CalcCurvedPath(rearLeftLeg, res, 3*res, -startPositionX_g+half, -startPositionY_g, startPositionZ_g, -startPositionX_g-half, -startPositionY_g, startPositionZ_g);
+            break;
         }
     }
     
@@ -1326,7 +1333,13 @@ void gaitController()
             }
             case trotGait:
             {
+    
                 MakeTrotGait(gaitResolution_g);
+                break;
+            }
+            case creepGait:
+            {
+                makeCreepGait(gaitResolution_g);
                 break;
             }
         }
@@ -1568,10 +1581,12 @@ int main(void)
     timer2Init();
     sei();
     MoveToStartPosition();
+    //moveToCreepStartPosition();
     _delay_ms(1000);
+    //currentDirection = east;
+    //makeCreepGait(gaitResolution_g);
     standStillGait();
-    currentDirection = none;
-    
+    //currentGait = creepGait;
     
     
     //moveToCreepStartPosition();
