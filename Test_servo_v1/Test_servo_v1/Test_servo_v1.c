@@ -38,6 +38,10 @@ int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
+// ------ Globala variabler för "svängar" ------
+int BlindStepsTaken_g = 0;
+int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
+// BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
@@ -887,10 +891,22 @@ void applyAction()
 		case turnRight:
 		{
 			// vi ska svänga åt höger när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection] < stepLength_g/2 - halfPathWidth_g)
+			if(distanceValue_g[currentDirection] < stepLength_g/2 + halfPathWidth_g)
 			{
 				currentDirection = (currentDirection + 1) % 4; // ökar currentDirection med ett vilket medför att vi svänger åt höger
 				currentAction_g = noAction; 
+			}
+			break;
+		}
+		
+		case turnRightBlind:
+		{
+			BlindStepsTaken_g += BlindStepsTaken_g;
+			if (BlindStepsTaken_g >= BlindStepsToTake_g)
+			{
+				currentDirection = (currentDirection + 1) % 4; // ökar currentDirection med ett vilket medför att vi svänger åt höger
+				currentAction_g = noAction;
+				BlindStepsTaken_g = 0;
 			}
 			break;
 		}
@@ -898,17 +914,24 @@ void applyAction()
 		case turnLeft:
 		{
 			// vi ska svänga åt vänster när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection] < stepLength_g/2 - halfPathWidth_g)
+			if(distanceValue_g[currentDirection] < stepLength_g/2 + halfPathWidth_g)
 			{
-				currentDirection = (abs(currentDirection - 1)) % 4; // minskar currentDirection med ett vilket medför att vi svänger åt vänster
+				currentDirection = (4 + (currentDirection - 1)) % 4; // minskar currentDirection med ett vilket medför att vi svänger åt vänster
 				currentAction_g = noAction;
 			}
 			break;
 		}
 
-		case turnRightBlind:
+		case turnLeftBlind:
 		{
-			
+			BlindStepsTaken_g += BlindStepsTaken_g;
+			if (BlindStepsTaken_g >= BlindStepsToTake_g)
+			{
+				currentDirection = (4 + (currentDirection - 1)) % 4; // minskar currentDirection med ett vilket medför att vi svänger åt vänster
+				currentAction_g = noAction;
+				BlindStepsTaken_g = 0;
+			}
+			break;
 		}
 	}
 }
