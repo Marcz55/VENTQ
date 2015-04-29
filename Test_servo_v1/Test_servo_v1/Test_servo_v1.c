@@ -1268,6 +1268,11 @@ void increaseGaitResolutionTime()
 		newGaitResolutionTime = newGaitResolutionTime + 10;
 		setTimerPeriod(TIMER_0, newGaitResolutionTime);
 	}
+    if((newGaitResolutionTime >= 100) && (newGaitResolutionTime < 500))
+    {
+        newGaitResolutionTime = newGaitResolutionTime + 100;
+        setTimerPeriod(TIMER_0, newGaitResolutionTime);
+    }
 	return;
 }
 
@@ -1278,6 +1283,11 @@ void decreaseGaitResolutionTime()
 		newGaitResolutionTime = newGaitResolutionTime - 10;
 		setTimerPeriod(TIMER_0, newGaitResolutionTime);
 	}
+    if((newGaitResolutionTime > 200) && (newGaitResolutionTime <= 500))
+    {
+        newGaitResolutionTime = newGaitResolutionTime - 100;
+        setTimerPeriod(TIMER_0, newGaitResolutionTime);
+    }
 	return;
 }
 
