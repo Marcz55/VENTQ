@@ -8,13 +8,12 @@ and open the template in the editor.
     Author     : Student
 */
 
-.root
-{
-    -fx-background-image: url("Background.png");
-}
+
 
 #boldText
 {
     -fx-font-weight: bold;
 }
+
+
 
