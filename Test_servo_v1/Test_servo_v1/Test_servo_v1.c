@@ -1245,7 +1245,7 @@ void increaseLegHeight()
 
 void increaseStepLength()
 {
-	if (stepLength_g < 100)
+	if (stepLength_g < 160)
 	{
 		stepLength_g = stepLength_g + 2;
 	}
@@ -1285,6 +1285,7 @@ void decreaseGaitResolutionTime()
 	}
     else if((newGaitResolutionTime > 100) && (newGaitResolutionTime <= 500))
     {
+		
         newGaitResolutionTime = newGaitResolutionTime - 100;
         setTimerPeriod(TIMER_0, newGaitResolutionTime);
     }
