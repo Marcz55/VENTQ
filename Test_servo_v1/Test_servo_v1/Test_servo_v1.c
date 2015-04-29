@@ -1263,12 +1263,12 @@ void decreaseStepLength()
 
 void increaseGaitResolutionTime()
 {
-	if (newGaitResolutionTime < 100)
+	if ((newGaitResolutionTime < 100) && (newGaitResolutionTime >= 30))
 	{
 		newGaitResolutionTime = newGaitResolutionTime + 10;
 		setTimerPeriod(TIMER_0, newGaitResolutionTime);
 	}
-    if((newGaitResolutionTime >= 100) && (newGaitResolutionTime < 500))
+    else if((newGaitResolutionTime >= 100) && (newGaitResolutionTime < 500))
     {
         newGaitResolutionTime = newGaitResolutionTime + 100;
         setTimerPeriod(TIMER_0, newGaitResolutionTime);
@@ -1278,12 +1278,12 @@ void increaseGaitResolutionTime()
 
 void decreaseGaitResolutionTime()
 {
-	if (newGaitResolutionTime > 30)
+	if ((newGaitResolutionTime > 30) && (newGaitResolutionTime <= 100))
 	{
 		newGaitResolutionTime = newGaitResolutionTime - 10;
 		setTimerPeriod(TIMER_0, newGaitResolutionTime);
 	}
-    if((newGaitResolutionTime > 200) && (newGaitResolutionTime <= 500))
+    else if((newGaitResolutionTime > 100) && (newGaitResolutionTime <= 500))
     {
         newGaitResolutionTime = newGaitResolutionTime - 100;
         setTimerPeriod(TIMER_0, newGaitResolutionTime);
