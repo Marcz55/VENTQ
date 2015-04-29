@@ -294,8 +294,7 @@ public class Interface implements SerialPortEventListener{
     {
         if (dataByte1_ > 127)
         {
-            dataByte1_ = dataByte1_ - 128; // Nu kan byte 1 och 2 adderas
-            return -(dataByte1_ * 256 + dataByte2_); // Adderar 1 för off-set
+            return dataByte1_ * 256 + dataByte2_+ 0b11111111111111110000000000000000;
         }
         else
         {

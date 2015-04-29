@@ -47,6 +47,12 @@ public class GUI extends Application
     TextArea nodeText = new TextArea("");
     TextArea connectedText = new TextArea("");
     TextArea autonomusText = new TextArea("Autonomt\nläge av");
+    TextArea timeIncrementText = new TextArea("Stegtid:\n0");
+    TextArea stepLengthText = new TextArea("Steglängd:\n0");
+    TextArea stepHeightText = new TextArea("Steghöjd:\n0");
+    TextArea xyWidthText = new TextArea("Utbredning:\n0");
+    TextArea heightText = new TextArea("Höjd:\n0");
+    TextField comXX = new TextField("COM15");
     Label upArrow = new Label("");   // Dessa texter använd för att visa riktning/vridning som nedtryckta
     Label downArrow = new Label(""); // knappar motsvarar
     Label leftArrow = new Label("");
@@ -58,6 +64,34 @@ public class GUI extends Application
     boolean dPressed = false;
     boolean qPressed = false;
     boolean ePressed = false;
+    boolean zPressed = false;
+    boolean xPressed = false;
+    boolean tPressed = false;
+    boolean yPressed = false;
+    boolean uPressed = false;
+    boolean iPressed = false;
+    boolean oPressed = false;
+    
+    int parameterChange = 0;
+    
+    int timeOffset = 0;
+    int stepLengthOffset = 0;
+    int stepHeightOffset = 0;
+    int xyWidthOffset = 0;
+    int heightOffset = 0;
+    
+    int timeUpperBound = 10;
+    int stepLengthUpperBound = 10;
+    int stepHeightUpperBound = 10;
+    int xyWidthUpperBound = 10;
+    int heightUpperBound = 10;
+    
+    int timeLowerBound = -10;
+    int stepLengthLowerBound = -10;
+    int stepHeightLowerBound = -10;
+    int xyWidthLowerBound = -10;
+    int heightLowerBound = -10;
+    
     
     Background grayBackground = new Background(new BackgroundFill(Paint.valueOf("808080"),CornerRadii.EMPTY,Insets.EMPTY));
     Background redBackground = new Background(new BackgroundFill(Paint.valueOf("F00000"),CornerRadii.EMPTY,Insets.EMPTY));
@@ -158,6 +192,96 @@ public class GUI extends Application
         mainInterface.sendData((byte)movementByte_);
         //System.out.println(movementByte_);
         
+    }
+    
+    void sendChanges()
+    {
+        byte changeParameterByte = (byte)0b10000000;
+        if (parameterChange == 1)
+        {
+            changeParameterByte += (byte)0b00000001;
+        }
+        
+        if (parameterChange != 0)
+        {
+            if (tPressed)
+            {
+                if ((xyWidthOffset < xyWidthUpperBound)&&(parameterChange == 1))
+                {
+                    xyWidthOffset ++;
+                }
+                else if ((xyWidthOffset > xyWidthLowerBound)&&(parameterChange == -1))
+                {
+                    xyWidthOffset --;
+                }
+                xyWidthText.setText("Utbredning:\n" + Integer.toString(xyWidthOffset));
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(changeParameterByte);
+            }
+            else if (yPressed)
+            {
+                if ((heightOffset < heightUpperBound)&&(parameterChange == 1))
+                {
+                    heightOffset ++;
+                }
+                else if ((heightOffset > heightLowerBound)&&(parameterChange == -1))
+                {
+                    heightOffset --;
+                }
+                heightText.setText("Höjd:\n" + Integer.toString(heightOffset));
+                changeParameterByte += (byte)0b00000010;
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(changeParameterByte);
+            }
+            else if (uPressed)
+            {
+                if ((stepLengthOffset < stepLengthUpperBound)&&(parameterChange == 1))
+                {
+                    stepLengthOffset ++;
+                }
+                else if ((stepLengthOffset > stepLengthLowerBound)&&(parameterChange == -1))
+                {
+                    stepLengthOffset --;
+                }
+                stepLengthText.setText("Steglängd:\n" + Integer.toString(stepLengthOffset));
+                changeParameterByte += (byte)0b00000100;
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(changeParameterByte);
+            }
+            
+            else if (iPressed)
+            {
+                if ((stepHeightOffset < stepHeightUpperBound)&&(parameterChange == 1))
+                {
+                    stepHeightOffset ++;
+                }
+                else if ((stepHeightOffset > stepHeightLowerBound)&&(parameterChange == -1))
+                {
+                    stepHeightOffset --;
+                }
+                stepHeightText.setText("Steghöjd:\n" + Integer.toString(stepHeightOffset));
+                changeParameterByte += (byte)0b00000110;
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(changeParameterByte);
+            }
+            
+            else if (oPressed)
+            {
+                if ((timeOffset < timeUpperBound)&&(parameterChange == 1))
+                {
+                    timeOffset ++;
+                }
+                else if ((timeOffset > timeLowerBound)&&(parameterChange == -1))
+                {
+                    timeOffset --;
+                }
+                timeIncrementText.setText("Stegtid:\n" + Integer.toString(timeOffset));
+                changeParameterByte += (byte)0b00001000;
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(changeParameterByte);
+            }
+        }
+       
     }
         
     void setText(String updatedData_) // Hämtar variabler från mainInterface och sätter motsvarande text.
@@ -297,6 +421,12 @@ public class GUI extends Application
         leakText.setEditable(false);
         nodeText.setEditable(false);
         
+        timeIncrementText.setEditable(false);
+        stepLengthText.setEditable(false);
+        stepHeightText.setEditable(false);
+        xyWidthText.setEditable(false);
+        heightText.setEditable(false);
+        
         side1Data.setName("Sida 1");
         side2Data.setName("Sida 2");
         side3Data.setName("Sida 3");
@@ -333,8 +463,7 @@ public class GUI extends Application
         
         stage.setTitle("V.E.N.T:Q Control Room");
         
-        TextField comXX = new TextField("COM15");
-        comXX.setPrefColumnCount(5);
+        
         
         Group graphics = new Group();
         //Rectangle rektangel1 = new Rectangle(100,100,);
@@ -348,7 +477,7 @@ public class GUI extends Application
             {
                 if (mainInterface.portConnected == "Ej ansluten") 
                 {
-                    mainInterface.findPortGUI("COM15"); // Försöker ansluta om ej ansluten
+                    mainInterface.findPortGUI(comXX.getText().toUpperCase()); // Försöker ansluta om ej ansluten
                     if (mainInterface.comPort != null)  // Notera att COM** är olika på olika datorer
                     {
                         mainInterface.connect(); 
@@ -471,6 +600,52 @@ public class GUI extends Application
                                 setMovement();
                             }
                             break;
+                        case "t":
+                            if (!tPressed)
+                            {
+                                tPressed = true;
+                            }
+                            break;
+                        case "y":
+                            if (!yPressed)
+                            {
+                                yPressed = true;
+                            }
+                            break;
+                        case "u":
+                            if (!uPressed)
+                            {
+                                uPressed = true;
+                            }
+                            break;
+                        case "i":
+                            if (!iPressed)
+                            {
+                                iPressed = true;
+                            }
+                            break;
+                        case "o":
+                            if (!oPressed)
+                            {
+                                oPressed = true;
+                            }
+                            break;
+                        case "z":
+                            if (!zPressed)
+                            {
+                                parameterChange --;
+                                zPressed = true;
+                                sendChanges();
+                            }
+                            break;
+                        case "x":
+                            if (!xPressed)
+                            {
+                                parameterChange ++;
+                                xPressed = true;
+                                sendChanges();
+                            }
+                            break;
                         default:
                             break;
                     }
@@ -534,6 +709,52 @@ public class GUI extends Application
                                 setMovement();
                           }
                             break;
+                        case "t":
+                            if (tPressed)
+                            {
+                                tPressed = false;
+                          }
+                            break;
+                        case "y":
+                            if (yPressed)
+                            {
+                                yPressed = false;
+                          }
+                            break;
+                        case "u":
+                            if (uPressed)
+                            {
+                                uPressed = false;
+                          }
+                            break;
+                        case "i":
+                            if (iPressed)
+                            {
+                                iPressed = false;
+                          }
+                            break;
+                        case "o":
+                            if (oPressed)
+                            {
+                                oPressed = false;
+                          }
+                            break;
+                        case "z":
+                            if (zPressed)
+                            {
+                                parameterChange ++;
+                                zPressed = false;
+                                sendChanges();
+                          }
+                            break;
+                        case "x":
+                            if (xPressed)
+                            {
+                                parameterChange --;
+                                xPressed = false;
+                                sendChanges();
+                          }
+                            break;
                         default:
                             break;
                     }
@@ -571,6 +792,20 @@ public class GUI extends Application
         connectedText.setMinWidth(80);
         autonomusText.setMinHeight(45);
         autonomusText.setMinWidth(80);
+        
+        timeIncrementText.setMinHeight(45);
+        timeIncrementText.setMinWidth(80);
+        stepLengthText.setMinHeight(45);
+        stepLengthText.setMinWidth(80);
+        stepHeightText.setMinHeight(45);
+        stepHeightText.setMinWidth(80);
+        heightText.setMinHeight(45);
+        heightText.setMinWidth(80);
+        xyWidthText.setMinHeight(45);
+        xyWidthText.setMinWidth(80);
+        
+        comXX.setMinHeight(30);
+        comXX.setMinWidth(80);
         
         upArrow.setMinHeight(40);
         upArrow.setMinWidth(40);
@@ -610,8 +845,19 @@ public class GUI extends Application
         autonomusText.setMaxWidth(80);
         autonomusText.setMaxHeight(45);
         
+        timeIncrementText.setMaxHeight(45);
+        timeIncrementText.setMaxWidth(80);
+        stepLengthText.setMaxHeight(45);
+        stepLengthText.setMaxWidth(80);
+        stepHeightText.setMaxHeight(45);
+        stepHeightText.setMaxWidth(80);
+        heightText.setMaxHeight(45);
+        heightText.setMaxWidth(80);
+        xyWidthText.setMaxHeight(45);
+        xyWidthText.setMaxWidth(80);
         
-        
+        comXX.setMaxHeight(30);
+        comXX.setMaxWidth(80);
         
         side1Text.setBackground(grayBackground);
         side2Text.setBackground(grayBackground);
@@ -644,7 +890,7 @@ public class GUI extends Application
         
         root.add(connectedText,8,0);
         root.add(connectButton,8,1); // lägger till knappar och deras texter
-        
+        root.add(comXX,9,1,2,1);
         
         root.add(autonomusText,8,6);
         root.add(autonomusButton,8,7);
@@ -663,6 +909,11 @@ public class GUI extends Application
         root.add(sideAllGraph,12,0,3,8);
         root.add(angleAllGraph,12,8,3,8);
         
+        root.add(timeIncrementText,0,8,2,1);
+        root.add(stepLengthText,2,8,2,1);
+        root.add(stepHeightText,4,8,2,1);
+        root.add(xyWidthText,6,8,2,1);
+        root.add(heightText,8,8,2,1);
         
         setText("side1");
         setText("side2");
