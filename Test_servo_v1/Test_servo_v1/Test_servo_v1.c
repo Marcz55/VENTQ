@@ -27,14 +27,14 @@
 #define TRUE 1
 #define FALSE 0
 
-int stepLength_g = 40;
+int stepLength_g = 50;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 8; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_70; // tid i timerloopen för benstyrningen i ms
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 int currentVentilatorOptionInstruction_g = 0; // nuvarande instruktion för inställningar av ventilators egenskaper
@@ -715,12 +715,12 @@ void transmitAllDataToCommUnit()
     return;
 }
 
-void getSensorData()
+void getSensorData(enum direction regulationDirection)
 {
     /*
     * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g
     */
-    
+    /* Kommenterar ut för att testa om det är fel på datahämtningen eller ej
     distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
     distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
     distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
@@ -730,11 +730,58 @@ void getSensorData()
     angleValue_g[EAST] = fetchDataFromSensorUnit(ANGLE_EAST);
     angleValue_g[SOUTH] = fetchDataFromSensorUnit(ANGLE_SOUTH);
     angleValue_g[WEST] = fetchDataFromSensorUnit(ANGLE_WEST);
+	*/
+	
+	/* Test för att kolla om lagget berodde på att hämta data från sensorenheten eller ej, laggfritt med detta.
+	distanceValue_g[NORTH]=0;
+	distanceValue_g[EAST] = 100;
+	distanceValue_g[SOUTH] = 0;
+	distanceValue_g[WEST]=0;
+	
+	angleValue_g[NORTH] = 0;
+	angleValue_g[EAST] = 1000;
+	angleValue_g[SOUTH] = 0;
+	angleValue_g[WEST] = 0;
+	*/
+	
+	// test för att inte hämta så mycket sensordata
+	switch(regulationDirection)
+	{
+		case north:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_NORTH);
+			break;
+		}
+		
+		case east:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_EAST);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_EAST);
+			break;
+		}
+		
+		case south:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_SOUTH);
+			break;
+		}
+		
+		case west:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_WEST);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_WEST);
+			break;
+		}
+	}
+	return;
 }
 
 
 void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 {
+	getSensorData(regulationDirection);
     //static int  regulation[3]; // skapar en array som innehåller hur roboten ska reglera
     /*
     * 
@@ -876,7 +923,7 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 
 		//Regleringskoefficienter
 		float kProportionalTranslation = -0.3;
-		float kProportionalAngle = -0.5;
+		float kProportionalAngle = -0.8;
 
 		translationRight = kProportionalTranslation * translationRegulationError;
 		int leftSideStepLengthAdjust = (kProportionalAngle * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
@@ -1361,7 +1408,6 @@ void gaitController()
 {
 	if (currentPos_g == posToCalcGait) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
 	{
-		getSensorData();
 		calcRegulation(east,TRUE);
 	}
 
