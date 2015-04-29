@@ -59,7 +59,7 @@ enum controlMode{
     manual,
     autonomous
 };
-enum controlMode currentControlMode = manual;
+enum controlMode currentControlMode = autonomous;
 
 enum direction{
     north,
@@ -80,7 +80,10 @@ enum gait currentGait = standStill;
 int standardSpeed_g = 20;
 int statusPackEnabled = 0;
 
-
+#define NORTH 0
+#define EAST 1
+#define SOUTH 2
+#define WEST 3
 
 
 // calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
@@ -694,14 +697,14 @@ ISR(INT1_vect)
 
 void transmitAllDataToCommUnit()
 {
-    transmitDataToCommUnit(DISTANCE_NORTH, fetchDataFromSensorUnit(DISTANCE_NORTH));
-    transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
-    transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
-    transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
-    transmitDataToCommUnit(ANGLE_NORTH, fetchDataFromSensorUnit(ANGLE_NORTH));
-    transmitDataToCommUnit(ANGLE_EAST, fetchDataFromSensorUnit(ANGLE_EAST));
-    transmitDataToCommUnit(ANGLE_SOUTH, fetchDataFromSensorUnit(ANGLE_SOUTH));
-    transmitDataToCommUnit(ANGLE_WEST, fetchDataFromSensorUnit(ANGLE_WEST));
+    transmitDataToCommUnit(DISTANCE_NORTH, distancevalue_g[NORTH]);
+    transmitDataToCommUnit(DISTANCE_EAST, distancevalue_g[EAST]);
+    transmitDataToCommUnit(DISTANCE_SOUTH, distancevalue_g[SOUTH]);
+    transmitDataToCommUnit(DISTANCE_WEST, distancevalue_g[WEST]);
+    transmitDataToCommUnit(ANGLE_NORTH, angleValue_g[NORTH]);
+    transmitDataToCommUnit(ANGLE_EAST, angleValue_g[EAST]);
+    transmitDataToCommUnit(ANGLE_SOUTH, angleValue_g[SOUTH]);
+    transmitDataToCommUnit(ANGLE_WEST, angleValue_g[WEST]);
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
     transmitDataToCommUnit(TOTAL_ANGLE, fetchDataFromSensorUnit(TOTAL_ANGLE));
     return;
@@ -710,12 +713,18 @@ void transmitAllDataToCommUnit()
 void getSensorData()
 {
     /*
-    * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g och sensorValue_g
-    * 
-    *
-    *
+    * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g
     */
     
+    distancevalue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+    distancevalue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
+    distancevalue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+    distancevalue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
+
+    angleValue_g[NORTH] = fetchDataFromSensorUnit(ANGLE_NORTH);
+    angleValue_g[EAST] = fetchDataFromSensorUnit(ANGLE_EAST);
+    angleValue_g[SOUTH] = fetchDataFromSensorUnit(ANGLE_SOUTH);
+    angleValue_g[WEST] = fetchDataFromSensorUnit(ANGLE_WEST);
 }
 
 // arrays som värden hämtade ifrån sensorenheten skall ligga i
@@ -875,14 +884,14 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
     regulation_g[0] =  translationRight;
     regulation_g[1] = leftSideStepLengthAdjust;
     regulation_g[2] = rightSideStepLengthAdjust;
-   // return;
+    return;
 
 // vid nuläget har vi inte sensorenheten inkopplad så värdena i distancevalue_g m.m är odefinierade
-    regulation_g[0] =  0;
+   /* regulation_g[0] =  0;
     regulation_g[1] = 0;
     regulation_g[2] = 0;
     return; 
-
+*/
 }
 
 
@@ -1314,9 +1323,15 @@ void makeGaitTransition(enum gait newGait)
 }
 void gaitController()
 {
+	if (currentPos_g == posToCalcGait) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
+	{
+		getSensorData();
+		calcRegulation();
+	}
+
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
     {
-        //calcRegulation();
+       
         switch(currentGait)
         {
             case standStill:
@@ -1550,6 +1565,7 @@ void gaitController()
 		}
 	}
 }
+
 
 
 
