@@ -24,7 +24,8 @@
 #define RXD0_DATA (UDR0)
 */
 
-
+#define TRUE 1
+#define FALSE 0
 
 int stepLength_g = 40;
 int startPositionX_g = 80;
@@ -68,7 +69,7 @@ enum direction{
     west,
     none
     }; 
-enum direction currentDirection = none;
+enum direction currentDirection = north;
 
 enum gait{
     standStill,
@@ -651,15 +652,18 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 }
 
 
-
+int useRegulation_g = FALSE;
 ISR(INT1_vect) 
-{   
-    transmitDataToCommUnit(DISTANCE_NORTH,fetchDataFromSensorUnit(DISTANCE_NORTH));
-    transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
-    transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
-    transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
-    
-    
+{ 
+	    if (useRegulation_g == TRUE)
+	    {
+		    useRegulation_g = FALSE;
+	    }
+	    else
+	    {
+		    useRegulation_g = TRUE;
+	    }  
+/*	
     directionHasChanged = 1;
     switch(currentDirection)
     {
@@ -688,19 +692,27 @@ ISR(INT1_vect)
             currentDirectionInstruction = NORTH_HEADER;
             break;
         }
-    }
+    }*/
     
     
     
     
 } 
+// arrays som värden hämtade ifrån sensorenheten skall ligga i
+int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
+int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
+int halfPathWidth_g = 570/2; // Avståndet mellan väggar
+int regulation_g[3]; // array som regleringen sparas i
+
+
+
 
 void transmitAllDataToCommUnit()
 {
-    transmitDataToCommUnit(DISTANCE_NORTH, distancevalue_g[NORTH]);
-    transmitDataToCommUnit(DISTANCE_EAST, distancevalue_g[EAST]);
-    transmitDataToCommUnit(DISTANCE_SOUTH, distancevalue_g[SOUTH]);
-    transmitDataToCommUnit(DISTANCE_WEST, distancevalue_g[WEST]);
+    transmitDataToCommUnit(DISTANCE_NORTH, distanceValue_g[NORTH]);
+    transmitDataToCommUnit(DISTANCE_EAST, distanceValue_g[EAST]);
+    transmitDataToCommUnit(DISTANCE_SOUTH, distanceValue_g[SOUTH]);
+    transmitDataToCommUnit(DISTANCE_WEST, distanceValue_g[WEST]);
     transmitDataToCommUnit(ANGLE_NORTH, angleValue_g[NORTH]);
     transmitDataToCommUnit(ANGLE_EAST, angleValue_g[EAST]);
     transmitDataToCommUnit(ANGLE_SOUTH, angleValue_g[SOUTH]);
@@ -716,10 +728,10 @@ void getSensorData()
     * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g
     */
     
-    distancevalue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
-    distancevalue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
-    distancevalue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
-    distancevalue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
+    distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+    distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
+    distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+    distanceValue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
 
     angleValue_g[NORTH] = fetchDataFromSensorUnit(ANGLE_NORTH);
     angleValue_g[EAST] = fetchDataFromSensorUnit(ANGLE_EAST);
@@ -727,15 +739,7 @@ void getSensorData()
     angleValue_g[WEST] = fetchDataFromSensorUnit(ANGLE_WEST);
 }
 
-// arrays som värden hämtade ifrån sensorenheten skall ligga i
-int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
-int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
-int halfPathWidth_g = 570/2; // Avståndet mellan väggar
-int regulation_g[3]; // array som regleringen sparas i
 
-
-#define TRUE 1
-#define FALSE 0
 void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 {
     //static int  regulation[3]; // skapar en array som innehåller hur roboten ska reglera
@@ -746,17 +750,19 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
     * Andra värdet anger hur mycket längre steg benen på vänstra sidan relativt rörelseriktningen ska ta, de som medför en CW-rotation. 
     * Tredje värdet anger hur mycket längre steg benen på högra sidan relativt rörelseriktningen ska ta, de som medför en CCW-rotation
     */
-
+	
+	// isolerar regleringen just nu för att man ska kunna bära roboten utan att den spårar ur..
+	
+	if (useRegulation_g)
+	{
     int translationRight = 0;
-    int sensorOffset = 370;// Avstånd ifrån sensorera till mitten av roboten (mm)
+    int sensorOffset = 85;// Avstånd ifrån sensorera till mitten av roboten (mm)
 
     // variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
     int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
     int angleRegulationError = 0; // avser hur många grader vridna i CCW riktning relativt "den raka riktningen" dvs relativt väggarna.
 
-    //Regleringskoefficienter
-    int kProportionalTranslation = 1;
-    int kProportionalAngle = 1;
+
 
 
 
@@ -876,7 +882,9 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
         angleRegulationError = 0;
     }
 
-
+    //Regleringskoefficienter
+    float kProportionalTranslation = 1;
+    float kProportionalAngle = 0.1;
 
     translationRight = kProportionalTranslation * translationRegulationError;
     int leftSideStepLengthAdjust = (kProportionalAngle * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
@@ -885,7 +893,8 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
     regulation_g[1] = leftSideStepLengthAdjust;
     regulation_g[2] = rightSideStepLengthAdjust;
     return;
-
+	}
+	return;
 // vid nuläget har vi inte sensorenheten inkopplad så värdena i distancevalue_g m.m är odefinierade
    /* regulation_g[0] =  0;
     regulation_g[1] = 0;
@@ -1326,7 +1335,7 @@ void gaitController()
 	if (currentPos_g == posToCalcGait) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
 	{
 		getSensorData();
-		calcRegulation();
+		calcRegulation(north,TRUE);
 	}
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
