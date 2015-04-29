@@ -78,7 +78,7 @@ enum gait{
     };
 
 enum gait currentGait = standStill;
-enum gait gaitToUse = trotGait; // ska skrivas funktionalitet för att kunna byta mellan creep och trot här.
+enum gait gaitToUse = creepGait; // ska skrivas funktionalitet för att kunna byta mellan creep och trot här.
 int standardSpeed_g = 20;
 int statusPackEnabled = 0;
 
@@ -262,7 +262,7 @@ leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
 leg rearLeftLeg = {REAR_LEFT_LEG, 1, 3, 5};
 leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
 
-typdef struct legCoordinates legCoordinates;
+typedef struct legCoordinates legCoordinates;
 struct legCoordinates {
         long int xCoord, 
                 yCoord, 
@@ -1010,10 +1010,10 @@ void moveToCreepStartPosition()
 
 transitionToCreep()
 {
-    legCoordinates frontRightLegCoordinates {0,0,startPositionZ_g};
-    legCoordinates frontLeftLegCoordinates {0,0,startPositionZ_g};
-    legCoordinates rearLeftLegCoordinates {0,0,startPositionZ_g};
-    legCoordinates rearRightLegCoordinates {0,0,startPositionZ_g};
+    legCoordinates frontRightLegCoordinates = {0,0,startPositionZ_g};
+    legCoordinates frontLeftLegCoordinates = {0,0,startPositionZ_g};
+    legCoordinates rearLeftLegCoordinates = {0,0,startPositionZ_g};
+    legCoordinates rearRightLegCoordinates = {0,0,startPositionZ_g};
 
     int translationRight = regulation_g[0];
     int leftSideStepLengthAdjust = regulation_g[1];
@@ -1136,8 +1136,8 @@ transitionToCreep()
     CalcCurvedPath(rearRightLeg, 4, 4, copy[REAR_RIGHT_LEG_X], -copy[REAR_RIGHT_LEG_Y], startPositionZ_g,
                                         rearRightLegCoordinates.xCoord, rearRightLegCoordinates.yCoord, startPositionZ_g);
     // lyft höger fram och vänster bak till startpositionerna för creep.
-    CalcStraightPath(frontLeftLeg, 4, 8, frontLeftLegCoordinates.xCoord, frontLeftLegCoordinates.yCoord, startPositionZ_g, startPositionZ_g, 
-                                        frontLeftLegCoordinates.xCoord, frontLeftLegCoordinates.yCoord, startPositionZ_g, startPositionZ_g);
+    CalcStraightPath(frontLeftLeg, 4, 8, frontLeftLegCoordinates.xCoord, frontLeftLegCoordinates.yCoord, startPositionZ_g, 
+                                        frontLeftLegCoordinates.xCoord, frontLeftLegCoordinates.yCoord, startPositionZ_g);
     CalcCurvedPath(frontRightLeg, 4, 8, copy[FRONT_RIGHT_LEG_X], copy[FRONT_RIGHT_LEG_Y], startPositionZ_g, 
                                         frontRightLegCoordinates.xCoord, frontRightLegCoordinates.yCoord, startPositionZ_g);
     CalcCurvedPath(rearLeftLeg, 4, 8, -copy[REAR_LEFT_LEG_X], -copy[REAR_LEFT_LEG_Y], startPositionZ_g, 
@@ -1495,7 +1495,7 @@ void gaitController()
 {
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
     {
-        //calcRegulation();
+        //calcRegulation(); 
         switch(currentGait)
         {
             case standStill:
