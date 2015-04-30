@@ -320,20 +320,20 @@ void calculateAvarageDistance() // Räknar ut medelvärdet av 5 senaste mätningarn
 			averageDistance7 = convertADtoDistance(average(sensor7),7);
 			averageDistance8 = convertADtoDistance(average(sensor8),8);
 			
-			sideDistance1 = sideValue(averageDistance1, averageDistance2);
-			sideDistance2 = sideValue(averageDistance3, averageDistance4);
-			sideDistance3 = sideValue(averageDistance5, averageDistance6);
-			sideDistance4 = sideValue(averageDistance7, averageDistance8);
+			sideDistance1 = sideValue(averageDistance8, averageDistance3);
+			sideDistance2 = sideValue(averageDistance2, averageDistance5);
+			sideDistance3 = sideValue(averageDistance4, averageDistance7);
+			sideDistance4 = sideValue(averageDistance6, averageDistance1);
 }
 
 void calculateAngle() // Räknar ut vinklar hos varje sida, och ett genomsnitt av nollskillda vinklar
 {
 			int angleDivisor = 0;
 			
-			sideAngle1 = getAngle(averageDistance2, averageDistance1);
-			sideAngle2 = getAngle(averageDistance4, averageDistance3);
-			sideAngle3 = getAngle(averageDistance6, averageDistance5);
-			sideAngle4 = getAngle(averageDistance8, averageDistance7);
+			sideAngle1 = getAngle(averageDistance3, averageDistance8);
+			sideAngle2 = getAngle(averageDistance5, averageDistance2);
+			sideAngle3 = getAngle(averageDistance7, averageDistance4);
+			sideAngle4 = getAngle(averageDistance1, averageDistance6);
 			
 			if (sideAngle1 != 0)
 			{
@@ -368,7 +368,7 @@ void calculateAngle() // Räknar ut vinklar hos varje sida, och ett genomsnitt av
 void splitDataBytes(int recievedHeader)
 {
     int dataToSplit = 0;
-    switch(recievedHeader)
+    /*switch(recievedHeader)
     {
         case DISTANCE_NORTH:
         {
@@ -420,7 +420,167 @@ void splitDataBytes(int recievedHeader)
             dataToSplit = leakFound;
             break;
         }
-    }
+		case SENSOR_1:
+		{
+			dataToSplit = averageDistance1;
+			break;
+		}
+		case SENSOR_2:
+		{
+			dataToSplit = averageDistance2;
+			break;
+		}
+		case SENSOR_3:
+		{
+			dataToSplit = averageDistance3;
+			break;
+		}
+		case SENSOR_4:
+		{
+			dataToSplit = averageDistance4;
+			break;
+		}
+		case SENSOR_5:
+		{
+			dataToSplit = averageDistance5;
+			break;
+		}
+		case SENSOR_6:
+		{
+			dataToSplit = averageDistance6;
+			break;
+		}
+		case SENSOR_7:
+		{
+			dataToSplit = averageDistance7;
+			break;
+		}
+		case SENSOR_8:
+		{
+			dataToSplit = averageDistance8;
+			break;
+		}
+    }*/
+	if (recievedHeader < 184)
+	{
+		if (recievedHeader < 136)
+		{
+			switch(recievedHeader)
+			{
+				case SENSOR_8:
+				{
+					dataToSplit = averageDistance8;
+					break;
+				}
+				case SENSOR_7:
+				{
+					dataToSplit = averageDistance7;
+					break;
+				}
+				case SENSOR_6:
+				{
+					dataToSplit = averageDistance6;
+					break;
+				}
+				case SENSOR_5:
+				{
+					dataToSplit = averageDistance5;
+					break;
+				}
+				case SENSOR_4:
+				{
+					dataToSplit = averageDistance4;
+					break;
+				}
+			}
+		}
+		else
+		{
+			switch(recievedHeader)
+			{
+				case ANGLE_WEST:
+				{
+					dataToSplit = sideAngle4;
+					break;
+				}
+				case TOTAL_ANGLE:
+				{
+					dataToSplit = totalAngle;
+					break;
+				}
+				case LEAK_HEADER:
+				{
+					dataToSplit = leakFound;
+					break;
+				}
+				case SENSOR_3:
+				{
+					dataToSplit = averageDistance3;
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (recievedHeader < 216)
+		{
+			switch(recievedHeader)
+			{
+				case SENSOR_2:
+				{
+					dataToSplit = averageDistance2;
+					break;
+				}
+				case SENSOR_1:
+				{
+					dataToSplit = averageDistance1;
+					break;
+				}
+				case DISTANCE_NORTH:
+				{
+					dataToSplit = sideDistance1;
+					break;
+				}
+				case DISTANCE_EAST:
+				{
+					dataToSplit = sideDistance2;
+					break;
+				}
+			}
+		}
+		else
+		{
+			switch(recievedHeader)
+			{
+				case DISTANCE_SOUTH:
+				{
+					dataToSplit = sideDistance3;
+					break;
+				}
+				case DISTANCE_WEST:
+				{
+					dataToSplit = sideDistance4;
+					break;
+				}
+				case ANGLE_NORTH:
+				{
+					dataToSplit = sideAngle1;
+					break;
+				}
+				case ANGLE_EAST:
+				{
+					dataToSplit = sideAngle2;
+					break;
+				}
+				case ANGLE_SOUTH:
+				{
+					dataToSplit = sideAngle3;
+					break;
+				}
+			}
+		}
+	}
     transmitDataByte1 = (dataToSplit >> 8);
     transmitDataByte2 = (dataToSplit & 0b0000000011111111);
 }
@@ -477,7 +637,7 @@ int main(void)
 
     while(1)
     {
-		leakFound = leakBit;
+		leakFound = !leakBit;
 				
 		if (iteration >= 4) // iteration används så att det görs 5 mätningar per sensor
 		{
@@ -536,10 +696,10 @@ int main(void)
 			PORTB = (0<<displayE);
 			_delay_ms(1);
 
-			writeSensor(transmitStatus);
-			writeSensor(recievedHeader);
-			writeSensor(transmitDataByte1);
-			writeSensor(transmitDataByte2);
+			writeSensor(sideAngle1);
+			writeSensor(sideAngle2);
+			writeSensor(sideAngle3);
+			writeSensor(sideAngle4);
 		
 			PORTB = (1<<displayE);
 			PORTD = (1<<PORTD7); // Rad 1
