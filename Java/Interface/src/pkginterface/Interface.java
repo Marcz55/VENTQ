@@ -4,34 +4,23 @@ Please see http://mfizz.com/oss/rxtx-for-java for more information.
 */
 package pkginterface;
 
-import gnu.io.CommPortIdentifier;
-import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jssc.SerialPort;
+import static jssc.SerialPort.PURGE_RXCLEAR;
+import jssc.SerialPortEvent;
+import jssc.SerialPortEventListener;
 
 public class Interface implements SerialPortEventListener{
 
-    private SerialPort mainSerialPort;
-    public CommPortIdentifier comPort = null;
+    static SerialPort mainSerialPort;
     private static final int baud = 115200;
-    private String portName = "Ingenting";
     private int response;
-    private InputStream inputData;
-    private OutputStream outputData;
     private int[] dataBuffer = {0,0,0}; // Lagrar tre senaste hämtade bytes
     private int bufferCounter = 0; // Håller koll på var i buffern vi är
     private int combinedData = 0; // De två byten data, översatta till ett tal
-    public int[] allAngles = {0,0,0,0,0}; // Sparar alla vinklar, element 0,1,2,3 lagrar vinkel från sida 1,2,3 och element 5 lagrar total vinkel
-    public int[] allSides = {0,0,0,0}; // Sparar avstånd från alla sidor, element 0,1,2,3 lagrar sida 1,2,3,4
     public String currentNode = "Okänt\nOkänt\nID: 0";
     public String leak = "Nej";
-    public String portConnected = "Ej ansluten";
     public int acknowledge = 0;
     
     GUI mainGUI;
@@ -41,16 +30,15 @@ public class Interface implements SerialPortEventListener{
         mainGUI = creatingGUI;
     }
     
-    void findPortGUI(String in)
+    /*void findPortGUI(String in)
     {
-        portName = in;
         
         CommPortIdentifier port = null; //Sätt nuvarande port till null
         Enumeration allPorts = CommPortIdentifier.getPortIdentifiers();
         while(allPorts.hasMoreElements())
         {
             port = (CommPortIdentifier)allPorts.nextElement();
-            if(port.getName().equals(portName))
+            if(port.getName().equals(in))
             {                   //Gå igenom alla tillgängliga portar tills rätt port hittats!
                 comPort = port;
                 break;
@@ -58,46 +46,34 @@ public class Interface implements SerialPortEventListener{
         }
         if(comPort != null)
         {
-            System.out.println(portName + " hittad.");
+            System.out.println(in + " hittad.");
             portConnected = "Ansluten";
             mainGUI.setText("connection");
         }
         else
         {
-            System.out.println(portName + " kunde ej hittas. Försök igen.");
+            System.out.println(in + " kunde ej hittas. Försök igen.");
         }
-    } // slut på hittaport
+    } // slut på hittaport*/
     
-    void connect()
+    void connect(String comPortName)
     {
+        mainSerialPort = new SerialPort(comPortName); 
         //Anslut till porten
         try
         {
-            System.out.println(comPort);
-            mainSerialPort = (SerialPort)comPort.open("V.E.N.T:Q",2000);
+            mainSerialPort.openPort();
+            mainSerialPort.setParams(115200, 8, 1, 0);//Set params
+            int mask = SerialPort.MASK_RXCHAR;//Prepare mask
+            mainSerialPort.setEventsMask(mask);//Set mask
+            mainSerialPort.addEventListener(this);//Add SerialPortEventListener
             System.out.println("Seriellport öppnad.");
-            mainSerialPort.setSerialPortParams(115200, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
-        //Thread.sleep(1000);
+            mainGUI.portConnected = "Ansluten";
+            mainGUI.setText("connection");
         }
         catch(Exception e)
         {
             System.err.println("Fel 1 vid anslutning:");
-            System.err.println(e.toString());
-        }
-        //Definiera in och utdata
-        try
-        {
-        //Lägg till listerners som kan lyssna efter in-eller utdata
-            mainSerialPort.addEventListener(this);
-            mainSerialPort.notifyOnDataAvailable(true);
-            mainSerialPort.notifyOnOutputEmpty(true);
-            //Kanske vill ha med framing error här senare 
-            outputData = mainSerialPort.getOutputStream();
-            inputData = mainSerialPort.getInputStream();
-        } 
-        catch (Exception e)
-        {
-            System.err.println("Fel 2 vid anslutning:");
             System.err.println(e.toString());
         }
     }
@@ -106,15 +82,10 @@ public class Interface implements SerialPortEventListener{
     {
         try
         {
-            inputData.close();
-            outputData.close();
-            inputData = null;
-            outputData = null;
-            mainSerialPort.close();
-            portConnected = "Ej ansluten";
+            mainSerialPort.closePort();
+            mainGUI.portConnected = "Ej ansluten";
             mainGUI.setText("connection");
             System.out.println("Seriell port bortkopplad");
-            comPort = null;
         } 
         catch (Exception ex) 
         {
@@ -228,39 +199,39 @@ public class Interface implements SerialPortEventListener{
         switch (header_)
         {
             case 202:                         // Om avstånd eller vinkel behöver datan inte behandlas
-                allSides[0] = recievedData_;  // Sida 1 (Norr)
+                mainGUI.allSides[0] = recievedData_;  // Sida 1 (Norr)
                 mainGUI.setText("side1");
                 break;
             case 208:
-                allSides[1] = recievedData_;  // Sida 2 (Öst)
+                mainGUI.allSides[1] = recievedData_;  // Sida 2 (Öst)
                 mainGUI.setText("side2");
                 break;
             case 216:
-                allSides[2] = recievedData_;  // Sida 3 (Cyd)
+                mainGUI.allSides[2] = recievedData_;  // Sida 3 (Cyd)
                 mainGUI.setText("side3");
                 break;
             case 224:
-                allSides[3] = recievedData_;  // Sida 4 (Väst)
+                mainGUI.allSides[3] = recievedData_;  // Sida 4 (Väst)
                 mainGUI.setText("side4");
                 break;
             case 232:
-                allAngles[0] = recievedData_;  // Vinkel 1 (Norr)
+                mainGUI.allAngles[0] = recievedData_;  // Vinkel 1 (Norr)
                 mainGUI.setText("angle1");
                 break;
             case 240:
-                allAngles[1] = recievedData_;  // Vinkel 2 (Öst)
+                mainGUI.allAngles[1] = recievedData_;  // Vinkel 2 (Öst)
                 mainGUI.setText("angle2");
                 break;
             case 248:
-                allAngles[2] = recievedData_;  // Vinkel 3 (Cyd)
+                mainGUI.allAngles[2] = recievedData_;  // Vinkel 3 (Cyd)
                 mainGUI.setText("angle3");
                 break;
             case 136:
-                allAngles[3] = recievedData_;  // Vinkel 4 (Väst)
+                mainGUI.allAngles[3] = recievedData_;  // Vinkel 4 (Väst)
                 mainGUI.setText("angle4");
                 break;
             case 144:
-                allAngles[4] = recievedData_;  // Totalvinkel
+                mainGUI.allAngles[4] = recievedData_;  // Totalvinkel
                 mainGUI.setText("angleTotal");
                 break;
             case 152: // Recieved data motsvarar om läcka är sant eller falskt
@@ -307,43 +278,52 @@ public class Interface implements SerialPortEventListener{
     //Hantera när data kommer in
     public void serialEvent(SerialPortEvent event)
     {
-        if(event.getEventType() == SerialPortEvent.DATA_AVAILABLE)
+        if(event.isRXCHAR())
         {
             //Gör det som ska göras vid inläsnign av data
             try
             {
-                response = inputData.read(); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande
-                //System.out.println(response);
-                if ((response == 184) && (bufferCounter == 0))
+                //response = (mainSerialPort.readBytes(1)[0] & 0b11111111); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande
+                if (event.getEventValue() > 20)
                 {
-                    // 184 är en skräpheader som skickas ut vid kommunikationsenheten i samband med SPI-kommunkiation,
-                }   // den ska därför ignoreras om den är första delen av ett medelande
-                else
-                {
-                    dataBuffer[bufferCounter] = response;
-                    if(bufferCounter >= 2)
+                    int recievedArray[] = mainSerialPort.readIntArray();
+                    mainSerialPort.purgePort(PURGE_RXCLEAR);
+                    for (int arrayIterator = 0; arrayIterator < recievedArray.length; arrayIterator ++)
                     {
-                        bufferCounter = 0;
-                        combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
-                        if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
+                        response = recievedArray[arrayIterator];
+                        //System.out.println(response);
+                        if ((response == 184) && (bufferCounter == 0))
                         {
-                            /*System.out.print(dataBuffer[0]);
-                            System.out.print(" ");
-                            System.out.print(dataBuffer[1]);
-                            System.out.print(" ");
-                            System.out.println(dataBuffer[2]);*/
-                            setAllData(dataBuffer[0],combinedData);
-                        }
+                            // 184 är en skräpheader som skickas ut vid kommunikationsenheten i samband med SPI-kommunkiation,
+                        }   // den ska därför ignoreras om den är första delen av ett medelande
                         else
                         {
-                            dataBuffer[0] = dataBuffer[1];
-                            dataBuffer[1] = dataBuffer[2];
-                            bufferCounter = 2;
+                            dataBuffer[bufferCounter] = response;
+                            if(bufferCounter >= 2)
+                            {
+                                bufferCounter = 0;
+                                combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
+                                if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
+                                {
+                                    /*System.out.print(dataBuffer[0]);
+                                    System.out.print(" ");
+                                    System.out.print(dataBuffer[1]);
+                                    System.out.print(" ");
+                                    System.out.println(dataBuffer[2]);*/
+                                    setAllData(dataBuffer[0],combinedData);
+                                }
+                                else
+                                {
+                                    dataBuffer[0] = dataBuffer[1];
+                                    dataBuffer[1] = dataBuffer[2];
+                                    bufferCounter = 2;
+                                }
+                            }
+                            else
+                            {
+                                bufferCounter ++;
+                            }
                         }
-                    }
-                    else
-                    {
-                        bufferCounter ++;
                     }
                 }
             } 
@@ -358,7 +338,8 @@ public class Interface implements SerialPortEventListener{
     {
         try
         {
-            outputData.write(dataByte);
+            byte dataByteArray[] = {dataByte};
+            mainSerialPort.writeBytes(dataByteArray);
         } 
         catch(Exception e)
         {

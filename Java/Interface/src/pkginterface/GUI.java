@@ -4,6 +4,8 @@ package pkginterface;
 
 import javafx.geometry.Insets;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -34,6 +36,32 @@ public class GUI extends Application
                                    // Om båda knapparna för motsvarande variabel är nedtryckt tar de ut varandra
                                    // och variabeln blir noll
     
+    int timeOffset = 200;
+    int stepLengthOffset = 160;
+    int stepHeightOffset = 40;
+    int xyWidthOffset = 80;
+    int heightOffset = -120;
+    int kDistance = 10;
+    int kAngle = 10;
+    
+    int timeUpperBound = 500;
+    int stepLengthUpperBound = 160;
+    int stepHeightUpperBound = 80;
+    int xyWidthUpperBound = 150;
+    int heightUpperBound = -60;
+    int kDistanceUpperBound = 100;
+    int kAngleUpperBound = 100;
+    
+    int timeLowerBound = 30;
+    int stepLengthLowerBound = 10;
+    int stepHeightLowerBound = 10;
+    int xyWidthLowerBound = 0;
+    int heightLowerBound = -160;
+    int kDistanceLowerBound = 1;
+    int kAngleLowerBound = 1;
+    
+    public Button connectButton = new Button(); // Skapar knapp som används för att ansluta till/koppla från roboten.
+    
     TextArea angle1Text = new TextArea(""); // Dessa texter skriver ut vinklar
     TextArea angle2Text = new TextArea("");
     TextArea angle3Text = new TextArea("");
@@ -47,11 +75,13 @@ public class GUI extends Application
     TextArea nodeText = new TextArea("");
     TextArea connectedText = new TextArea("");
     TextArea autonomusText = new TextArea("Autonomt\nläge av");
-    TextArea timeIncrementText = new TextArea("Stegtid:\n0");
-    TextArea stepLengthText = new TextArea("Steglängd:\n0");
-    TextArea stepHeightText = new TextArea("Steghöjd:\n0");
-    TextArea xyWidthText = new TextArea("Utbredning:\n0");
-    TextArea heightText = new TextArea("Höjd:\n0");
+    TextArea timeIncrementText = new TextArea("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
+    TextArea stepLengthText = new TextArea("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
+    TextArea stepHeightText = new TextArea("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
+    TextArea xyWidthText = new TextArea("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
+    TextArea heightText = new TextArea("B/y\nHöjd:\n" + Integer.toString(heightOffset));
+    TextArea kDistanceText = new TextArea("Vänster/g\nkDistance:\n" + Double.toString(kDistance/10));
+    TextArea kAngleText = new TextArea("Höger/h\nkAngle:\n" + Double.toString(kAngle/10));
     TextField comXX = new TextField("COM15");
     Label upArrow = new Label("");   // Dessa texter använd för att visa riktning/vridning som nedtryckta
     Label downArrow = new Label(""); // knappar motsvarar
@@ -71,42 +101,35 @@ public class GUI extends Application
     boolean uPressed = false;
     boolean iPressed = false;
     boolean oPressed = false;
+    boolean gPressed = false;
+    boolean hPressed = false;
     
     int parameterChange = 0;
     
-    int timeOffset = 0;
-    int stepLengthOffset = 0;
-    int stepHeightOffset = 0;
-    int xyWidthOffset = 0;
-    int heightOffset = 0;
+    String setConnect = "Standby";
+    boolean graphStarted = false;
     
-    int timeUpperBound = 10;
-    int stepLengthUpperBound = 10;
-    int stepHeightUpperBound = 10;
-    int xyWidthUpperBound = 10;
-    int heightUpperBound = 10;
-    
-    int timeLowerBound = -10;
-    int stepLengthLowerBound = -10;
-    int stepHeightLowerBound = -10;
-    int xyWidthLowerBound = -10;
-    int heightLowerBound = -10;
-    
+    int graphIterator = 0;
+    double graphUpperBound = 10;
+    double sideGraphUpperBound = graphUpperBound;
+    double angleGraphUpperBound = graphUpperBound;
+    double graphUpdateTime = 0.5;
+    final NumberAxis sideAllXAxis = new NumberAxis();
+    final NumberAxis sideAllYAxis = new NumberAxis();
+    final NumberAxis angleAllXAxis = new NumberAxis();
+    final NumberAxis angleAllYAxis = new NumberAxis();
+    final LineChart<Number,Number> angleAllGraph = new LineChart<Number,Number>(angleAllXAxis,angleAllYAxis);
+    final LineChart<Number,Number> sideAllGraph = new LineChart<Number,Number>(sideAllXAxis,sideAllYAxis);
     
     Background grayBackground = new Background(new BackgroundFill(Paint.valueOf("808080"),CornerRadii.EMPTY,Insets.EMPTY));
     Background redBackground = new Background(new BackgroundFill(Paint.valueOf("F00000"),CornerRadii.EMPTY,Insets.EMPTY));
     Background greenBackground = new Background(new BackgroundFill(Paint.valueOf("00F000"),CornerRadii.EMPTY,Insets.EMPTY));
     Background blackBackground = new Background(new BackgroundFill(Paint.valueOf("00000F"),CornerRadii.EMPTY,Insets.EMPTY));
     
-    int side1Iterator = 0;  // Iteratorer för vilken datapunkt som tagits emot
-    int side2Iterator = 0;
-    int side3Iterator = 0;
-    int side4Iterator = 0;
-    int angle1Iterator = 0;
-    int angle2Iterator = 0;
-    int angle3Iterator = 0;
-    int angle4Iterator = 0;
-    int angleTotalIterator = 0;
+   
+    
+    int allSides[] = {0,0,0,0};
+    int allAngles[] = {0,0,0,0,0};
     
     XYChart.Series side1Data = new XYChart.Series();
     XYChart.Series side2Data = new XYChart.Series();
@@ -118,6 +141,7 @@ public class GUI extends Application
     XYChart.Series angle4Data = new XYChart.Series();
     XYChart.Series angleTotalData = new XYChart.Series();
     
+    public String portConnected = "Ej ansluten";
 
     void setMovement() // Omvandlar nedtryckta knappar till rörelseriktning och vridning. Skickar vidare
     {                  // eventuell rörelse via bluetooth och visar rörelse på GUI
@@ -208,77 +232,117 @@ public class GUI extends Application
             {
                 if ((xyWidthOffset < xyWidthUpperBound)&&(parameterChange == 1))
                 {
-                    xyWidthOffset ++;
+                    xyWidthOffset += 2;
                 }
                 else if ((xyWidthOffset > xyWidthLowerBound)&&(parameterChange == -1))
                 {
-                    xyWidthOffset --;
+                    xyWidthOffset -= 2;
                 }
-                xyWidthText.setText("Utbredning:\n" + Integer.toString(xyWidthOffset));
+                xyWidthText.setText("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(changeParameterByte);
             }
             else if (yPressed)
             {
                 if ((heightOffset < heightUpperBound)&&(parameterChange == 1))
                 {
-                    heightOffset ++;
+                    heightOffset += 2;
                 }
                 else if ((heightOffset > heightLowerBound)&&(parameterChange == -1))
                 {
-                    heightOffset --;
+                    heightOffset -= 2;
                 }
-                heightText.setText("Höjd:\n" + Integer.toString(heightOffset));
+                heightText.setText("B/y\nHöjd:\n" + Integer.toString(heightOffset));
                 changeParameterByte += (byte)0b00000010;
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(changeParameterByte);
             }
             else if (uPressed)
             {
                 if ((stepLengthOffset < stepLengthUpperBound)&&(parameterChange == 1))
                 {
-                    stepLengthOffset ++;
+                    stepLengthOffset += 2;
                 }
                 else if ((stepLengthOffset > stepLengthLowerBound)&&(parameterChange == -1))
                 {
-                    stepLengthOffset --;
+                    stepLengthOffset -= 2;
                 }
-                stepLengthText.setText("Steglängd:\n" + Integer.toString(stepLengthOffset));
+                stepLengthText.setText("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
                 changeParameterByte += (byte)0b00000100;
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(changeParameterByte);
             }
             
             else if (iPressed)
             {
                 if ((stepHeightOffset < stepHeightUpperBound)&&(parameterChange == 1))
                 {
-                    stepHeightOffset ++;
+                    stepHeightOffset += 2;
                 }
                 else if ((stepHeightOffset > stepHeightLowerBound)&&(parameterChange == -1))
                 {
-                    stepHeightOffset --;
+                    stepHeightOffset -= 2;
                 }
-                stepHeightText.setText("Steghöjd:\n" + Integer.toString(stepHeightOffset));
+                stepHeightText.setText("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
                 changeParameterByte += (byte)0b00000110;
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(changeParameterByte);
             }
             
             else if (oPressed)
             {
                 if ((timeOffset < timeUpperBound)&&(parameterChange == 1))
                 {
-                    timeOffset ++;
+                    if (timeOffset >= 100)
+                    {
+                        timeOffset += 100;
+                    }
+                    else 
+                    {
+                        timeOffset += 10;
+                    }
+                        
                 }
                 else if ((timeOffset > timeLowerBound)&&(parameterChange == -1))
                 {
-                    timeOffset --;
+                    if (timeOffset > 100)
+                    {
+                        timeOffset -= 100;
+                    }
+                    else
+                    {
+                        timeOffset -= 10;
+                    }
                 }
-                timeIncrementText.setText("Stegtid:\n" + Integer.toString(timeOffset));
+                timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
                 changeParameterByte += (byte)0b00001000;
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(changeParameterByte);
+            }
+            else if (gPressed)
+            {
+                if ((kDistance < kDistanceUpperBound)&&(parameterChange == 1))
+                {
+                    kDistance += 1;
+                }
+                else if ((kDistance > kDistanceLowerBound)&&(parameterChange == -1))
+                {
+                    kDistance -= 1;
+                }
+                kDistanceText.setText("Vänster/g\nkDistance:\n" + Double.toString(kDistance/10));
+                changeParameterByte += (byte)0b00001010;
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(kDistance);
+            }
+            else if (hPressed)
+            {
+                if ((kAngle < kAngleUpperBound)&&(parameterChange == 1))
+                {
+                    kAngle += 1;
+                }
+                else if ((kAngle > kAngleLowerBound)&&(parameterChange == -1))
+                {
+                    kAngle -= 1;
+                }
+                kAngleText.setText("Höger/h\nkAngle:\n" + Double.toString(kAngle/10));
+                changeParameterByte += (byte)0b00001100;
+                mainInterface.sendData(changeParameterByte);
+                System.out.println(kAngle);
             }
         }
        
@@ -292,66 +356,47 @@ public class GUI extends Application
             {
                 case "side1":
                 {
-                    
-                    side1Data.getData().add(new XYChart.Data(side1Iterator,mainInterface.allSides[0]));
-                    side1Text.setText("Sida 1:\n" + Integer.toString(mainInterface.allSides[0]));
-                    side1Iterator ++;
+                    side1Text.setText("Sida 1:\n" + Integer.toString(allSides[0]));
                     break;
                 }
                 case "side2":
                 {
-                    side2Data.getData().add(new XYChart.Data(side2Iterator,mainInterface.allSides[1]));
-                    side2Text.setText("Sida 2:\n" + Integer.toString(mainInterface.allSides[1]));
-                    side2Iterator ++;
+                    side2Text.setText("Sida 2:\n" + Integer.toString(allSides[1]));
                     break;
                 }
                 case "side3":
                 {
-                    side3Data.getData().add(new XYChart.Data(side3Iterator,mainInterface.allSides[2]));
-                    side3Text.setText("Sida 3:\n" + Integer.toString(mainInterface.allSides[2]));
-                    side3Iterator ++;
+                    side3Text.setText("Sida 3:\n" + Integer.toString(allSides[2]));
                     break;
                 }
                 case "side4":
                 {
-                    side4Data.getData().add(new XYChart.Data(side4Iterator,mainInterface.allSides[3]));
-                    side4Text.setText("Sida 4:\n" + Integer.toString(mainInterface.allSides[3]));
-                    side4Iterator ++;
+                    side4Text.setText("Sida 4:\n" + Integer.toString(allSides[3]));
                     break;
                 }
                 case "angle1":
                 {
-                    angle1Data.getData().add(new XYChart.Data(angle1Iterator,mainInterface.allAngles[0]));
-                    angle1Text.setText("Vinkel 1:\n" + Integer.toString(mainInterface.allAngles[0]));
-                    angle1Iterator ++;
+                    angle1Text.setText("Vinkel 1:\n" + Integer.toString(allAngles[0]));
                     break;
                 }
                 case "angle2":
                 {
-                    angle2Data.getData().add(new XYChart.Data(angle2Iterator,mainInterface.allAngles[1]));
-                    angle2Text.setText("Vinkel 2:\n" + Integer.toString(mainInterface.allAngles[1]));
-                    angle2Iterator ++;
+                    angle2Text.setText("Vinkel 2:\n" + Integer.toString(allAngles[1]));
                     break;
                 }
                 case "angle3":
                 {
-                    angle3Data.getData().add(new XYChart.Data(angle3Iterator,mainInterface.allAngles[2]));
-                    angle3Text.setText("Vinkel 3:\n" + Integer.toString(mainInterface.allAngles[2]));
-                    angle3Iterator ++;
+                    angle3Text.setText("Vinkel 3:\n" + Integer.toString(allAngles[2]));
                     break;
                 }
                 case "angle4":
                 {
-                    angle4Data.getData().add(new XYChart.Data(angle4Iterator,mainInterface.allAngles[3]));
-                    angle4Text.setText("Vinkel 4:\n" + Integer.toString(mainInterface.allAngles[3]));
-                    angle4Iterator ++;
+                    angle4Text.setText("Vinkel 4:\n" + Integer.toString(allAngles[3]));
                     break;
                 }
                 case "angleTotal":
                 {
-                    angleTotalData.getData().add(new XYChart.Data(angleTotalIterator,mainInterface.allAngles[4]));
-                    angleTotalText.setText("Vinkel total:\n" + Integer.toString(mainInterface.allAngles[4]));
-                    angleTotalIterator ++;
+                    angleTotalText.setText("Vinkel total:\n" + Integer.toString(allAngles[4]));
                     break;
                 }
                 case "leak":
@@ -366,7 +411,7 @@ public class GUI extends Application
                 }
                 case "connection":
                 {
-                    connectedText.setText("Seriell port: \n" + mainInterface.portConnected);
+                    connectedText.setText("Seriell port: \n" + portConnected);
                     /*if(mainInterface.portConnected == "Ansluten")
                     {
                         connectedText.setTextFill(Paint.valueOf("00F000"));
@@ -391,6 +436,36 @@ public class GUI extends Application
         }
     }
     
+    public void getGraphData(double dataIterations_)
+    {
+        try
+        {
+            side1Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allSides[0]));
+            side2Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allSides[1]));
+            side3Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allSides[2]));
+            side4Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allSides[3]));
+            angle1Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allAngles[0]));
+            angle2Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allAngles[1]));
+            angle3Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allAngles[2]));
+            angle4Data.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allAngles[3]));
+            angleTotalData.getData().add(new XYChart.Data(graphUpdateTime*dataIterations_,allAngles[4]));
+            if (dataIterations_ > graphUpperBound/graphUpdateTime)
+            {
+                sideGraphUpperBound += graphUpdateTime;
+                angleGraphUpperBound += graphUpdateTime;
+                sideAllXAxis.setUpperBound(sideGraphUpperBound);
+                sideAllXAxis.setLowerBound(sideGraphUpperBound - graphUpperBound);
+                angleAllXAxis.setUpperBound(angleGraphUpperBound);
+                angleAllXAxis.setLowerBound(angleGraphUpperBound - graphUpperBound);
+            }
+        }
+        catch(Exception e)
+        {
+            System.err.println(e.toString());
+        }
+    }
+    
+    
     public void resetButtons() // Nollställer alla knappar
     {
         upMovement = 0;
@@ -409,6 +484,72 @@ public class GUI extends Application
     @Override
     public void start(Stage stage)
     {
+        
+        Task<Integer> graphTask = new Task<Integer>()
+        {
+            @Override protected Integer call() throws Exception
+            {
+                while (true)
+                {
+                    if (isCancelled())
+                    {
+                        break;
+                    }
+                    Platform.runLater(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            getGraphData(graphIterator);
+                        }
+                    });
+                    graphIterator ++;
+                    double sleepTime = 1000*graphUpdateTime;
+                    Thread.sleep((long)sleepTime);
+                }
+                return 0;
+             }
+         };
+        
+        Thread graphThread = new Thread(graphTask);
+        graphThread.setDaemon(true);
+        
+        
+        Task<Integer> connectTask = new Task<Integer>()
+        {
+            @Override protected Integer call() throws Exception
+            {
+                while (true)
+                {
+                    if (isCancelled())
+                    {
+                        break;
+                    }
+                    if (setConnect == "Connect")
+                    {
+                        mainInterface.connect(comXX.getText());
+                        if ((portConnected == "Ansluten") && !graphStarted)
+                        {
+                            graphThread.start();
+                            graphStarted = true;
+                        }
+                        setConnect = "standby";
+                    }
+                    else if (setConnect == "Disconnect")
+                    {
+                        mainInterface.flush();
+                        setConnect = "Standby";
+                    }
+                    Thread.sleep(1000);
+                }
+                return 0;
+            }
+        };
+        
+        Thread connectThread = new Thread(connectTask);
+        connectThread.setDaemon(true);
+        connectThread.start();
+        
         side1Text.setEditable(false);
         side2Text.setEditable(false);
         side3Text.setEditable(false);
@@ -426,6 +567,8 @@ public class GUI extends Application
         stepHeightText.setEditable(false);
         xyWidthText.setEditable(false);
         heightText.setEditable(false);
+        kDistanceText.setEditable(false);
+        kAngleText.setEditable(false);
         
         side1Data.setName("Sida 1");
         side2Data.setName("Sida 2");
@@ -439,22 +582,26 @@ public class GUI extends Application
         
         
         
-        final NumberAxis sideAllXAxis = new NumberAxis();
-        final NumberAxis sideAllYAxis = new NumberAxis();
-        final LineChart<Number,Number> sideAllGraph = new LineChart<Number,Number>(sideAllXAxis,sideAllYAxis);
+        
         sideAllGraph.setTitle("Alla sidor");
         sideAllGraph.getData().addAll(side1Data,side2Data,side3Data,side4Data);
         sideAllGraph.setCreateSymbols(false);
+        sideAllXAxis.setAutoRanging(false);
+        sideAllYAxis.setAutoRanging(false);
+        sideAllXAxis.setUpperBound(sideGraphUpperBound);
+        sideAllYAxis.setUpperBound(800);
+        sideAllYAxis.setLowerBound(0);
         
         
-        final NumberAxis angleAllXAxis = new NumberAxis();
-        final NumberAxis angleAllYAxis = new NumberAxis();
-        final LineChart<Number,Number> angleAllGraph = new LineChart<Number,Number>(angleAllXAxis,angleAllYAxis);
         angleAllGraph.setTitle("Alla vinklar");
         angleAllGraph.getData().addAll(angle1Data,angle2Data,angle3Data,angle4Data,angleTotalData);
         angleAllGraph.setCreateSymbols(false);
+        angleAllXAxis.setAutoRanging(false);
+        angleAllYAxis.setAutoRanging(false);
+        angleAllXAxis.setUpperBound(angleGraphUpperBound);
+        angleAllYAxis.setUpperBound(410);
+        angleAllYAxis.setLowerBound(-410);
         
-       
         sideAllGraph.setMinWidth(800);
         angleAllGraph.setMinWidth(800);
         
@@ -468,30 +615,34 @@ public class GUI extends Application
         Group graphics = new Group();
         //Rectangle rektangel1 = new Rectangle(100,100,);
         
-        Button connectButton = new Button(); // Skapar knapp som används för att ansluta till/koppla från roboten.
+        
         connectButton.setText("    Anslut    "); // Om datorn ej ansluten till roboten används knappen för att ansluta,
         connectButton.setOnAction(new EventHandler<ActionEvent>() // annars använd den för att koppla från
         {
             @Override
             public void handle(ActionEvent event) // Funktion som sker när knappen trycks.
             {
-                if (mainInterface.portConnected == "Ej ansluten") 
+                if (portConnected == "Ej ansluten") 
                 {
-                    mainInterface.findPortGUI(comXX.getText().toUpperCase()); // Försöker ansluta om ej ansluten
-                    if (mainInterface.comPort != null)  // Notera att COM** är olika på olika datorer
+                    setConnect = "Connect";
+                    connectButton.setText("Koppla bort");
+                    /*if (comPort != null)  // Notera att COM** är olika på olika datorer
                     {
-                        mainInterface.connect(); 
+                        System.out.println();
+                        mainInterface.connect();
+                        graphThread.start();
                     }
-                    if(mainInterface.portConnected == "Ansluten") // Ändra knapp om anslutning lyckas
+                    if(portConnected == "Ansluten") // Ändra knapp om anslutning lyckas
                     {
                         connectButton.setText("Koppla bort");
-                    }
+                    }*/
                 }
                 else
                 {
                     resetButtons(); // Om ansluten, koppla från och ändra knapp, nollställ alla knapptryck
-                    mainInterface.flush(); // och skicka till roboten så den inte fortsätter okontrollerat
+                    //mainInterface.flush(); // och skicka till roboten så den inte fortsätter okontrollerat
                     connectButton.setText("    Anslut    ");
+                    setConnect = "Disconnect";
                 }
             }
         });
@@ -505,7 +656,7 @@ public class GUI extends Application
             {
                 if (!autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
                 {                   // värde till robot och ändra på text och knapp
-                    mainInterface.sendData((byte)0b10000000); 
+                    mainInterface.sendData((byte)0b11000001); 
                     //System.out.println((byte)0b10000000);
                     autonomusMode = true;
                     autonomusButton.setText("Avaktivera");
@@ -630,6 +781,18 @@ public class GUI extends Application
                                 oPressed = true;
                             }
                             break;
+                        case "g":
+                            if (!gPressed)
+                            {
+                                gPressed = true;
+                            }
+                            break;
+                        case "h":
+                            if (!hPressed)
+                            {
+                                hPressed = true;
+                            }
+                            break;
                         case "z":
                             if (!zPressed)
                             {
@@ -739,6 +902,18 @@ public class GUI extends Application
                                 oPressed = false;
                           }
                             break;
+                        case "g":
+                            if (gPressed)
+                            {
+                                gPressed = false;
+                            }
+                            break;
+                        case "h":
+                            if (hPressed)
+                            {
+                                hPressed = false;
+                            }
+                            break;
                         case "z":
                             if (zPressed)
                             {
@@ -793,16 +968,20 @@ public class GUI extends Application
         autonomusText.setMinHeight(45);
         autonomusText.setMinWidth(80);
         
-        timeIncrementText.setMinHeight(45);
+        timeIncrementText.setMinHeight(60);
         timeIncrementText.setMinWidth(80);
-        stepLengthText.setMinHeight(45);
+        stepLengthText.setMinHeight(60);
         stepLengthText.setMinWidth(80);
-        stepHeightText.setMinHeight(45);
+        stepHeightText.setMinHeight(60);
         stepHeightText.setMinWidth(80);
-        heightText.setMinHeight(45);
+        heightText.setMinHeight(60);
         heightText.setMinWidth(80);
-        xyWidthText.setMinHeight(45);
+        xyWidthText.setMinHeight(60);
         xyWidthText.setMinWidth(80);
+        kDistanceText.setMinHeight(60);
+        kDistanceText.setMinWidth(80);
+        kAngleText.setMinHeight(60);
+        kAngleText.setMinWidth(80);
         
         comXX.setMinHeight(30);
         comXX.setMinWidth(80);
@@ -845,16 +1024,20 @@ public class GUI extends Application
         autonomusText.setMaxWidth(80);
         autonomusText.setMaxHeight(45);
         
-        timeIncrementText.setMaxHeight(45);
+        timeIncrementText.setMaxHeight(60);
         timeIncrementText.setMaxWidth(80);
-        stepLengthText.setMaxHeight(45);
+        stepLengthText.setMaxHeight(60);
         stepLengthText.setMaxWidth(80);
-        stepHeightText.setMaxHeight(45);
+        stepHeightText.setMaxHeight(60);
         stepHeightText.setMaxWidth(80);
-        heightText.setMaxHeight(45);
+        heightText.setMaxHeight(60);
         heightText.setMaxWidth(80);
-        xyWidthText.setMaxHeight(45);
+        xyWidthText.setMaxHeight(60);
         xyWidthText.setMaxWidth(80);
+        kDistanceText.setMaxHeight(60);
+        kDistanceText.setMaxWidth(80);
+        kAngleText.setMaxHeight(60);
+        kAngleText.setMaxWidth(80);
         
         comXX.setMaxHeight(30);
         comXX.setMaxWidth(80);
@@ -909,11 +1092,13 @@ public class GUI extends Application
         root.add(sideAllGraph,12,0,3,8);
         root.add(angleAllGraph,12,8,3,8);
         
-        root.add(timeIncrementText,0,8,2,1);
-        root.add(stepLengthText,2,8,2,1);
-        root.add(stepHeightText,4,8,2,1);
-        root.add(xyWidthText,6,8,2,1);
-        root.add(heightText,8,8,2,1);
+        root.add(timeIncrementText,2,10,2,1);
+        root.add(kDistanceText,0,11,2,1);
+        root.add(kAngleText,4,11,2,1);
+        root.add(stepLengthText,6,9,2,1);
+        root.add(stepHeightText,8,8,1,1);
+        root.add(xyWidthText,8,10,1,1);
+        root.add(heightText,9,9,2,1);
         
         setText("side1");
         setText("side2");
