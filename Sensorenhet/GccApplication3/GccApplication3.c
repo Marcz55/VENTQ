@@ -320,20 +320,20 @@ void calculateAvarageDistance() // Räknar ut medelvärdet av 5 senaste mätningarn
 			averageDistance7 = convertADtoDistance(average(sensor7),7);
 			averageDistance8 = convertADtoDistance(average(sensor8),8);
 			
-			sideDistance1 = sideValue(averageDistance8, averageDistance3);
-			sideDistance2 = sideValue(averageDistance2, averageDistance5);
-			sideDistance3 = sideValue(averageDistance4, averageDistance7);
-			sideDistance4 = sideValue(averageDistance6, averageDistance1);
+			sideDistance1 = sideValue(averageDistance4, averageDistance7);
+			sideDistance2 = sideValue(averageDistance6, averageDistance1);
+			sideDistance3 = sideValue(averageDistance8, averageDistance3);
+			sideDistance4 = sideValue(averageDistance2, averageDistance5);
 }
 
 void calculateAngle() // Räknar ut vinklar hos varje sida, och ett genomsnitt av nollskillda vinklar
 {
 			int angleDivisor = 0;
 			
-			sideAngle1 = getAngle(averageDistance3, averageDistance8);
-			sideAngle2 = getAngle(averageDistance5, averageDistance2);
-			sideAngle3 = getAngle(averageDistance7, averageDistance4);
-			sideAngle4 = getAngle(averageDistance1, averageDistance6);
+			sideAngle1 = getAngle(averageDistance7, averageDistance4);
+			sideAngle2 = getAngle(averageDistance1, averageDistance6);
+			sideAngle3 = getAngle(averageDistance3, averageDistance8);
+			sideAngle4 = getAngle(averageDistance5, averageDistance2);
 			
 			if (sideAngle1 != 0)
 			{
