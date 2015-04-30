@@ -31,7 +31,7 @@
 
 //----------------------------------------------------------------------------------------------------- Testsaker nedan
 
-int wantedLeak = 3;
+int wantedLeak = 2;
 
 #define maxTcrossings 10
 #define noDirection 4
@@ -44,6 +44,7 @@ int     northSensor_g = 0;
 int     eastSensor_g = 0;
 int     southSensor_g = 0;
 int     westSensor_g = 0;
+// int      HARDCODEDDIRECTION = north;
 
 int     testHelper = 0;
 
@@ -365,6 +366,343 @@ void placeNodeInArray()
     nodeArray[currentNode_g].leakID          = tempNode_g.leakID;
 }
 
+
+//---------------------------------------------------------------------------------------------------------------------------------------------
+
+void simulatedeadEnd(int openDir_)
+{
+    if (openDir_ == north)
+    {
+        northSensor_g = 800;
+        eastSensor_g = 15;
+        southSensor_g = 15;
+        westSensor_g = 15;
+    }
+    else if (openDir_ == east)
+    {
+        northSensor_g = 15;
+        eastSensor_g = 800;
+        southSensor_g = 15;
+        westSensor_g = 15;
+    }
+    else if (openDir_ == south)
+    {
+        northSensor_g = 15;
+        eastSensor_g = 15;
+        southSensor_g = 800;
+        westSensor_g = 15;
+    }
+    else
+    {
+        northSensor_g = 15;
+        eastSensor_g = 15;
+        southSensor_g = 15;
+        westSensor_g = 800;
+    }
+}
+
+void simulateTcrossing1()
+{
+    northSensor_g = 800;
+    eastSensor_g = 800;
+    southSensor_g = 800;
+    westSensor_g = 15;
+}
+
+void simulateTcrossing2()
+{
+    northSensor_g = 15;
+    eastSensor_g = 800;
+    southSensor_g = 800;
+    westSensor_g = 800;
+}
+
+void simulateTcrossing3()
+{
+    northSensor_g = 800;
+    eastSensor_g = 800;
+    southSensor_g = 15;
+    westSensor_g = 800;
+}
+
+void simulateCorridorNorth()
+{
+    northSensor_g = 800;
+    eastSensor_g = 15;
+    southSensor_g = 800;
+    westSensor_g = 15;
+}
+
+void simulateCorridorEast()
+{
+    northSensor_g = 15;
+    eastSensor_g = 800;
+    southSensor_g = 15;
+    westSensor_g = 800;
+}
+
+void simulateEastToNorth()
+{
+    northSensor_g = 800;
+    eastSensor_g = 15;
+    southSensor_g = 15;
+    westSensor_g = 800;
+}
+
+void simulateNorthToWest()
+{
+    northSensor_g = 15;
+    eastSensor_g = 800;
+    southSensor_g = 800;
+    westSensor_g = 15;
+}
+
+
+void simulateTest()
+{
+    if ((testHelper >= 0) && (testHelper < 10))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 9) && (testHelper < 20))
+    {
+        simulateTcrossing1();
+    }
+    else if ((testHelper > 19) && (testHelper < 30))
+    {
+        simulateCorridorEast();
+        isLeakVisible_g = true;
+    }
+    else if ((testHelper > 29) && (testHelper < 40))
+    {
+        simulateEastToNorth();
+        isLeakVisible_g = false;
+    }
+    else if ((testHelper > 39) && (testHelper < 50))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 49) && (testHelper < 60))
+    {
+        simulateTcrossing2();
+    }
+    else if ((testHelper > 59) && (testHelper < 70))
+    {
+        simulateCorridorEast();
+
+    }
+    else if ((testHelper > 69) && (testHelper < 80))
+    {
+        simulatedeadEnd(west);
+    }
+    else if ((testHelper > 79) && (testHelper < 90))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 89) && (testHelper < 100))
+    {
+        simulateTcrossing2();
+    }
+    else if ((testHelper > 99) && (testHelper < 110))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 109) && (testHelper < 120))
+    {
+        simulateTcrossing1();
+    }
+    else if ((testHelper > 119) && (testHelper < 130))
+    {
+        simulateCorridorNorth();
+        isLeakVisible_g = true;
+    }
+    else if ((testHelper > 129) && (testHelper < 140))
+    {
+        simulatedeadEnd(south);
+        isLeakVisible_g = false;
+    }
+    else if ((testHelper > 139) && (testHelper < 150))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 149) && (testHelper < 160))
+    {
+        simulateTcrossing1();
+    }
+    else if ((testHelper > 159) && (testHelper < 170))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 169) && (testHelper < 180))
+    {
+        simulatedeadEnd(north);
+    }
+    else if ((testHelper > 179) && (testHelper < 190))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 189) && (testHelper < 200))
+    {
+        simulateTcrossing1();
+    }
+    else if ((testHelper > 199) && (testHelper < 210))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 209) && (testHelper < 220))
+    {
+        simulateTcrossing2();
+    }
+    else if ((testHelper > 219) && (testHelper < 230))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 229) && (testHelper < 240))
+    {
+        simulateEastToNorth();
+    }
+    else if ((testHelper > 239) && (testHelper < 250))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 249) && (testHelper < 260))
+    {
+        simulateTcrossing1();
+    }
+    else if ((testHelper > 259) && (testHelper < 270))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 269) && (testHelper < 280))
+    {
+        simulateTcrossing2();
+    }
+    else if ((testHelper > 279) && (testHelper < 290))
+    {
+        simulateCorridorEast();
+        isLeakVisible_g = true;
+    }
+    else if ((testHelper > 289) && (testHelper < 300))
+    {
+        simulatedeadEnd(west);
+        isLeakVisible_g = false;
+    }
+    else if ((testHelper > 299) && (testHelper < 310))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 309) && (testHelper < 320))
+    {
+        simulateTcrossing2();
+    }
+    else if ((testHelper > 319) && (testHelper < 330))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 329) && (testHelper < 340))
+    {
+        simulatedeadEnd(east);
+    }
+    else if ((testHelper > 339) && (testHelper < 350))
+    {
+        simulateCorridorEast();
+    }
+    else if ((testHelper > 349) && (testHelper < 360))
+    {
+        simulateTcrossing2();
+    }
+    else if ((testHelper > 359) && (testHelper < 370))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 369) && (testHelper < 380))
+    {
+        simulateTcrossing1();
+    }
+    else if ((testHelper > 379) && (testHelper < 390))
+    {
+        simulateCorridorNorth();
+    }
+    else if ((testHelper > 389) && (testHelper < 400))
+    {
+        simulatedeadEnd(north);
+    }
+
+    testHelper ++;
+}
+
+void print() {
+    int i=0;
+
+    for (i=0; i<121; i++) {
+        printf("Nod nummer: %d\n" , i + 1);
+
+        if (nodeArray[i].whatNode == corridor)
+            printf("whatNode: corridor \n", 0);
+        else if(nodeArray[i].whatNode == turn)
+            printf("whatNode: turn \n", 0);
+        else if(nodeArray[i].whatNode == deadEnd)
+            printf("whatNode: deadEnd \n", 0);
+        else if(nodeArray[i].whatNode == endOfMaze)
+            printf("whatNode: endOfMaze \n", 0);
+        else if(nodeArray[i].whatNode == mazeStart)
+            printf("whatNode: mazeStart \n", 0);
+        else
+            printf("whatNode: Tcrossing \n", 0);
+
+        printf("nodeID: %d\n", nodeArray[i].nodeID);
+        printf("pathsExplored: %d\n", nodeArray[i].pathsExplored);
+
+        if (nodeArray[i].wayIn == north)
+            printf("wayIn: north \n", 0);
+        else if(nodeArray[i].wayIn == east)
+            printf("wayIn: east \n", 0);
+        else if(nodeArray[i].wayIn == south)
+            printf("wayIn: south \n", 0);
+        else
+            printf("wayIn: west \n", 0);
+
+        if (nodeArray[i].nextDirection == north)
+            printf("nextDirection: north \n", 0);
+        else if(nodeArray[i].nextDirection == east)
+            printf("nextDirection: east \n", 0);
+        else if(nodeArray[i].nextDirection == south)
+            printf("nextDirection: south \n", 0);
+        else if(nodeArray[i].nextDirection == west)
+            printf("nextDirection: west \n", 0);
+        else
+            printf("nextDirection: noDirection \n", 0);
+
+        if (nodeArray[i].containsLeak == true)
+            printf("containsLeak: true \n", 0);
+        else
+            printf("containsLeak: false \n", 0);
+
+        printf("------------------------- \n", 0);
+
+        if (nodeArray[i].whatNode == endOfMaze)
+            break;
+    }
+
+
+    printf("Path to leak number : %d\n", wantedLeak);
+    int j = 0;
+    for (j; j<10; j++)
+    {
+        if (pathToLeak[j] == north)
+            printf(" north", 0);
+        else if (pathToLeak[j] == east)
+            printf(" east", 0);
+        else if (pathToLeak[j] == south)
+            printf(" south", 0);
+        else if(pathToLeak[j] == west)
+            printf(" west", 0);
+        else
+            break;
+    }
+    printf("\n------------------------- \n", 0);
+}
+
 //-----------------------------------------------------------------------------------------------------
 void findLeak()
 {
@@ -511,7 +849,7 @@ int decideDirection()      // Autonoma läget
 }
 
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------------------------------
 
 
 int main()
@@ -553,4 +891,5 @@ int main()
         }
     }
     findLeak();
+    print();
 }
