@@ -27,23 +27,18 @@
 #define TRUE 1
 #define FALSE 0
 
-<<<<<<< HEAD
+
 
 int stepLength_g = 160;
-=======
-int stepLength_g = 50;
->>>>>>> joakimsBranch
 int startPositionX_g = 80;
 int startPositionY_g = 80;
 int startPositionZ_g = -120;
 int stepHeight_g =  40;
 int gaitResolution_g = 8; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-<<<<<<< HEAD
 int newGaitResolutionTime = INCREMENT_PERIOD_200; // tid i timerloopen för benstyrningen i ms
-=======
-int newGaitResolutionTime = INCREMENT_PERIOD_70; // tid i timerloopen för benstyrningen i ms
->>>>>>> joakimsBranch
+
+
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
 int currentVentilatorOptionInstruction_g = 0; // nuvarande instruktion för inställningar av ventilators egenskaper
@@ -57,6 +52,9 @@ int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
+// regler koefficienter
+float kProportionalTranslation_g = -0.3;
+float kProportionalAngle_g = -0.8;
 
 
 /*
@@ -936,12 +934,11 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 		}
 
 		//Regleringskoefficienter
-		float kProportionalTranslation = -0.3;
-		float kProportionalAngle = -0.8;
 
-		translationRight = kProportionalTranslation * translationRegulationError;
-		int leftSideStepLengthAdjust = (kProportionalAngle * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-		int rightSideStepLengthAdjust = kProportionalAngle * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
+
+		translationRight = kProportionalTranslation_g * translationRegulationError;
+		int leftSideStepLengthAdjust = (kProportionalAngle_g * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+		int rightSideStepLengthAdjust = kProportionalAngle_g * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
 		
 		if (translationRight > 60)
 		{
@@ -1434,7 +1431,41 @@ void decreaseStepHeight()
 	return;
 }
 
+void increaseKTranslation()
+{
+	if (kProportionalTranslation_g < 1)
+	{
+		kProportionalTranslation_g = kProportionalTranslation_g + 0.1;
+	}
+	return;
+}
 
+void decreaseKTranslation()
+{
+	if (kProportionalTranslation_g > 0.1)
+	{
+		kProportionalTranslation_g = kProportionalTranslation_g - 0.1;
+	}
+	return;
+}
+
+void increaseKRotation()
+{
+	if (kProportionalAngle_g < 1)
+	{
+		kProportionalAngle_g = kProportionalAngle_g + 0.1;
+	}
+	return;
+}
+
+void decreaseKRotation()
+{
+	if (kProportionalAngle_g > 0.1)
+	{
+		kProportionalAngle_g = kProportionalAngle_g - 0.1;
+	}
+	return;
+}
 
 void makeGaitTransition(enum gait newGait)
 {
@@ -1699,6 +1730,30 @@ void gaitController()
 					decreaseGaitResolutionTime();
 					break;
 				}
+				
+				case INCREASE_K_TRANSLATION:
+				{
+					increaseKTranslation();
+					break;
+				}
+				
+				case DECREASE_K_TRANSLATION:
+				{
+					decreaseKTranslation();
+					break;
+				}
+				
+				case INCREASE_K_ROTATION:
+				{
+					increaseKRotation();
+					break;
+				}
+				
+				case DECREASE_K_ROTATION:
+				{
+					decreaseKRotation();
+					break;
+				}
 			}
 		}
 	}
@@ -1727,12 +1782,9 @@ int main(void)
     //currentDirection = east;
     //makeCreepGait(gaitResolution_g);
     standStillGait();
-<<<<<<< HEAD
+
     //currentGait = creepGait;
-=======
-   
-    
->>>>>>> joakimsBranch
+
     
     
     //moveToCreepStartPosition();
