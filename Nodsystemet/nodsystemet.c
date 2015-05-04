@@ -9,6 +9,10 @@
 
 #define maxNodes 121        // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
+#define AUTO_MODE      0
+#define FINDLEAK_MODE  1    // Dessa behandlar variabeln mode, som bestämmer om labyrinten ska genomsökas,
+#define WAIT_FOR_INPUT 2    // hitta vald läcka eller vänta på input
+
 #define corridor  0         // Dessa är möjliga tal i whatNode
 #define turn      1
 #define deadEnd   2
@@ -24,44 +28,29 @@
 #define west  3
 //------------------------------------------------ Ta bort dessa när denna kod integreras
 
-
-
-
-
-
-//----------------------------------------------------------------------------------------------------- Testsaker nedan
-
-int wantedLeak = 3;
-
 #define maxTcrossings 10
 #define noDirection 4
 
 int pathToLeak[maxTcrossings] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
 
+
+
+// ------------------------------------------------------------------------------ bara för testa nedan
 int     isLeakVisible_g = 0;
 int     northSensor_g = 0;
 int     eastSensor_g = 0;
 int     southSensor_g = 0;
 int     westSensor_g = 0;
+// int      HARDCODEDDIRECTION = north;
 
 int     testHelper = 0;
-
-
 //-----------------------------------------------------------------------------------------------------
 
 
 
-
-// DET SKA FINNAS TVÅ MODES, ETT DÅ ROBOTEN MAPPAR UPP OCH GÖR DENNA ARRAY
-// OCH ETT MODE DÅ ROBOTEN LETAR I LISTAN SOM REDAN FINNS, OCH GÅR TILL VALD LÄCKA
-// lägger en kommentar ovanför funktionerna för att visa vilka som ska finna i läget då roboten mappar upp kartan (MapMode)
-
-
-
-
-#define closeEnoughToWall 350  // Roboten går rakt fram tills den här längden
-#define maxWallDistance 570   // Utanför denna längd är det ingen vägg
+#define closeEnoughToWall 280  // Roboten går rakt fram tills den här längden
+#define maxWallDistance 570    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = true;
 int tempEastAvailible_g = false;
@@ -75,6 +64,10 @@ int leaksFound_g = 0;
 int currentTcrossing_g = 0;
 int TcrossingsFound_g = 0;
 int distanceToFrontWall_g = 0;
+int leaksToPass = 0;
+int mode = FINDLEAK_MODE;
+
+int wantedLeak = 0;
 
 struct node
 {
@@ -106,7 +99,7 @@ void updateTempDirections()
     else
         distanceToFrontWall_g = westSensor_g;
 
-    if (northSensor_g > maxWallDistance) // Kan behöva ändra maxWallDistance
+    if (northSensor_g > maxWallDistance)    // Kan behöva ändra maxWallDistance
     tempNorthAvailible_g = true;
     else
     tempNorthAvailible_g = false;
@@ -156,11 +149,12 @@ int validLeak()
 // Ska finnas i bägge modes
 void updateLeakInfo()
 {
-    if ((validLeak() == true) &&                              // Faktisk läcka?
-    (nodeArray[currentNode_g].containsLeak == false) &&   // Innehåller noden redan en läcka?
-    (nodeArray[currentNode_g].whatNode == corridor))      // Läckor får bara finnas i nodtypen "corridor"
-    {                                                     // Kollen ovan gör även att när roboten inte gör nya noder så kan inte läckor läggas till
-        leaksFound_g ++;                                  // eftersom whatNode i det fallet är Tcrossing eller deadEnd
+    if ((validLeak() == true) &&
+    (nodeArray[currentNode_g].containsLeak == false) &&    // Innehåller noden redan en läcka?
+    !(nodeArray[currentNode_g].whatNode == Tcrossing) &&
+    !(nodeArray[currentNode_g].whatNode == deadEnd))       // Läckor får ej finnas i T-korsningar
+    {                                                      // Kollen ovan gör även att när roboten inte gör nya noder så kan inte läckor läggas till
+        leaksFound_g ++;                                   // eftersom whatNode i det fallet är Tcrossing eller deadEnd
 
         nodeArray[currentNode_g].containsLeak = true;         // Uppdaterar att korridornoden har en läcka sig
         nodeArray[currentNode_g].leakID = leaksFound_g;       // Läckans id får det nummer som den aktuella läckan har
@@ -365,8 +359,7 @@ void placeNodeInArray()
     nodeArray[currentNode_g].leakID          = tempNode_g.leakID;
 }
 
-//-----------------------------------------------------------------------------------------------------
-void findLeak()
+void makeLeakPath(char wantedLeak)
 {
     int index = 0;
     int i = 0;
@@ -389,14 +382,17 @@ void findLeak()
                 index --;
             }
 
+            leaksToPass = 0;
         }
-        else if (nodeArray[i].leakID == wantedLeak) // Om leakID inte är lika med noll så innehåller noden en läcka, två checks i en!
+        else if (nodeArray[i].containsLeak == true)
         {
-            break;
+            if (nodeArray[i].leakID == wantedLeak)
+                break;
+            else
+                leaksToPass ++;
         }
     }
 }
-//-----------------------------------------------------------------------------------------------------
 
 int northToNext()
 {
@@ -412,9 +408,9 @@ int northToNext()
     {
         return west;
     }
-    else            // I detta fall är det en deadEnd
+    else
     {
-        return south;
+        return south;       // I detta fall är det en deadEnd
     }
 }
 
@@ -510,10 +506,6 @@ int decideDirection()      // Autonoma läget
     }
 }
 
-
-//-------------------------------------------------------------------------------------------------
-
-
 int main()
 {
     // Börjar i en återvändsgränd med norr som frammåt
@@ -528,29 +520,104 @@ int main()
     nodeArray[0].westAvailible = false;
     nodeArray[0].containsLeak = false;
     nodeArray[0].leakID = 0;
+    
+    int currentPath = 0;
 
-    while(testHelper < 400)
+    switch(mode)
     {
+        case AUTO_MODE  :
 
-        simulateTest();
+            updateTempDirections();
+            updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
 
-        updateTempDirections();
-        updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
-
-        if (checkIfNewNode() == true)
-        {
-            updateTempNode();
-            currentDirection_g = decideDirection();
-
-            if (canMakeNew() == true)
+            if (checkIfNewNode() == true)
             {
-                currentNode_g ++;
+                updateTempNode();
+                currentDirection_g = decideDirection();
 
-                placeNodeInArray();
-
-                nodeArray[currentNode_g].nextDirection = currentDirection_g;     // lägger in styrbeslut i arrayen
+                if (canMakeNew() == true)
+                {
+                    currentNode_g ++;
+                    placeNodeInArray();
+                    nodeArray[currentNode_g].nextDirection = currentDirection_g;     // lägger in styrbeslut i arrayen
+                }
             }
-        }
+
+            if (nodeArray[currentNode_g].whatNode == endOfMaze)
+            {
+                mode = WAIT_FOR_INPUT;
+            }
+            break;
+
+        case WAIT_FOR_INPUT  :
+
+            switch(currentVentilatorOptionInstruktion_g)
+            {
+                case 0b11100000  :
+                    wantedLeak = 1;
+                    makeLeakPath(wantedLeak);
+                    mode = FINDLEAK_MODE;
+                    break;
+                case 0b11100001  :
+                    wantedLeak = 2;
+                    makeLeakPath(wantedLeak);
+                    mode = FINDLEAK_MODE;
+                    break;
+                case 0b11100010  :
+                    wantedLeak = 3;
+                    makeLeakPath(wantedLeak);
+                    mode = FINDLEAK_MODE;
+                    break;
+                case 0b11100011  :
+                    wantedLeak = 4;
+                    makeLeakPath(wantedLeak);
+                    mode = FINDLEAK_MODE;
+                    break;
+                case 0b11100100  :
+                    wantedLeak = 5;
+                    makeLeakPath(wantedLeak);
+                    mode = FINDLEAK_MODE;
+                    break;
+                default  :
+                    break;
+            }
+            // Stå still ---------------------------------------------------------------------------------------------------------------------------
+            break;
+
+        case FINDLEAK_MODE  :
+
+            updateTempDirections();
+
+            if (checkIfNewNode() == true)
+            {
+                updateTempNode();
+
+                if (tempNode_g.whatNode == Tcrossing)
+                {
+                    currentDirection_g = pathToLeak[currentPath];
+                    currentPath ++;
+                }
+                else
+                {
+                    currentDirection_g = decideDirection();
+                }
+            }
+
+            if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
+            {
+                if (validLeak() == true)
+                {
+                    if (tempNode_g.containsLeak == false)
+                    {
+                        tempNode_g.containsLeak = true;
+
+                        if (leaksToPass == 0)
+                            // Läckan är nu hittad... ska roboten stå still? Derp ------------------------------------------------------------------------------------
+                        else
+                            leaksToPass --;
+                    }
+                }
+            }
+            break;
     }
-    findLeak();
 }
