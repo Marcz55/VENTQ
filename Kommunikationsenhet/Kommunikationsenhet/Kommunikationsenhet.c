@@ -22,6 +22,7 @@ struct node_t
 {
 	unsigned char data_;
 	struct node_t* next_;
+    
 };
 
 void bluetoothInit()
@@ -91,7 +92,8 @@ void processList()
 void appendList (unsigned char data)
 {
 	// Härifrån skapas en ny nod som sedan initialiseras
-	struct node_t* node = malloc(sizeof(struct node_t));
+	cli();
+    struct node_t* node = malloc(sizeof(struct node_t));
     if (node == NULL)
     {
         return;
@@ -108,6 +110,7 @@ void appendList (unsigned char data)
 		last_p_g->next_ = node;
 	}
 	last_p_g = node;
+    sei();
 }
 
 int main(void)
@@ -141,6 +144,7 @@ ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
     //bluetoothSend(plutt);
     spiWrite(bluetoothReceive()); //Information som ska skickas överförs direkt till SPDR, där det är redo att föras över till masterenheten.
     PORTA = (1<<PORTA2); //Generera avbrott i styrenhet
+    MCUCR = (1<<SE);
 }
 
 ISR(SPISTC_vect)//SPI-överföring klar
@@ -149,6 +153,7 @@ ISR(SPISTC_vect)//SPI-överföring klar
 	//Send(SPDR); Lägg in i lista istället!
 	appendList(spiReceive());
 	spiReset(); //Återställ SPDR.
+    MCUCR = (1<<SE);
 }
 //Kommer att behöva en lista där indata kan sparas tillfälligt.
 
