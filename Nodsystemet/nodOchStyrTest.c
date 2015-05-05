@@ -33,7 +33,7 @@
 #define maxTcrossings 10
 #define noDirection 4
 
-int pathToLeak[maxTcrossings] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
+int     pathToLeak[maxTcrossings] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
 
 int     isLeakVisible_g = 0;
@@ -155,14 +155,14 @@ int validLeak()
 void updateLeakInfo()
 {
     if ((validLeak() == true) &&
-    (nodeArray[currentNode_g].containsLeak == false) &&    // Innehåller noden redan en läcka?
-    !(nodeArray[currentNode_g].whatNode == Tcrossing) &&
-    !(nodeArray[currentNode_g].whatNode == deadEnd))       // Läckor får ej finnas i T-korsningar
-    {                                                      // Kollen ovan gör även att när roboten inte gör nya noder så kan inte läckor läggas till
-        leaksFound_g ++;                                   // eftersom whatNode i det fallet är Tcrossing eller deadEnd
+    (nodeArray[currentNode_g].containsLeak == false) &&     // Innehåller noden redan en läcka?
+    !(nodeArray[currentNode_g].whatNode == Tcrossing) &&    // Läckor får ej finnas i T-korsningar
+    !(nodeArray[currentNode_g].whatNode == deadEnd))        // Läckor hamnar innanför en deadEnd, och detta gör att läckor
+    {                                                       // inte läggs till på tillbakavägen
+        leaksFound_g ++;
 
-        nodeArray[currentNode_g].containsLeak = true;         // Uppdaterar att korridornoden har en läcka sig
-        nodeArray[currentNode_g].leakID = leaksFound_g;       // Läckans id får det nummer som den aktuella läckan har
+        nodeArray[currentNode_g].containsLeak = true;       // Uppdaterar att korridornoden har en läcka sig
+        nodeArray[currentNode_g].leakID = leaksFound_g;     // Läckans id får det nummer som den aktuella läckan har
     }
 }
 
@@ -469,6 +469,7 @@ void simulateTest()
     else if ((testHelper > 19) && (testHelper < 30))
     {
         simulateCorridorEast();
+        isLeakVisible_g = true;
     }
     else if ((testHelper > 29) && (testHelper < 40))
     {
@@ -478,11 +479,12 @@ void simulateTest()
     else if ((testHelper > 39) && (testHelper < 50))
     {
         simulateCorridorNorth();
-        isLeakVisible_g = false;
+        isLeakVisible_g = true;
     }
     else if ((testHelper > 49) && (testHelper < 60))
     {
         simulateTcrossing2();
+        isLeakVisible_g = false;
     }
     else if ((testHelper > 59) && (testHelper < 70))
     {
@@ -522,10 +524,12 @@ void simulateTest()
     else if ((testHelper > 139) && (testHelper < 150))
     {
         simulateCorridorNorth();
+        isLeakVisible_g = true;
     }
     else if ((testHelper > 149) && (testHelper < 160))
     {
         simulateTcrossing1();
+        isLeakVisible_g = false;
     }
     else if ((testHelper > 159) && (testHelper < 170))
     {
@@ -554,14 +558,17 @@ void simulateTest()
     else if ((testHelper > 219) && (testHelper < 230))
     {
         simulateCorridorNorth();
+        isLeakVisible_g = true;
     }
     else if ((testHelper > 229) && (testHelper < 240))
     {
         simulateEastToNorth();
+        isLeakVisible_g = true;
     }
     else if ((testHelper > 239) && (testHelper < 250))
     {
         simulateCorridorEast();
+        isLeakVisible_g = false;
     }
     else if ((testHelper > 249) && (testHelper < 260))
     {
@@ -612,10 +619,12 @@ void simulateTest()
     else if ((testHelper > 359) && (testHelper < 370))
     {
         simulateCorridorNorth();
+        isLeakVisible_g = true;
     }
     else if ((testHelper > 369) && (testHelper < 380))
     {
         simulateTcrossing1();
+        isLeakVisible_g = false;
     }
     else if ((testHelper > 379) && (testHelper < 390))
     {
@@ -676,6 +685,8 @@ void print() {
         else
             printf("containsLeak: false \n", 0);
 
+        printf("leakID: %d\n", nodeArray[i].leakID);
+
         printf("------------------------- \n", 0);
 
         if (nodeArray[i].whatNode == endOfMaze)
@@ -721,8 +732,13 @@ void makeLeakPath(char wantedLeak_g)
             }
             else if (nodeArray[i].pathsExplored == 2)
             {
-                pathToLeak[index] = noDirection;
-                index --;
+                if (nodeArray[i].nodeID == 1)
+                    pathToLeak[0] = noDirection;
+                else
+                {
+                    pathToLeak[index] = noDirection;
+                    index --;
+                }
             }
 
             leaksToPass_g = 0;
@@ -892,7 +908,7 @@ int main()
             }
         }
     }
-    wantedLeak_g = 1;
+    wantedLeak_g = 3;
     makeLeakPath(wantedLeak_g);
     print();
     printf("leaksToPass_g: %d\n" , leaksToPass_g);

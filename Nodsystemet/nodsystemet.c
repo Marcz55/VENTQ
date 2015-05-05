@@ -42,9 +42,6 @@ int     northSensor_g = 0;
 int     eastSensor_g = 0;
 int     southSensor_g = 0;
 int     westSensor_g = 0;
-// int      HARDCODEDDIRECTION = north;
-
-int     testHelper = 0;
 //-----------------------------------------------------------------------------------------------------
 
 
@@ -64,7 +61,8 @@ int leaksFound_g = 0;
 int currentTcrossing_g = 0;
 int TcrossingsFound_g = 0;
 int distanceToFrontWall_g = 0;
-int leaksToPass = 0;
+int leaksToPass_g = 0;
+int currentPath = 0;
 int mode = FINDLEAK_MODE;
 
 int wantedLeak = 0;
@@ -150,14 +148,14 @@ int validLeak()
 void updateLeakInfo()
 {
     if ((validLeak() == true) &&
-    (nodeArray[currentNode_g].containsLeak == false) &&    // Innehåller noden redan en läcka?
-    !(nodeArray[currentNode_g].whatNode == Tcrossing) &&
-    !(nodeArray[currentNode_g].whatNode == deadEnd))       // Läckor får ej finnas i T-korsningar
-    {                                                      // Kollen ovan gör även att när roboten inte gör nya noder så kan inte läckor läggas till
-        leaksFound_g ++;                                   // eftersom whatNode i det fallet är Tcrossing eller deadEnd
+    (nodeArray[currentNode_g].containsLeak == false) &&     // Innehåller noden redan en läcka?
+    !(nodeArray[currentNode_g].whatNode == Tcrossing) &&    // Läckor får ej finnas i T-korsningar
+    !(nodeArray[currentNode_g].whatNode == deadEnd))        // Läckor hamnar innanför en deadEnd, och detta gör att läckor
+    {                                                       // inte läggs till på tillbakavägen
+        leaksFound_g ++;
 
-        nodeArray[currentNode_g].containsLeak = true;         // Uppdaterar att korridornoden har en läcka sig
-        nodeArray[currentNode_g].leakID = leaksFound_g;       // Läckans id får det nummer som den aktuella läckan har
+        nodeArray[currentNode_g].containsLeak = true;       // Uppdaterar att korridornoden har en läcka sig
+        nodeArray[currentNode_g].leakID = leaksFound_g;     // Läckans id får det nummer som den aktuella läckan har
     }
 }
 
@@ -359,7 +357,7 @@ void placeNodeInArray()
     nodeArray[currentNode_g].leakID          = tempNode_g.leakID;
 }
 
-void makeLeakPath(char wantedLeak)
+void makeLeakPath(char wantedLeak_g)
 {
     int index = 0;
     int i = 0;
@@ -378,18 +376,23 @@ void makeLeakPath(char wantedLeak)
             }
             else if (nodeArray[i].pathsExplored == 2)
             {
-                pathToLeak[index] = noDirection;
-                index --;
+                if (nodeArray[i].nodeID == 1)
+                    pathToLeak[0] = noDirection;
+                else
+                {
+                    pathToLeak[index] = noDirection;
+                    index --;
+                }
             }
 
-            leaksToPass = 0;
+            leaksToPass_g = 0;
         }
         else if (nodeArray[i].containsLeak == true)
         {
-            if (nodeArray[i].leakID == wantedLeak)
+            if (nodeArray[i].leakID == wantedLeak_g)
                 break;
             else
-                leaksToPass ++;
+                leaksToPass_g ++;
         }
     }
 }
@@ -508,6 +511,12 @@ int decideDirection()      // Autonoma läget
 
 int main()
 {
+    initNodeAndSteering();
+    nodesAndControl();
+}
+
+void initNodeAndSteering()
+{
     // Börjar i en återvändsgränd med norr som frammåt
     nodeArray[0].whatNode = mazeStart;
     nodeArray[0].nodeID = 0;                // Nodens ID initieras som 0, ändras om det är en Tcrossing
@@ -520,9 +529,10 @@ int main()
     nodeArray[0].westAvailible = false;
     nodeArray[0].containsLeak = false;
     nodeArray[0].leakID = 0;
-    
-    int currentPath = 0;
+}
 
+void nodesAndControl()
+{
     switch(mode)
     {
         case AUTO_MODE  :
