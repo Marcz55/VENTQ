@@ -21,12 +21,12 @@
 #define endOfMaze 5
 #define mazeStart 6
 
-//------------------------------------------------ Jocke har definierat dessa i sin kod
+//--------------------------------------------------------------------------------------------------------- Jocke har definierat dessa i sin kod
 #define north 0
 #define east  1
 #define south 2
 #define west  3
-//------------------------------------------------ Ta bort dessa när denna kod integreras
+//--------------------------------------------------------------------------------------------------------- Ta bort dessa när denna kod integreras
 
 #define maxTcrossings 10
 #define noDirection 4
@@ -36,13 +36,13 @@ int pathToLeak[maxTcrossings] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection =
 
 
 
-// ------------------------------------------------------------------------------ bara för testa nedan
+// ------------------------------------------------------------------------------------------------------------ bara för att testa nedan
 int     isLeakVisible_g = 0;
 int     northSensor_g = 0;
 int     eastSensor_g = 0;
 int     southSensor_g = 0;
 int     westSensor_g = 0;
-//-----------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------
 
 
 
@@ -154,7 +154,7 @@ void updateLeakInfo()
     {                                                       // inte läggs till på tillbakavägen
         leaksFound_g ++;
 
-        nodeArray[currentNode_g].containsLeak = true;       // Uppdaterar att korridornoden har en läcka sig
+        nodeArray[currentNode_g].containsLeak = true;       // Uppdaterar att noden har en läcka i sig
         nodeArray[currentNode_g].leakID = leaksFound_g;     // Läckans id får det nummer som den aktuella läckan har
     }
 }
@@ -327,10 +327,10 @@ int whatWayIn()
 }
 
 // MapMode
-void updateTempNode()          // Skapar en ny nod
+void updateTempNode()          // Uppdaterar tempnoden, eg. skapar en ny nod
 {
     tempNode_g.whatNode = whatNodeType();
-    tempNode_g.nodeID = TcrossingID(tempNode_g.whatNode);                  // Är alltid 0 om det inte är en Tcrossing
+    tempNode_g.nodeID = TcrossingID(tempNode_g.whatNode);                                     // Är alltid 0 om det inte är en Tcrossing
     tempNode_g.pathsExplored = calcPathsExplored(tempNode_g.whatNode, tempNode_g.nodeID);     // Är alltid 0 om det inte är en Tcrossing
     tempNode_g.wayIn = whatWayIn();
     tempNode_g.nextDirection =  noDirection;            // Sätts till noDirection och ändras i styrbeslut
@@ -512,6 +512,7 @@ int decideDirection()      // Autonoma läget
 int main()
 {
     initNodeAndSteering();
+
     nodesAndControl();
 }
 
@@ -591,7 +592,7 @@ void nodesAndControl()
                 default  :
                     break;
             }
-            // Stå still ---------------------------------------------------------------------------------------------------------------------------
+            // Stå still -----------------------------------------------------------------------------------------------------------------------------
             break;
 
         case FINDLEAK_MODE  :
@@ -617,7 +618,7 @@ void nodesAndControl()
             {
                 if (validLeak() == true)
                 {
-                    if (tempNode_g.containsLeak == false)
+                    if (tempNode_g.containsLeak == false)   // Denna koll gör att samma läcka inte hanteras igen som en ny
                     {
                         tempNode_g.containsLeak = true;
 

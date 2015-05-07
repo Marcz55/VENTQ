@@ -180,7 +180,7 @@ int canMakeNew()
              (nodeArray[currentNode_g].pathsExplored == 2) &&                                                 // Om senaste noden va en Tcrossing, har den utforskats helt?
              !(tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)) // isåfall ska inte nya noder göras
     {
-        if (nodeArray[currentNode_g].nodeID == 1)                   // Om det är första T-korsningen så gör nya noder
+        if (nodeArray[currentNode_g].nodeID == 1)                  // Om det är första T-korsningen så gör nya noder
         {
             return true;
         }
@@ -908,7 +908,7 @@ int main()
             }
         }
     }
-    wantedLeak_g = 3;
+    wantedLeak_g = 5;
     makeLeakPath(wantedLeak_g);
     print();
     printf("leaksToPass_g: %d\n" , leaksToPass_g);
