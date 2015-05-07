@@ -105,27 +105,27 @@ void updateTempDirections()
         distanceToFrontWall_g = westSensor_g;
 
     if (northSensor_g > maxWallDistance) // Kan behöva ändra maxWallDistance
-    tempNorthAvailible_g = true;
+        tempNorthAvailible_g = true;
     else
-    tempNorthAvailible_g = false;
+        tempNorthAvailible_g = false;
 
 
     if (eastSensor_g > maxWallDistance)
-    tempEastAvailible_g = true;
+        tempEastAvailible_g = true;
     else
-    tempEastAvailible_g = false;
+        tempEastAvailible_g = false;
 
 
     if (southSensor_g > maxWallDistance)
-    tempSouthAvailible_g = true;
+        tempSouthAvailible_g = true;
     else
-    tempSouthAvailible_g = false;
+        tempSouthAvailible_g = false;
 
 
     if (westSensor_g > maxWallDistance)
-    tempWestAvailible_g = true;
+        tempWestAvailible_g = true;
     else
-    tempWestAvailible_g = false;
+        tempWestAvailible_g = false;
 }
 
 // Ska finnas i bägge modes
