@@ -118,7 +118,7 @@
 #define INCREMENT_PERIOD_400 400
 #define INCREMENT_PERIOD_500 500
 
-
+// ---- Headers för kommunikation av sensordata ----
 #define NORTH_HEADER 1
 #define NORTH_EAST_HEADER 5
 #define EAST_HEADER 4
@@ -128,15 +128,35 @@
 #define WEST_HEADER 8
 #define NORTH_WEST_HEADER 9
 #define NO_MOVEMENT_DIRECTION_HEADER 0
-
 #define CW_ROTATION 1
 #define CCW_ROTATION 2
 #define NO_ROTATION 0
+
+// ---- Index i sensordatalagringsmatris på styrenhet ---
+
+#define NORTH 0
+#define EAST 1
+#define SOUTH 2
+#define WEST 3
+
+// ----- Sensorvärden ---------
+
+// arrays som värden hämtade ifrån sensorenheten skall ligga i
+int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
+int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
+
+// ---------------------- 
 
 #define TRUE 1
 #define FALSE 0
 
 // -- Gångstilar
+
+enum gait{
+    standStill,
+    trotGait,
+    creepGait
+};
 
 // instruktioner för att ändra inställningar på gångstilen
 
@@ -154,5 +174,36 @@
 #define DECREASE_K_TRANSLATION 0b10001010
 #define INCREASE_K_ROTATION 0b10001101
 #define DECREASE_K_ROTATION 0b10001100
+
+
+// ----- Autonom styrning -----
+
+int directionHasChanged;
+
+enum direction{
+    north,
+    east,
+    south,
+    west,
+    noDirection
+};
+
+enum direction currentDirection_g;
+enum direction nextDirection_g;
+
+enum controlMode{
+    manual,
+    exploration,
+    returnToLeak,
+    waitForInput
+};
+
+enum controlMode currentControlMode_g;
+
+// ----- Kommunikation -------
+
+int currentOptionInstruction_g; // nuvarande instruktion för inställningar av gångstilens egenskaper
+                                    // används dessutom för att ge kommando om vilken läcka vi skall återvända till i autonomt läge
+
 
 #endif /* DEFINITIONS_H_ */

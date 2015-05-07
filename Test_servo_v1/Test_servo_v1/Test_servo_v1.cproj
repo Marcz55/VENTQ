@@ -124,6 +124,12 @@
     <Compile Include="Definitions.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="nodsystemet.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="nodsystemet.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="Timer.c">
       <SubType>compile</SubType>
     </Compile>

@@ -38,6 +38,7 @@ SUBDIRS :=  \
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../nodsystemet.c \
 ../Timer.c \
 ../SPI.c \
 ../USART.c \
@@ -51,24 +52,28 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+nodsystemet.o \
 Timer.o \
 SPI.o \
 USART.o \
 Test_servo_v1.o
 
 OBJS_AS_ARGS +=  \
+nodsystemet.o \
 Timer.o \
 SPI.o \
 USART.o \
 Test_servo_v1.o
 
 C_DEPS +=  \
+nodsystemet.d \
 Timer.d \
 SPI.d \
 USART.d \
 Test_servo_v1.d
 
 C_DEPS_AS_ARGS +=  \
+nodsystemet.d \
 Timer.d \
 SPI.d \
 USART.d \
@@ -88,6 +93,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

@@ -1,0 +1,52 @@
+﻿/*
+ * nodsystemet.h
+ *
+ * Created: 5/7/2015 2:37:09 PM
+ *  Author: isawi527
+ */ 
+
+
+#ifndef NODSYSTEMET_H_
+#define NODSYSTEMET_H_
+
+#include <stdio.h>
+
+
+
+struct node
+{
+    int     whatNode;           // Alla typer av noder är definade som siffror
+    int     nodeID;             // Nodens unika id
+    int     pathsExplored;      // Är bägge hållen utforskade är denna 2
+    int     wayIn;
+    int     nextDirection;      // Väderstrecken är siffror som är definade
+    int     northAvailible;     // Finns riktningen norr i noden?   Om sant => 1, annars 0
+    int     eastAvailible;
+    int     southAvailible;
+    int     westAvailible;
+    int     containsLeak;       // Finns läcka i "noden", kan bara finnas om det är en korridor
+    int     leakID;             // Fanns en läcka får den ett unikt id, annars är denna 0
+};
+
+void updateTempDirections();
+int validLeak();
+void updateLeakInfo();
+int canMakeNew();
+int isChangeDetected();
+int checkIfNewNode();
+int whatNodeType();
+int TcrossingID(int whatNode_);
+int calcPathsExplored(int whatNode_, int nodeID_);
+int whatWayIn();
+void updateCurrentNode();          // Uppdaterar nuvarande nod, eg. skapar en ny nod
+void placeNodeInArray();
+void makeLeakPath(char wantedLeak_g);
+int northToNext();
+int eastToNext();
+int southToNext();
+int westToNext();
+int decideDirection();      // Autonoma läget
+void initNodeAndSteering();
+void nodesAndControl();
+
+#endif /* NODSYSTEMET_H_ */
