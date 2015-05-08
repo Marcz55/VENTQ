@@ -118,7 +118,7 @@
 #define INCREMENT_PERIOD_400 400
 #define INCREMENT_PERIOD_500 500
 
-// ---- Headers för kommunikation av sensordata ----
+// ---- Headers för kommunikation ----
 #define NORTH_HEADER 1
 #define NORTH_EAST_HEADER 5
 #define EAST_HEADER 4
@@ -132,18 +132,29 @@
 #define CCW_ROTATION 2
 #define NO_ROTATION 0
 
+
+
+#define CORRIDOR  0         // Dessa är möjliga tal i whatNode
+#define TURN      1
+#define DEAD_END   2
+#define T_CROSSING 3
+#define Z_CROSSING 4
+#define END_OF_MAZE 5
+#define MAZE_START 6
+
 // ---- Index i sensordatalagringsmatris på styrenhet ---
 
 #define NORTH 0
 #define EAST 1
 #define SOUTH 2
 #define WEST 3
+#define TOTAL 4
 
 // ----- Sensorvärden ---------
 
 // arrays som värden hämtade ifrån sensorenheten skall ligga i
 int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
-int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
+int angleValue_g[5]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
 
 // ---------------------- 
 
@@ -181,7 +192,7 @@ enum gait{
 int directionHasChanged;
 
 enum direction{
-    north,
+    north = 0,
     east,
     south,
     west,

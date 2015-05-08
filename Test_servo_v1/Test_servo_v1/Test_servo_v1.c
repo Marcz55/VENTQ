@@ -18,16 +18,16 @@
 
 
 
+int lastSentNodeData;
 
-
-int stepLength_g = 160;
+int stepLength_g = 60;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
-int startPositionZ_g = -120;
-int stepHeight_g =  40;
-int gaitResolution_g = 8; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
+int startPositionZ_g = -100;
+int stepHeight_g =  30;
+int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_200; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_80; // tid i timerloopen för benstyrningen i ms
 
 
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
@@ -43,7 +43,7 @@ int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
 // regler koefficienter
-float kProportionalTranslation_g = -0.3;
+float kProportionalTranslation_g = 0.3;
 float kProportionalAngle_g = -0.8;
 
 
@@ -635,9 +635,10 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 
 ISR(INT1_vect) 
 { 
-		
-	currentGait = trotGait; 
-	currentDirection_g = north; 
+	
+    currentControlMode_g = exploration;	
+	//currentGait = trotGait; 
+	//currentDirection_g = north; 
 	/*
     directionHasChanged = 1;
     switch(currentDirection_g)
@@ -694,6 +695,19 @@ void transmitAllDataToCommUnit()
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
     transmitDataToCommUnit(TOTAL_ANGLE, fetchDataFromSensorUnit(TOTAL_ANGLE));
     return;
+}
+
+void updateAllDistanceSensorData()
+{
+    distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+    distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
+    distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+    distanceValue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
+}
+
+void updateTotalAngle()
+{
+    angleValue_g[TOTAL] = fetchDataFromSensorUnit(TOTAL_ANGLE);
 }
 
 void getSensorData(enum direction regulationDirection)
@@ -762,8 +776,7 @@ void getSensorData(enum direction regulationDirection)
 
 void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 {
-	getSensorData(regulationDirection);
-    //static int  regulation[3]; // skapar en array som innehåller hur roboten ska reglera
+    // regulationDirection motsvarar den sida som regleringen ska titta på.
     /*
     * 
     *
@@ -772,192 +785,259 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
     * Tredje värdet anger hur mycket längre steg benen på högra sidan relativt rörelseriktningen ska ta, de som medför en CCW-rotation
     */
 	
-	// isolerar regleringen just nu för att man ska kunna bära roboten utan att den spårar ur..
+
+	int translationRight = 0;
+	int sensorOffset = 60;// Avstånd ifrån sensorera till mitten av roboten (mm)
+
+	// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
+	int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
+	int angleRegulationError = 0; // avser hur många grader vridna i CCW riktning relativt "den raka riktningen" dvs relativt väggarna.
+
+
+
+
+
+		//Reglering vid gång i koridor
+	switch (currentDirection_g)
+	{
+		case north: // går vi åt norr kan vi reglera mot väst eller öster
+		{
+			switch(regulationDirection)
+			{
+				case east:
+				{
+					translationRegulationError = (distanceValue_g[east] + sensorOffset) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
+					break;
+				}
+
+				case west:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset);
+					break;
+				}
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+					break;
+				}
+			}
+			break;
+		}
+
+		case east:
+		{
+			switch(regulationDirection)
+			{
+				case south:
+				{
+					translationRegulationError = (distanceValue_g[south] + sensorOffset) - halfPathWidth_g;
+					break;
+				}
+
+				case north:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset);
+					break;
+				}
+
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+					break;
+				}
+			}
+			break;
+		}
+
+		case south:
+		{
+			switch(regulationDirection)
+			{
+				case west:
+				{
+					translationRegulationError = (distanceValue_g[west] + sensorOffset) - halfPathWidth_g;
+					break;
+				}
+
+				case east:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset);
+					break;
+				}
+
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+					break;
+				}
+			}
+			break;
+		} 
+
+		case west:
+		{
+			switch(regulationDirection)
+			{
+				case north:
+				{
+					translationRegulationError = (distanceValue_g[north] + sensorOffset) - halfPathWidth_g;
+					break;
+				}
+
+				case south:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset);
+					break;
+				}
+
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+	    			break;
+				}
+			}
+			break;
+		}
+        case noDirection:
+        {
+            translationRegulationError = 0;
+            angleRegulationError = 0;
+            break;
+        }            
+	}
+
+	if (useRotateRegulation)
+	{
+		angleRegulationError = angleValue_g[TOTAL];
+	}
+	else
+	{
+		angleRegulationError = 0;
+	}
+
+	//Regleringskoefficienter
+
+
+	translationRight = kProportionalTranslation_g * translationRegulationError;
+	int leftSideStepLengthAdjust = (kProportionalAngle_g * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+	int rightSideStepLengthAdjust = kProportionalAngle_g * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
+		
+	if (translationRight > 60)
+	{
+		translationRight = 60;
+	}
+		
+		
+	if (translationRight < -60)
+	{
+		translationRight = -60;
+	}
+		
+	if (leftSideStepLengthAdjust > 60)
+	{
+		leftSideStepLengthAdjust = 60;
+	}
 	
-
-		int translationRight = 0;
-		int sensorOffset = 40;// Avstånd ifrån sensorera till mitten av roboten (mm)
-
-		// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
-		int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
-		int angleRegulationError = 0; // avser hur många grader vridna i CCW riktning relativt "den raka riktningen" dvs relativt väggarna.
-
-
-
-
-
-		//Reglering vid gång i kooridor
-		switch (currentDirection_g)
-		{
-			case north: // går vi åt norr kan vi reglera mot väst eller öster
-			{
-				switch(regulationDirection)
-				{
-					case east:
-					{
-						translationRegulationError = (distanceValue_g[east] + sensorOffset) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
-						break;
-					}
-
-					case west:
-					{
-						translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset);
-						break;
-					}
-					case noDirection:
-					{
-						translationRegulationError = 0;
-						angleRegulationError = 0;
-						break;
-					}
-				}
-				break;
-			}
-
-			case east:
-			{
-				switch(regulationDirection)
-				{
-					case south:
-					{
-						translationRegulationError = (distanceValue_g[south] + sensorOffset) - halfPathWidth_g;
-						break;
-					}
-
-					case north:
-					{
-						translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset);
-						break;
-					}
-
-					case noDirection:
-					{
-						translationRegulationError = 0;
-						angleRegulationError = 0;
-						break;
-					}
-				}
-				break;
-			}
-
-			case south:
-			{
-				switch(regulationDirection)
-				{
-					case west:
-					{
-						translationRegulationError = (distanceValue_g[west] + sensorOffset) - halfPathWidth_g;
-						break;
-					}
-
-					case east:
-					{
-						translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset);
-						break;
-					}
-
-					case noDirection:
-					{
-						translationRegulationError = 0;
-						angleRegulationError = 0;
-						break;
-					}
-				}
-				break;
-			} 
-
-			case west:
-			{
-				switch(regulationDirection)
-				{
-					case north:
-					{
-						translationRegulationError = (distanceValue_g[north] + sensorOffset) - halfPathWidth_g;
-						break;
-					}
-
-					case south:
-					{
-						translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset);
-						break;
-					}
-
-					case noDirection:
-					{
-						translationRegulationError = 0;
-						angleRegulationError = 0;
-						break;
-					}
-				}
-				break;
-			}
-		}
-
-		if (useRotateRegulation)
-		{
-			angleRegulationError = angleValue_g[regulationDirection];
-		}
-		else
-		{
-			angleRegulationError = 0;
-		}
-
-		//Regleringskoefficienter
-
-
-		translationRight = kProportionalTranslation_g * translationRegulationError;
-		int leftSideStepLengthAdjust = (kProportionalAngle_g * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-		int rightSideStepLengthAdjust = kProportionalAngle_g * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
-		
-		if (translationRight > 60)
-		{
-			translationRight = 60;
-		}
-		
-		
-		if (translationRight < -60)
-		{
-			translationRight = -60;
-		}
-		
-		if (leftSideStepLengthAdjust > 60)
-		{
-			leftSideStepLengthAdjust = 60;
-		}
-		
-		if (leftSideStepLengthAdjust < -60)
-		{
-			leftSideStepLengthAdjust = -60;
-		}
-		
-		if (rightSideStepLengthAdjust > 60)
-		{
-			rightSideStepLengthAdjust = 60;
-		}
-		
-		if (rightSideStepLengthAdjust < -60)
-		{
-			rightSideStepLengthAdjust = -60;
-		}
+	if (leftSideStepLengthAdjust < -60)
+	{
+		leftSideStepLengthAdjust = -60;
+	}
+	
+	if (rightSideStepLengthAdjust > 60)
+	{
+		rightSideStepLengthAdjust = 60;
+	}
+	
+	if (rightSideStepLengthAdjust < -60)
+	{
+		rightSideStepLengthAdjust = -60;
+	}
 		
 		
 		
 		
-		regulation_g[0] =  translationRight;
-		regulation_g[1] = leftSideStepLengthAdjust;
-		regulation_g[2] = rightSideStepLengthAdjust;
+	regulation_g[0] =  translationRight;
+	regulation_g[1] = leftSideStepLengthAdjust;
+	regulation_g[2] = rightSideStepLengthAdjust;
 		
-		needToCalcGait = 1; // när vi har reglerat behöver vi räkna om gångstilen
+	needToCalcGait = 1; // när vi har reglerat behöver vi räkna om gångstilen
 	return;
-// vid nuläget har vi inte sensorenheten inkopplad så värdena i distancevalue_g m.m är odefinierade
-   /* regulation_g[0] =  0;
-    regulation_g[1] = 0;
-    regulation_g[2] = 0;
-    return; 
-*/
 }
 
 
+ /*
+ / Beslutar utifrån currentNode_g och currentDirection vilken riktning som vi kan 
+ / använda för reglering mot. Returnerar enum direction som kan användas i calcRegulation
+*/
+int decideRegulationDirection() 
+{
+    enum direction tempRegulationDirection = noDirection;
+    int northAvailable = currentNode_g.northAvailible;
+    int eastAvailable = currentNode_g.eastAvailible;
+    int southAvailable = currentNode_g.southAvailible;
+    int westAvailable = currentNode_g.westAvailible;
+    switch(currentDirection_g)
+    {
+        case north:
+        {
+            if (!eastAvailable) // det finns en vägg åt öster
+            {
+                tempRegulationDirection = east;
+            }                
+            else if (!westAvailable)
+            {
+                tempRegulationDirection = west;
+            }              
+            break;
+        }
+        case east:
+        {
+            if (!southAvailable)
+            {
+                tempRegulationDirection = south;
+            }
+            else if (!northAvailable)
+            {
+                tempRegulationDirection = north;
+            }
+            break;
+        }
+        case south:
+        {
+            if (!eastAvailable)
+            {
+                tempRegulationDirection = east;
+            }
+            else if (!westAvailable)
+            {
+                tempRegulationDirection = west;
+            }
+            break;
+        }
+        case west:
+        {
+            if (!northAvailable)
+            {
+                tempRegulationDirection = north;
+            }
+            else if (!southAvailable)
+            {
+                tempRegulationDirection = south;
+            }
+            break;
+        }
+        case noDirection:
+        {
+            tempRegulationDirection = noDirection;
+            break;
+        }
+    }
+    return tempRegulationDirection;
+}
 
 
 // används som en globalvariabel för att veta vilken typ av "action" vi ska göra.
@@ -1459,7 +1539,7 @@ void gaitController()
 {
 	if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
 	{
-		calcRegulation(east,TRUE);
+		calcRegulation(decideRegulationDirection(), TRUE);
 	}
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -1807,6 +1887,8 @@ int main(void)
     currentOptionInstruction_g = 0;
     initNodeAndSteering();
     directionHasChanged = FALSE;
+    currentGait = standStill;
+    optionsHasChanged_g = 0;
     
     timer0Init();
     timer2Init();
@@ -1841,15 +1923,22 @@ int main(void)
     	}
     	if (commTimerPeriodEnd())
     	{
+            updateAllDistanceSensorData();
+            updateTotalAngle();
+            transmitDataToCommUnit(CONTROL_DECISION,currentDirection_g);
             transmitAllDataToCommUnit();
+            lastSentNodeData = makeNodeData(&currentNode_g);
+            transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
             resetCommTimer();
     	}
         /*
         nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
         Kan dessutom ändra på controlMode.
         */
+        
         if (currentControlMode_g != manual)
             nodesAndControl();
+        
         gaitController();
     }
 }

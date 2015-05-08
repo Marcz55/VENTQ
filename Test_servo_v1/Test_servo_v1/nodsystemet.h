@@ -11,12 +11,13 @@
 
 #include <stdio.h>
 
+#define MAX_NODES 121        // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
-
+typedef struct node node;
 struct node
 {
     int     whatNode;           // Alla typer av noder är definade som siffror
-    int     nodeID;             // Nodens unika id
+    int     nodeID;             // Nodens unika id, maxvärde 31 
     int     pathsExplored;      // Är bägge hållen utforskade är denna 2
     int     wayIn;
     int     nextDirection;      // Väderstrecken är siffror som är definade
@@ -28,6 +29,10 @@ struct node
     int     leakID;             // Fanns en läcka får den ett unikt id, annars är denna 0
 };
 
+struct node nodeArray[MAX_NODES];
+struct node currentNode_g;
+
+int makeNodeData(node* nodeToSend);
 void updateTempDirections();
 int validLeak();
 void updateLeakInfo();

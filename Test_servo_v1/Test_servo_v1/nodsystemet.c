@@ -3,20 +3,14 @@
 
 #include <stdio.h>
 #include "Definitions.h"
+#include "nodsystemet.h"
 
-#define MAX_NODES 121        // En nod i varje 57cm i en 6x6m bana skulle motsvara 121 stycken noder.
 
 #define exploration      0
 #define returnToLeak  1    // Dessa behandlar variabeln currentControlMode_g, som bestämmer om labyrinten ska genomsökas,
 #define waitForInput 2    // hitta vald läcka eller vänta på input
 
-#define CORRIDOR  0         // Dessa är möjliga tal i whatNode
-#define TURN      1
-#define DEAD_END   2
-#define T_CROSSING 3
-#define Z_CROSSING 4
-#define END_OF_MAZE 5
-#define MAZE_START 6
+
 
 #define MAX_T_CROSSINGS 10
 
@@ -29,7 +23,7 @@ int     isLeakVisible_g = 0;
 
 
 
-#define CLOSE_ENOUGH_TO_WALL 280  // Roboten går rakt fram tills den här längden
+#define CLOSE_ENOUGH_TO_WALL 320  // Roboten går rakt fram tills den här längden
 #define MAX_WALL_DISTANCE 570    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
@@ -50,6 +44,7 @@ int currentPath = 0;
 
 int wantedLeak = 0;
 
+/*
 struct node
 {
     int     whatNode;           // Alla typer av noder är definade som siffror
@@ -64,9 +59,22 @@ struct node
     int     containsLeak;       // Finns läcka i "noden", kan bara finnas om det är en korridor
     int     leakID;             // Fanns en läcka får den ett unikt id, annars är denna 0
 };
+*/
 
-struct node nodeArray[MAX_NODES];
-struct node currentNode_g;
+
+int makeNodeData(node* nodeToSend)
+{
+    int data = 0;
+    data |= (nodeToSend->northAvailible << 3);
+    data |= (nodeToSend->eastAvailible << 2);
+    data |= (nodeToSend->southAvailible << 1);
+    data |= (nodeToSend->westAvailible << 0);
+    // Placera riktningen spridda över två databytes så att noDirection = 0b00000001 0b00000000
+    data |= ((nodeToSend->nextDirection & 3) << 4);
+    data |= ((nodeToSend->nextDirection & 4) << 8);
+    data |= ((nodeToSend->nodeID & 0b00011111) << 9);
+    return data;
+}
 
 // Ska finnas i bägge modes
 void updateTempDirections()
@@ -464,7 +472,7 @@ int westToNext()
 int decideDirection()      // Autonoma läget
 {
     enum direction tempDirection = currentDirection_g;
-    if (whatNodeType() == CORRIDOR)
+    if (currentNode_g.whatNode == CORRIDOR)
     {
         return currentDirection_g;
     }
@@ -531,7 +539,7 @@ void nodesAndControl()
                 updateCurrentNode();
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();
-
+                
                 if (canMakeNew() == TRUE)
                 {
                     lastAddedNodeIndex_g ++;
@@ -578,11 +586,12 @@ void nodesAndControl()
                 default  :
                     break;
             }
-            // Stå still 
+            
             if (currentDirection_g != noDirection)
             {
                 directionHasChanged = TRUE;
                 nextDirection_g = noDirection;
+                // skicka info om detta till datorn
             }
             break;
 
@@ -599,11 +608,13 @@ void nodesAndControl()
                     directionHasChanged = TRUE;
                     nextDirection_g = pathToLeak[currentPath];
                     currentPath ++;
+                    // skicka info om detta till datorn
                 }
                 else
                 {
                     nextDirection_g = decideDirection();
                     directionHasChanged = TRUE;
+                    // Skicka info om detta till datorn
                 }
             }
 
