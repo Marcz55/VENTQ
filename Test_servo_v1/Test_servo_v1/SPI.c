@@ -60,7 +60,6 @@ void transmitDataToCommUnit(int header_, int data)
     _delay_us(5);
     spiTransmitToCommUnit(lowDataByte);
     _delay_us(5);
-    
 }
 
 

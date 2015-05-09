@@ -25,6 +25,17 @@
 #define NODE_INFO 160
 #define TRASH 184
 
+// --- Headers för meddelanden om gånginställningar -----
+
+#define STEP_INCREMENT_TIME_HEADER 128
+#define STEP_LENGTH_HEADER 80
+#define STEP_HEIGHT_HEADER 72
+#define LEG_DISTANCE_HEADER 64
+#define ROBOT_HEIGHT_HEADER 56
+#define K_P_ANGLE_HEADER 48
+#define K_P_TRANS_HEADER 40
+
+
 unsigned char inbuffer;
 
 void spiMasterInit(void);

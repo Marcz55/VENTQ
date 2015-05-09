@@ -18,7 +18,6 @@
 
 
 
-int lastSentNodeData;
 
 int stepLength_g = 60;
 int startPositionX_g = 80;
@@ -58,9 +57,28 @@ int gaitResolution_g = 12;
 int gaitResolutionTime_g = INCREMENT_PERIOD_60;
 */
 
-
+int sendLegWidth = FALSE;
+int sendStepHeight = FALSE;
+int sendRobotHeight = FALSE;
+int sendStepLength = FALSE;
+int sendKPAngle = FALSE;
+int sendKPTrans = FALSE;
+int sendGaitResTime = FALSE;
 
 // currentDirection_g-deklaration samt controlMode flyttade till Definitions.h
+
+typedef struct leg leg;
+struct leg {
+    int legNumber,
+    coxaJoint,
+    femurJoint,
+    tibiaJoint;
+};
+
+leg frontLeftLeg = {FRONT_LEFT_LEG, 2, 4, 6};
+leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
+leg rearLeftLeg = {REAR_LEFT_LEG, 1, 3, 18};
+leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
 
 
 enum gait currentGait = standStill;
@@ -69,6 +87,16 @@ int standardSpeed_g = 20;
 int statusPackEnabled = 0;
 
 
+void sendAllRobotParameters()
+{
+    transmitDataToCommUnit(STEP_INCREMENT_TIME_HEADER, gaitResolutionTime_g);
+    transmitDataToCommUnit(STEP_LENGTH_HEADER, stepLength_g);
+    transmitDataToCommUnit(STEP_HEIGHT_HEADER, stepHeight_g);
+    transmitDataToCommUnit(LEG_DISTANCE_HEADER, startPositionX_g);
+    transmitDataToCommUnit(ROBOT_HEIGHT_HEADER, -startPositionZ_g);
+    transmitDataToCommUnit(K_P_ANGLE_HEADER, 100*kProportionalAngle_g);
+    transmitDataToCommUnit(K_P_TRANS_HEADER, 100*kProportionalTranslation_g);
+}
 
 // calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
 // hastighet som gör att slutpositionen uppnås på periodtiden.
@@ -130,9 +158,9 @@ void MoveFrontLeftLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  theta3 + 1;
     
     
-    MoveDynamixel(2,ActuatorAngle1,speed);
-    MoveDynamixel(4,ActuatorAngle2,speed);
-    MoveDynamixel(6,ActuatorAngle3,speed);
+    MoveDynamixel(frontLeftLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(frontLeftLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(frontLeftLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 
@@ -149,9 +177,9 @@ void MoveFrontRightLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  theta3 + 3;
     
     
-    MoveDynamixel(8,ActuatorAngle1,speed);
-    MoveDynamixel(10,ActuatorAngle2,speed);
-    MoveDynamixel(12,ActuatorAngle3,speed);
+    MoveDynamixel(frontRightLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(frontRightLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(frontRightLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 void MoveRearLeftLeg(float x, float y, float z, int speed)
@@ -167,9 +195,9 @@ void MoveRearLeftLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  300 - theta3 ;
     
     
-    MoveDynamixel(1,ActuatorAngle1,speed);
-    MoveDynamixel(3,ActuatorAngle2,speed);
-    MoveDynamixel(5,ActuatorAngle3,speed);
+    MoveDynamixel(rearLeftLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(rearLeftLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(rearLeftLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 void MoveRearRightLeg(float x, float y, float z, int speed)
@@ -185,9 +213,9 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  300 - theta3;
     
     
-    MoveDynamixel(7,ActuatorAngle1,speed);
-    MoveDynamixel(9,ActuatorAngle2,speed);
-    MoveDynamixel(11,ActuatorAngle3,speed);
+    MoveDynamixel(rearRightLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(rearRightLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(rearRightLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 
@@ -234,18 +262,6 @@ void increasePositionIndexes()
     return;
 }
 
-typedef struct leg leg;
-struct leg {
-    int legNumber,
-        coxaJoint,
-        femurJoint,
-        tibiaJoint;
-};
-
-leg frontLeftLeg = {FRONT_LEFT_LEG, 2, 4, 6};
-leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
-leg rearLeftLeg = {REAR_LEFT_LEG, 1, 3, 5};
-leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
 
 
 void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
@@ -633,11 +649,28 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 	}
 }
 
+
+int toggleMania = FALSE;
 ISR(INT1_vect) 
 { 
-	
+    /*
+	if (toggleMania)
+    {
+        MoveDynamixel(18,100,20);
+        toggleMania = FALSE;
+    }
+    else
+    {
+        toggleMania = TRUE;
+        MoveDynamixel(18,180,40);   
+    }
+    */
+    /*
     currentControlMode_g = exploration;	
-	//currentGait = trotGait; 
+	*/
+    sendAllRobotParameters();
+    
+    //currentGait = trotGait; 
 	//currentDirection_g = north; 
 	/*
     directionHasChanged = 1;
@@ -1382,6 +1415,7 @@ void increaseLegWidth()
 		startPositionX_g = startPositionX_g + 2;
 		startPositionY_g = startPositionY_g + 2;
 	}
+    
 	return;
 }
 
@@ -1406,7 +1440,7 @@ void decreaseLegHeight()
 
 void increaseLegHeight()
 {
-	if (startPositionZ_g > -160)
+	if (startPositionZ_g > -180)
 	{
 		startPositionZ_g = startPositionZ_g - 2;
 	}
@@ -1783,92 +1817,142 @@ void gaitController()
             case INCREASE_LEG_WIDTH:
             {
                 increaseLegWidth();
+                sendLegWidth = TRUE;
                 break;
             }
             
             case DECREASE_LEG_WIDTH:
             {
                 decreaseLegWidth();
+                sendLegWidth = TRUE;
                 break;
             }
             
             case INCREASE_LEG_HEIGHT:
             {
                 increaseLegHeight();
+                sendRobotHeight = TRUE;
                 break;
             }
             
             case DECREASE_LEG_HEIGHT:
             {
                 decreaseLegHeight();
+                sendRobotHeight = TRUE;
                 break;
             }
             
             case INCREASE_STEP_LENGTH:
             {
                 increaseStepLength();
+                sendStepLength = TRUE;
                 break;
             }
             
             case DECREASE_STEP_LENGTH:
             {
                 decreaseStepLength();
+                sendStepLength = TRUE;
                 break;
             }
             
             case INCREASE_STEP_HEIGHT:
             {
                 increaseStepHeight();
+                sendStepHeight = TRUE;
                 break;
             }
             
             case DECREASE_STEP_HEIGHT:
             {
                 decreaseStepHeight();
+                sendStepHeight = TRUE;
                 break;
             }
             
             case INCREASE_GAIT_RESOLUTION_TIME:
             {
                 increaseGaitResolutionTime();
+                sendGaitResTime = TRUE;
                 break;
             }
             
             case DECREASE_GAIT_RESOLUTION_TIME:
             {
                 decreaseGaitResolutionTime();
+                sendGaitResTime = TRUE;
                 break;
             }
             
             case INCREASE_K_TRANSLATION:
             {
                 increaseKTranslation();
+                sendKPTrans = TRUE;
                 break;
             }
             
             case DECREASE_K_TRANSLATION:
             {
                 decreaseKTranslation();
+                sendKPTrans = TRUE;
                 break;
             }
             
             case INCREASE_K_ROTATION:
             {
                 increaseKRotation();
+                sendKPAngle = TRUE;
                 break;
             }
             
             case DECREASE_K_ROTATION:
             {
                 decreaseKRotation();
+                sendKPAngle = TRUE;
                 break;
             }
         }
     }
 }
 
-
-
+void sendChangedRobotParameters()
+{
+    if (sendLegWidth)
+    {
+        transmitDataToCommUnit(LEG_DISTANCE_HEADER, startPositionX_g);
+        sendLegWidth = FALSE;
+    }        
+    if (sendStepHeight)
+    {
+        transmitDataToCommUnit(STEP_HEIGHT_HEADER, stepHeight_g);
+        sendStepHeight = FALSE;
+    }
+    if (sendRobotHeight)
+    {
+        transmitDataToCommUnit(ROBOT_HEIGHT_HEADER, -startPositionZ_g);
+        sendRobotHeight = FALSE;
+    }
+    if (sendStepLength) 
+    {
+        transmitDataToCommUnit(STEP_LENGTH_HEADER, stepLength_g);
+        sendStepLength = FALSE;
+    }
+    if (sendKPAngle) 
+    {
+        transmitDataToCommUnit(K_P_ANGLE_HEADER, kProportionalAngle_g);
+        sendKPAngle = FALSE;
+    }
+    if (sendKPTrans) 
+    {
+        transmitDataToCommUnit(K_P_TRANS_HEADER, kProportionalTranslation_g);
+        sendKPTrans = FALSE;
+    }
+    if (sendGaitResTime) 
+    {
+        transmitDataToCommUnit(STEP_INCREMENT_TIME_HEADER, gaitResolutionTime_g);
+        sendGaitResTime = FALSE;
+    }
+}
 
 int main(void)
 {
@@ -1902,14 +1986,12 @@ int main(void)
 
     //currentGait = creepGait;
 
-    
-    
     //moveToCreepStartPosition();
     //makeCreepGait(gaitResolution_g);
     setTimerPeriod(TIMER_0, newGaitResolutionTime);
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
-    
+
     
 
     // ---- Main-Loop ----
@@ -1925,9 +2007,9 @@ int main(void)
     	{
             updateAllDistanceSensorData();
             updateTotalAngle();
+            sendChangedRobotParameters();
             transmitDataToCommUnit(CONTROL_DECISION,currentDirection_g);
             transmitAllDataToCommUnit();
-            lastSentNodeData = makeNodeData(&currentNode_g);
             transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
             resetCommTimer();
     	}
@@ -1940,6 +2022,7 @@ int main(void)
             nodesAndControl();
         
         gaitController();
+        
     }
 }
 
