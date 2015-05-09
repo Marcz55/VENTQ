@@ -1419,7 +1419,7 @@ void increaseLegWidth()
 	return;
 }
 
-void decreaseLegWidth()
+void decreaseLegWidth() 
 {
 	if ((startPositionX_g > 0) && (startPositionY_g > 0))
 	{
