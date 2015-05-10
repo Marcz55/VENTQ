@@ -57,7 +57,7 @@
         <InterfaceName>JTAG</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
-      <ToolNumber>J41800005308</ToolNumber>
+      <ToolNumber>J41800005155</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
     <avrtoolinterface>JTAG</avrtoolinterface>
@@ -122,6 +122,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Definitions.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="nodsystemet.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="nodsystemet.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="Timer.c">
