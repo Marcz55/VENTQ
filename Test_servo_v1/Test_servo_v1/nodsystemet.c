@@ -30,7 +30,7 @@ int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
 int tempSouthAvailible_g = FALSE;
 int tempWestAvailible_g = FALSE;
-int lastAddedNodeIndex_g = 0;
+
 int actualLeak_g = 0;
 int validChange_g = 0;
 //int currentDirection_g = north;
@@ -135,10 +135,12 @@ void updateTempDirections()
 		((distanceValue_g[EAST] < MAX_WALL_DISTANCE) && tempEastAvailible_g == TRUE) ||
 		((distanceValue_g[WEST] > MAX_WALL_DISTANCE) && tempWestAvailible_g == FALSE) ||
 		((distanceValue_g[WEST] < MAX_WALL_DISTANCE) && tempWestAvailible_g == TRUE))
-		setEastAvailible();
-		setNorthAvailible();
-		setWestAvailible();
-		tempSouthAvailible_g = TRUE;
+        {
+		    setEastAvailible();
+		    setNorthAvailible();
+		    setWestAvailible();
+		    tempSouthAvailible_g = TRUE;
+        }        
 	}
     else if (currentDirection_g == east)
 	{
@@ -148,10 +150,12 @@ void updateTempDirections()
 		((distanceValue_g[SOUTH] < MAX_WALL_DISTANCE) && tempSouthAvailible_g == TRUE) ||
 		((distanceValue_g[NORTH] > MAX_WALL_DISTANCE) && tempNorthAvailible_g == FALSE) ||
 		((distanceValue_g[NORTH] < MAX_WALL_DISTANCE) && tempNorthAvailible_g == TRUE))
-		setEastAvailible();
-		setNorthAvailible();
-		setSouthAvailible();
-		tempWestAvailible_g = TRUE;
+        {
+		    setEastAvailible();
+		    setNorthAvailible();
+		    setSouthAvailible();
+		    tempWestAvailible_g = TRUE;
+        }        
 		
 	}
     else if (currentDirection_g == south)
@@ -162,10 +166,12 @@ void updateTempDirections()
 		((distanceValue_g[EAST] < MAX_WALL_DISTANCE) && tempEastAvailible_g == TRUE) ||
 		((distanceValue_g[WEST] > MAX_WALL_DISTANCE) && tempWestAvailible_g == FALSE) ||
 		((distanceValue_g[WEST] < MAX_WALL_DISTANCE) && tempWestAvailible_g == TRUE))
-		setEastAvailible();
-		setSouthAvailible();
-		setWestAvailible();
-		tempNorthAvailible_g = TRUE;
+        {
+		    setEastAvailible();
+		    setSouthAvailible();
+		    setWestAvailible();
+		    tempNorthAvailible_g = TRUE;
+        }        
 	}
     else
 	{
@@ -175,10 +181,12 @@ void updateTempDirections()
 		((distanceValue_g[SOUTH] < MAX_WALL_DISTANCE) && tempSouthAvailible_g == TRUE) ||
 		((distanceValue_g[NORTH] > MAX_WALL_DISTANCE) && tempNorthAvailible_g == FALSE) ||
 		((distanceValue_g[NORTH] < MAX_WALL_DISTANCE) && tempNorthAvailible_g == TRUE))
-		setWestAvailible();
-		setNorthAvailible();
-		setSouthAvailible();
-		tempEastAvailible_g = TRUE;
+        {
+		    setWestAvailible();
+		    setNorthAvailible();
+		    setSouthAvailible();
+		    tempEastAvailible_g = TRUE;
+        }        
 	}
 
     /*if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)    // Kan behöva ändra MAX_WALL_DISTANCE
@@ -607,6 +615,7 @@ int main()
 void initNodeAndSteering()
 {
     // Börjar i en återvändsgränd med norr som frammåt
+    lastAddedNodeIndex_g = 0;
     nodeArray[0].whatNode = MAZE_START;
     nodeArray[0].nodeID = 0;                // Nodens ID initieras som 0, ändras om det är en T_CROSSING
     nodeArray[0].pathsExplored = 0;
@@ -620,8 +629,9 @@ void initNodeAndSteering()
     nodeArray[0].leakID = 0;
 }
 
-void nodesAndControl()
+int nodesAndControl() // Returnerar TRUE om ny nod lades till. FALSE annars.
 {
+    int newNodeAdded = FALSE;
     switch(currentControlMode_g)
     {
         case exploration  :
@@ -640,6 +650,7 @@ void nodesAndControl()
                     lastAddedNodeIndex_g ++;
                     placeNodeInArray();
                     nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lägger in styrbeslut i arrayen
+                    newNodeAdded = TRUE;
                 }
             }
 
@@ -736,4 +747,5 @@ void nodesAndControl()
             }
             break;
     }
+    return newNodeAdded;
 }

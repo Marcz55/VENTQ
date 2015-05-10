@@ -649,26 +649,28 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 	}
 }
 
-
 int toggleMania = FALSE;
+int sendStuff = FALSE;
 ISR(INT1_vect) 
 { 
-    /*
+    
 	if (toggleMania)
     {
-        MoveDynamixel(18,100,20);
+        currentControlMode_g = manual;
+        sendStuff = TRUE;
         toggleMania = FALSE;
     }
     else
     {
+        currentControlMode_g = exploration;
         toggleMania = TRUE;
-        MoveDynamixel(18,180,40);   
+        
     }
-    */
-    /*
-    currentControlMode_g = exploration;	
-	*/
-    sendAllRobotParameters();
+    
+    
+    //currentControlMode_g = exploration;	
+	
+    // sendAllRobotParameters();
     
     //currentGait = trotGait; 
 	//currentDirection_g = north; 
@@ -760,17 +762,6 @@ void getSensorData(enum direction regulationDirection)
     angleValue_g[WEST] = fetchDataFromSensorUnit(ANGLE_WEST);
 	*/
 	
-	/* Test för att kolla om lagget berodde på att hämta data från sensorenheten eller ej, laggfritt med detta.
-	distanceValue_g[NORTH]=0;
-	distanceValue_g[EAST] = 100;
-	distanceValue_g[SOUTH] = 0;
-	distanceValue_g[WEST]=0;
-	
-	angleValue_g[NORTH] = 0;
-	angleValue_g[EAST] = 1000;
-	angleValue_g[SOUTH] = 0;
-	angleValue_g[WEST] = 0;
-	*/
 	
 	// test för att inte hämta så mycket sensordata
 	switch(regulationDirection)
@@ -1974,6 +1965,7 @@ int main(void)
     currentGait = standStill;
     optionsHasChanged_g = 0;
     
+    int nodeAdded = FALSE;
     timer0Init();
     timer2Init();
     sei();
@@ -1992,7 +1984,7 @@ int main(void)
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
 
-    
+    int i = 0;
 
     // ---- Main-Loop ----
     while (1)
@@ -2010,7 +2002,14 @@ int main(void)
             sendChangedRobotParameters();
             transmitDataToCommUnit(CONTROL_DECISION,currentDirection_g);
             transmitAllDataToCommUnit();
-            transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+            if (sendStuff && i < 120)
+            {
+                transmitDataToCommUnit(NODE_INFO, makeNodeData(&nodeArray[i]));
+                i++;
+                         
+            }
+            else
+                transmitDataToCommUnit(NODE_INFO,&currentNode_g);
             resetCommTimer();
     	}
         /*
@@ -2019,7 +2018,11 @@ int main(void)
         */
         
         if (currentControlMode_g != manual)
+        {
+          //  if (nodesAndControl()) // Funktionen returnerar TRUE om en ny nod lagts till.
+            //    nodeAdded = TRUE;
             nodesAndControl();
+        }
         
         gaitController();
         
