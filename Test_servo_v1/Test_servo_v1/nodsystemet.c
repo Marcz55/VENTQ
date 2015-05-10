@@ -23,8 +23,8 @@ int     isLeakVisible_g = 0;
 
 
 
-#define CLOSE_ENOUGH_TO_WALL 320  // Roboten går rakt fram tills den här längden
-#define MAX_WALL_DISTANCE 570    // Utanför denna längd är det ingen vägg
+#define CLOSE_ENOUGH_TO_WALL 220  // Roboten går rakt fram tills den här längden
+#define MAX_WALL_DISTANCE 370    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
@@ -76,19 +76,112 @@ int makeNodeData(node* nodeToSend)
     return data;
 }
 
+void setNorthAvailible()
+{
+	if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)
+	{
+        tempNorthAvailible_g = TRUE;
+	}
+    else
+	{
+        tempNorthAvailible_g = FALSE;
+	}
+}
+
+void setEastAvailible()
+{
+	if (distanceValue_g[EAST] > MAX_WALL_DISTANCE)
+	{
+		tempEastAvailible_g = TRUE;
+	}
+	else
+	{
+		tempEastAvailible_g = FALSE;
+	}
+}
+
+void setSouthAvailible()
+{
+	if (distanceValue_g[SOUTH] > MAX_WALL_DISTANCE)
+	{
+		tempSouthAvailible_g = TRUE;
+	}
+	else
+	{
+		tempSouthAvailible_g = FALSE;
+	}
+}
+
+void setWestAvailible()
+{
+	if (distanceValue_g[WEST] > MAX_WALL_DISTANCE)
+	{
+		tempWestAvailible_g = TRUE;
+	}
+	else
+	{
+		tempWestAvailible_g = FALSE;
+	}
+}
+
 // Ska finnas i bägge modes
 void updateTempDirections()
 {
     if (currentDirection_g == north)
+	{
         distanceToFrontWall_g = distanceValue_g[NORTH];
+		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
+		((distanceValue_g[EAST] > MAX_WALL_DISTANCE) && tempEastAvailible_g == FALSE) ||
+		((distanceValue_g[EAST] < MAX_WALL_DISTANCE) && tempEastAvailible_g == TRUE) ||
+		((distanceValue_g[WEST] > MAX_WALL_DISTANCE) && tempWestAvailible_g == FALSE) ||
+		((distanceValue_g[WEST] < MAX_WALL_DISTANCE) && tempWestAvailible_g == TRUE))
+		setEastAvailible();
+		setNorthAvailible();
+		setWestAvailible();
+		tempSouthAvailible_g = TRUE;
+	}
     else if (currentDirection_g == east)
+	{
         distanceToFrontWall_g = distanceValue_g[EAST];
+		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
+		((distanceValue_g[SOUTH] > MAX_WALL_DISTANCE) && tempSouthAvailible_g == FALSE) ||
+		((distanceValue_g[SOUTH] < MAX_WALL_DISTANCE) && tempSouthAvailible_g == TRUE) ||
+		((distanceValue_g[NORTH] > MAX_WALL_DISTANCE) && tempNorthAvailible_g == FALSE) ||
+		((distanceValue_g[NORTH] < MAX_WALL_DISTANCE) && tempNorthAvailible_g == TRUE))
+		setEastAvailible();
+		setNorthAvailible();
+		setSouthAvailible();
+		tempWestAvailible_g = TRUE;
+		
+	}
     else if (currentDirection_g == south)
+	{
         distanceToFrontWall_g = distanceValue_g[SOUTH];
+		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
+		((distanceValue_g[EAST] > MAX_WALL_DISTANCE) && tempEastAvailible_g == FALSE) ||
+		((distanceValue_g[EAST] < MAX_WALL_DISTANCE) && tempEastAvailible_g == TRUE) ||
+		((distanceValue_g[WEST] > MAX_WALL_DISTANCE) && tempWestAvailible_g == FALSE) ||
+		((distanceValue_g[WEST] < MAX_WALL_DISTANCE) && tempWestAvailible_g == TRUE))
+		setEastAvailible();
+		setSouthAvailible();
+		setWestAvailible();
+		tempNorthAvailible_g = TRUE;
+	}
     else
+	{
         distanceToFrontWall_g = distanceValue_g[WEST];
+		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
+		((distanceValue_g[SOUTH] > MAX_WALL_DISTANCE) && tempSouthAvailible_g == FALSE) ||
+		((distanceValue_g[SOUTH] < MAX_WALL_DISTANCE) && tempSouthAvailible_g == TRUE) ||
+		((distanceValue_g[NORTH] > MAX_WALL_DISTANCE) && tempNorthAvailible_g == FALSE) ||
+		((distanceValue_g[NORTH] < MAX_WALL_DISTANCE) && tempNorthAvailible_g == TRUE))
+		setWestAvailible();
+		setNorthAvailible();
+		setSouthAvailible();
+		tempEastAvailible_g = TRUE;
+	}
 
-    if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)    // Kan behöva ändra MAX_WALL_DISTANCE
+    /*if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)    // Kan behöva ändra MAX_WALL_DISTANCE
         tempNorthAvailible_g = TRUE;
     else
         tempNorthAvailible_g = FALSE;
@@ -109,7 +202,7 @@ void updateTempDirections()
     if (distanceValue_g[WEST] > MAX_WALL_DISTANCE)
         tempWestAvailible_g = TRUE;
     else
-        tempWestAvailible_g = FALSE;
+        tempWestAvailible_g = FALSE;*/
 }
 
 // Ska finnas i bägge modes
@@ -199,7 +292,7 @@ int isChangeDetected()
 // Denna funktion hanterar konstiga fenomen i Z_CROSSING, hanteras dock som två st 2vägskorsningar
 int checkIfNewNode()
 {
-    if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
+    /*if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
     }
@@ -209,6 +302,8 @@ int checkIfNewNode()
     }
     else
         return FALSE;
+		*/
+	return isChangeDetected();
 }
 
 // MapMode
