@@ -55,6 +55,7 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 
 int leakFound = 0; // "Bool" 1=true, 0=false
+int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
 
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
@@ -625,10 +626,17 @@ ISR(SPISTC_vect)//SPI-överföring klar
     }    
 }
 
+ISR(INT0_vect)
+{
+	potentialLeak_g += 1;
+}
+
 int main(void)
 {	
 	initPorts();
-    
+    MCUCR = 0b1111; // Stigande flank på INT1/0 genererar avbrott
+    GICR = (GICR | 3); // Möjliggör externa avbrott på INT1/0
+	
 	int iteration = 0; // Iterator för vilken avläsning på sensorn som görs
 	
 	makeAngleTable();
@@ -637,7 +645,13 @@ int main(void)
 
     while(1)
     {
-		leakFound = !leakBit;
+		if(potentialLeak_g > 1)
+		{
+			leakFound = 1;
+			
+		}
+		//leakFound = !leakBit;
+		potentialLeak_g = 0;
 				
 		if (iteration >= 4) // iteration används så att det görs 5 mätningar per sensor
 		{

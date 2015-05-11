@@ -68,7 +68,8 @@ void spiReset()
 
 void removeFirst ()
 {
-    if (first_p_g == NULL)
+    cli();
+	if (first_p_g == NULL)
     {
         return;
     }
@@ -78,6 +79,7 @@ void removeFirst ()
         free (first_p_g);
         first_p_g = temp_p;
     }
+	sei();
 }
 
 void processList()
@@ -125,7 +127,7 @@ int main(void)
 	{
         while(last_p_g != NULL)   //Gå igenom listan tills den blir tom
         {
-          processList();   
+		  processList();   
         }
         MCUCR = (1<<SE); //Sleep enable
 	    sleep_mode(); //Gå in i sleep mode om det inte finns något att göra
