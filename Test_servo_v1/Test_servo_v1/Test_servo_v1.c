@@ -666,14 +666,7 @@ ISR(INT1_vect)
         toggleMania = TRUE;
         
     }
-    
-    
-    //currentControlMode_g = exploration;	
 	
-    // sendAllRobotParameters();
-    
-    //currentGait = trotGait; 
-	//currentDirection_g = north; 
 	/*
     directionHasChanged = 1;
     switch(currentDirection_g)
@@ -1309,7 +1302,6 @@ void MakeTrotGait(int cycleResolution)
     int leftSideTotalStepLength = stepLength_g + leftSideStepLengthAdjust; // left hänvisar till den vänstra sidan relativt rörelseriktningen
     int rightSideTotalStepLength = stepLength_g + rightSideStepLengthAdjust; // right hänvisar till den högra sidan relativt rörelseriktningen
 
-    directionHasChanged = 0;
     switch(currentDirection_g)
     {       
     // rörelsemönstret finns på ett papper (frontleft och rearright börjar alltid med curved)
@@ -2001,7 +1993,8 @@ int main(void)
             updateAllDistanceSensorData();
             updateTotalAngle();
             sendChangedRobotParameters();
-            transmitDataToCommUnit(CONTROL_DECISION,currentDirection_g);
+			transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+            transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
             transmitAllDataToCommUnit();
             if (sendStuff && i < 120)
             {

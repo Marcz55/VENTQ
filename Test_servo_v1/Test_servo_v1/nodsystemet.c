@@ -5,13 +5,6 @@
 #include "Definitions.h"
 #include "nodsystemet.h"
 
-
-#define exploration      0
-#define returnToLeak  1    // Dessa behandlar variabeln currentControlMode_g, som bestämmer om labyrinten ska genomsökas,
-#define waitForInput 2    // hitta vald läcka eller vänta på input
-
-
-
 #define MAX_T_CROSSINGS 10
 
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
@@ -23,14 +16,14 @@ int     isLeakVisible_g = 0;
 
 
 
-#define CLOSE_ENOUGH_TO_WALL 220  // Roboten går rakt fram tills den här längden
-#define MAX_WALL_DISTANCE 370    // Utanför denna längd är det ingen vägg
+#define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
+#define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
 int tempSouthAvailible_g = FALSE;
 int tempWestAvailible_g = FALSE;
-
+int lastAddedNodeIndex_g = 0;
 int actualLeak_g = 0;
 int validChange_g = 0;
 //int currentDirection_g = north;
@@ -76,120 +69,19 @@ int makeNodeData(node* nodeToSend)
     return data;
 }
 
-void setNorthAvailible()
-{
-	if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)
-	{
-        tempNorthAvailible_g = TRUE;
-	}
-    else
-	{
-        tempNorthAvailible_g = FALSE;
-	}
-}
-
-void setEastAvailible()
-{
-	if (distanceValue_g[EAST] > MAX_WALL_DISTANCE)
-	{
-		tempEastAvailible_g = TRUE;
-	}
-	else
-	{
-		tempEastAvailible_g = FALSE;
-	}
-}
-
-void setSouthAvailible()
-{
-	if (distanceValue_g[SOUTH] > MAX_WALL_DISTANCE)
-	{
-		tempSouthAvailible_g = TRUE;
-	}
-	else
-	{
-		tempSouthAvailible_g = FALSE;
-	}
-}
-
-void setWestAvailible()
-{
-	if (distanceValue_g[WEST] > MAX_WALL_DISTANCE)
-	{
-		tempWestAvailible_g = TRUE;
-	}
-	else
-	{
-		tempWestAvailible_g = FALSE;
-	}
-}
-
 // Ska finnas i bägge modes
 void updateTempDirections()
 {
     if (currentDirection_g == north)
-	{
         distanceToFrontWall_g = distanceValue_g[NORTH];
-		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
-		((distanceValue_g[EAST] > MAX_WALL_DISTANCE) && tempEastAvailible_g == FALSE) ||
-		((distanceValue_g[EAST] < MAX_WALL_DISTANCE) && tempEastAvailible_g == TRUE) ||
-		((distanceValue_g[WEST] > MAX_WALL_DISTANCE) && tempWestAvailible_g == FALSE) ||
-		((distanceValue_g[WEST] < MAX_WALL_DISTANCE) && tempWestAvailible_g == TRUE))
-        {
-		    setEastAvailible();
-		    setNorthAvailible();
-		    setWestAvailible();
-		    tempSouthAvailible_g = TRUE;
-        }        
-	}
     else if (currentDirection_g == east)
-	{
         distanceToFrontWall_g = distanceValue_g[EAST];
-		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
-		((distanceValue_g[SOUTH] > MAX_WALL_DISTANCE) && tempSouthAvailible_g == FALSE) ||
-		((distanceValue_g[SOUTH] < MAX_WALL_DISTANCE) && tempSouthAvailible_g == TRUE) ||
-		((distanceValue_g[NORTH] > MAX_WALL_DISTANCE) && tempNorthAvailible_g == FALSE) ||
-		((distanceValue_g[NORTH] < MAX_WALL_DISTANCE) && tempNorthAvailible_g == TRUE))
-        {
-		    setEastAvailible();
-		    setNorthAvailible();
-		    setSouthAvailible();
-		    tempWestAvailible_g = TRUE;
-        }        
-		
-	}
     else if (currentDirection_g == south)
-	{
         distanceToFrontWall_g = distanceValue_g[SOUTH];
-		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
-		((distanceValue_g[EAST] > MAX_WALL_DISTANCE) && tempEastAvailible_g == FALSE) ||
-		((distanceValue_g[EAST] < MAX_WALL_DISTANCE) && tempEastAvailible_g == TRUE) ||
-		((distanceValue_g[WEST] > MAX_WALL_DISTANCE) && tempWestAvailible_g == FALSE) ||
-		((distanceValue_g[WEST] < MAX_WALL_DISTANCE) && tempWestAvailible_g == TRUE))
-        {
-		    setEastAvailible();
-		    setSouthAvailible();
-		    setWestAvailible();
-		    tempNorthAvailible_g = TRUE;
-        }        
-	}
     else
-	{
         distanceToFrontWall_g = distanceValue_g[WEST];
-		if ((distanceToFrontWall_g <= CLOSE_ENOUGH_TO_WALL) ||
-		((distanceValue_g[SOUTH] > MAX_WALL_DISTANCE) && tempSouthAvailible_g == FALSE) ||
-		((distanceValue_g[SOUTH] < MAX_WALL_DISTANCE) && tempSouthAvailible_g == TRUE) ||
-		((distanceValue_g[NORTH] > MAX_WALL_DISTANCE) && tempNorthAvailible_g == FALSE) ||
-		((distanceValue_g[NORTH] < MAX_WALL_DISTANCE) && tempNorthAvailible_g == TRUE))
-        {
-		    setWestAvailible();
-		    setNorthAvailible();
-		    setSouthAvailible();
-		    tempEastAvailible_g = TRUE;
-        }        
-	}
 
-    /*if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)    // Kan behöva ändra MAX_WALL_DISTANCE
+    if (distanceValue_g[NORTH] > MAX_WALL_DISTANCE)    // Kan behöva ändra MAX_WALL_DISTANCE
         tempNorthAvailible_g = TRUE;
     else
         tempNorthAvailible_g = FALSE;
@@ -210,7 +102,7 @@ void updateTempDirections()
     if (distanceValue_g[WEST] > MAX_WALL_DISTANCE)
         tempWestAvailible_g = TRUE;
     else
-        tempWestAvailible_g = FALSE;*/
+        tempWestAvailible_g = FALSE;
 }
 
 // Ska finnas i bägge modes
@@ -300,7 +192,18 @@ int isChangeDetected()
 // Denna funktion hanterar konstiga fenomen i Z_CROSSING, hanteras dock som två st 2vägskorsningar
 int checkIfNewNode()
 {
-    /*if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
+	if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
+	{
+		if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+		else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+		else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+		else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+	}
+    if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
     }
@@ -310,8 +213,6 @@ int checkIfNewNode()
     }
     else
         return FALSE;
-		*/
-	return isChangeDetected();
 }
 
 // MapMode
@@ -615,7 +516,6 @@ int main()
 void initNodeAndSteering()
 {
     // Börjar i en återvändsgränd med norr som frammåt
-    lastAddedNodeIndex_g = 0;
     nodeArray[0].whatNode = MAZE_START;
     nodeArray[0].nodeID = 0;                // Nodens ID initieras som 0, ändras om det är en T_CROSSING
     nodeArray[0].pathsExplored = 0;
@@ -629,9 +529,9 @@ void initNodeAndSteering()
     nodeArray[0].leakID = 0;
 }
 
-int nodesAndControl() // Returnerar TRUE om ny nod lades till. FALSE annars.
+int nodesAndControl()
 {
-    int newNodeAdded = FALSE;
+	int newNodeAdded = FALSE;
     switch(currentControlMode_g)
     {
         case exploration  :
@@ -650,7 +550,7 @@ int nodesAndControl() // Returnerar TRUE om ny nod lades till. FALSE annars.
                     lastAddedNodeIndex_g ++;
                     placeNodeInArray();
                     nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lägger in styrbeslut i arrayen
-                    newNodeAdded = TRUE;
+					newNodeAdded = TRUE;
                 }
             }
 
@@ -702,50 +602,53 @@ int nodesAndControl() // Returnerar TRUE om ny nod lades till. FALSE annars.
             break;
 
         case returnToLeak  :
+			{
+			updateTempDirections();
 
-            updateTempDirections();
+			if (checkIfNewNode() == TRUE)
+			{
+				updateCurrentNode();
 
-            if (checkIfNewNode() == TRUE)
-            {
-                updateCurrentNode();
+				if (currentNode_g.whatNode == T_CROSSING)
+				{
+					directionHasChanged = TRUE;
+					nextDirection_g = pathToLeak[currentPath];
+					currentPath ++;
+					// skicka info om detta till datorn
+				}
+				else
+				{
+					nextDirection_g = decideDirection();
+					directionHasChanged = TRUE;
+					// Skicka info om detta till datorn
+				}
+			}
 
-                if (currentNode_g.whatNode == T_CROSSING)
-                {
-                    directionHasChanged = TRUE;
-                    nextDirection_g = pathToLeak[currentPath];
-                    currentPath ++;
-                    // skicka info om detta till datorn
-                }
-                else
-                {
-                    nextDirection_g = decideDirection();
-                    directionHasChanged = TRUE;
-                    // Skicka info om detta till datorn
-                }
-            }
+			if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
+			{
+				if (validLeak() == TRUE)
+				{
+					if (currentNode_g.containsLeak == FALSE)   // Denna koll gör att samma läcka inte hanteras igen som en ny
+					{
+						currentNode_g.containsLeak = TRUE;
 
-            if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
-            {
-                if (validLeak() == TRUE)
-                {
-                    if (currentNode_g.containsLeak == FALSE)   // Denna koll gör att samma läcka inte hanteras igen som en ny
-                    {
-                        currentNode_g.containsLeak = TRUE;
-
-                        if (leaksToPass_g == 0)
-                            {
-                                if (currentDirection_g != noDirection)
-                                {
-                                    directionHasChanged = TRUE;     // Läckan är nu hittad
-                                    nextDirection_g = noDirection;
-                                }  
-                            }
-                        else
-                            leaksToPass_g --;
-                    }
-                }
-            }
-            break;
+						if (leaksToPass_g == 0)
+						{
+							if (currentDirection_g != noDirection)
+							{
+								directionHasChanged = TRUE;     // Läckan är nu hittad
+								nextDirection_g = noDirection;
+							}
+						}
+						else
+						leaksToPass_g --;
+					}
+				}
+			}
+			break;
+			}
+        default:
+			break;
     }
-    return newNodeAdded;
+	return newNodeAdded;
 }
