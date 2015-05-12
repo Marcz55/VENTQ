@@ -1994,6 +1994,7 @@ int main(void)
     	{
     	    move();
     	    resetLegTimer();
+            gaitController();
     	}
     	if (commTimerPeriodEnd())
     	{
@@ -2009,7 +2010,7 @@ int main(void)
                          
             }
             else
-                transmitDataToCommUnit(NODE_INFO,&currentNode_g);
+                transmitDataToCommUnit(NODE_INFO, &currentNode_g);
             resetCommTimer();
     	}
         /*
@@ -2024,7 +2025,7 @@ int main(void)
             nodesAndControl();
         }
         
-        gaitController();
+        
         
     }
 }
