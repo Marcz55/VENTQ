@@ -5,13 +5,6 @@
 #include "Definitions.h"
 #include "nodsystemet.h"
 
-
-#define exploration      0
-#define returnToLeak  1    // Dessa behandlar variabeln currentControlMode_g, som bestämmer om labyrinten ska genomsökas,
-#define waitForInput 2    // hitta vald läcka eller vänta på input
-
-
-
 #define MAX_T_CROSSINGS 10
 
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
@@ -23,8 +16,8 @@ int     isLeakVisible_g = 0;
 
 
 
-#define CLOSE_ENOUGH_TO_WALL 320  // Roboten går rakt fram tills den här längden
-#define MAX_WALL_DISTANCE 570    // Utanför denna längd är det ingen vägg
+#define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
+#define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
@@ -199,6 +192,17 @@ int isChangeDetected()
 // Denna funktion hanterar konstiga fenomen i Z_CROSSING, hanteras dock som två st 2vägskorsningar
 int checkIfNewNode()
 {
+	if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
+	{
+		if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+		else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+		else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+		else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 80))
+			return FALSE;
+	}
     if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
@@ -525,8 +529,9 @@ void initNodeAndSteering()
     nodeArray[0].leakID = 0;
 }
 
-void nodesAndControl()
+int nodesAndControl()
 {
+	int newNodeAdded = FALSE;
     switch(currentControlMode_g)
     {
         case exploration  :
@@ -545,6 +550,7 @@ void nodesAndControl()
                     lastAddedNodeIndex_g ++;
                     placeNodeInArray();
                     nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lägger in styrbeslut i arrayen
+					newNodeAdded = TRUE;
                 }
             }
 
@@ -596,49 +602,53 @@ void nodesAndControl()
             break;
 
         case returnToLeak  :
+			{
+			updateTempDirections();
 
-            updateTempDirections();
+			if (checkIfNewNode() == TRUE)
+			{
+				updateCurrentNode();
 
-            if (checkIfNewNode() == TRUE)
-            {
-                updateCurrentNode();
+				if (currentNode_g.whatNode == T_CROSSING)
+				{
+					directionHasChanged = TRUE;
+					nextDirection_g = pathToLeak[currentPath];
+					currentPath ++;
+					// skicka info om detta till datorn
+				}
+				else
+				{
+					nextDirection_g = decideDirection();
+					directionHasChanged = TRUE;
+					// Skicka info om detta till datorn
+				}
+			}
 
-                if (currentNode_g.whatNode == T_CROSSING)
-                {
-                    directionHasChanged = TRUE;
-                    nextDirection_g = pathToLeak[currentPath];
-                    currentPath ++;
-                    // skicka info om detta till datorn
-                }
-                else
-                {
-                    nextDirection_g = decideDirection();
-                    directionHasChanged = TRUE;
-                    // Skicka info om detta till datorn
-                }
-            }
+			if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
+			{
+				if (validLeak() == TRUE)
+				{
+					if (currentNode_g.containsLeak == FALSE)   // Denna koll gör att samma läcka inte hanteras igen som en ny
+					{
+						currentNode_g.containsLeak = TRUE;
 
-            if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
-            {
-                if (validLeak() == TRUE)
-                {
-                    if (currentNode_g.containsLeak == FALSE)   // Denna koll gör att samma läcka inte hanteras igen som en ny
-                    {
-                        currentNode_g.containsLeak = TRUE;
-
-                        if (leaksToPass_g == 0)
-                            {
-                                if (currentDirection_g != noDirection)
-                                {
-                                    directionHasChanged = TRUE;     // Läckan är nu hittad
-                                    nextDirection_g = noDirection;
-                                }  
-                            }
-                        else
-                            leaksToPass_g --;
-                    }
-                }
-            }
-            break;
+						if (leaksToPass_g == 0)
+						{
+							if (currentDirection_g != noDirection)
+							{
+								directionHasChanged = TRUE;     // Läckan är nu hittad
+								nextDirection_g = noDirection;
+							}
+						}
+						else
+						leaksToPass_g --;
+					}
+				}
+			}
+			break;
+			}
+        default:
+			break;
     }
+	return newNodeAdded;
 }

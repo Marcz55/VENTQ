@@ -32,6 +32,8 @@ struct node
 struct node nodeArray[MAX_NODES];
 struct node currentNode_g;
 
+int lastAddedNodeIndex_g;
+
 int makeNodeData(node* nodeToSend);
 void updateTempDirections();
 int validLeak();
@@ -52,6 +54,6 @@ int southToNext();
 int westToNext();
 int decideDirection();      // Autonoma läget
 void initNodeAndSteering();
-void nodesAndControl();
+int nodesAndControl();
 
 #endif /* NODSYSTEMET_H_ */
