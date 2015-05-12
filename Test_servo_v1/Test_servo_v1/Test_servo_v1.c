@@ -15,8 +15,12 @@
 #include "Definitions.h"
 #include "nodsystemet.h"
 #include <stdlib.h>
-#include <Math.h>
 
+int halfPathWidth_g = 570/2; // Avståndet mellan väggar
+int regulation_g[3]; // array som regleringen sparas i
+
+int closeEnoughToTurn = 0;
+		
 
 
 int stepLength_g = 60;
@@ -38,7 +42,8 @@ int needToCalcGait = 1;
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
-int BlindStepsToTake_g = Math.round((halfPathWidth_g - 8)/stepLength_g);
+int BlindStepsToTake_g = 0;
+
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
@@ -705,8 +710,6 @@ ISR(INT1_vect)
 } 
 
 
-int halfPathWidth_g = 570/2; // Avståndet mellan väggar
-int regulation_g[3]; // array som regleringen sparas i
 
 
 
@@ -1061,64 +1064,34 @@ int decideRegulationDirection()
 // används som en globalvariabel för att veta vilken typ av "action" vi ska göra.
 enum order{
 	noOrder, // inte utföra något
-	turnRight, // svänga höger med möjlighet att reglera mot en vägg framför roboten
-	turnLeft, // svänga vänster -"-
-	turnRightBlind, // svänga höger utan möjlighet att reglera mot någon vägg framför roboten
-	turnLeftBlind, // svänga vänster -"-
+	turnBlind,
+	turnSeeing
 };
 enum order currentOrder_g = noOrder;
 
 // en funktion som utför det currentAction_g anger
 void applyOrder()
 {
-	switch(currentOrder_g)
+	if(currentOrder_g == turnBlind)
 	{
-		case turnRight:
+		BlindStepsTaken_g = BlindStepsTaken_g + 1;
+		if(BlindStepsTaken_g >= BlindStepsToTake_g)
 		{
-			// vi ska svänga åt höger när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection_g] < stepLength_g/2 + halfPathWidth_g)
-			{
-				currentDirection_g = (currentDirection_g + 1) % 4; // ökar currentDirection_g med ett vilket medför att vi svänger åt höger
-				currentOrder_g = noOrder; 
-			}
-			break;
-		}
-		
-		case turnRightBlind:
-		{
-			BlindStepsTaken_g += BlindStepsTaken_g;
-			if (BlindStepsTaken_g >= BlindStepsToTake_g)
-			{
-				currentDirection_g = (currentDirection_g + 1) % 4; // ökar currentDirection_g med ett vilket medför att vi svänger åt höger
-				currentOrder_g = noOrder;
-				BlindStepsTaken_g = 0;
-			}
-			break;
-		}
-
-		case turnLeft:
-		{
-			// vi ska svänga åt vänster när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection_g] < stepLength_g/2 + halfPathWidth_g)
-			{
-				currentDirection_g = (4 + (currentDirection_g - 1)) % 4; // minskar currentDirection_g med ett vilket medför att vi svänger åt vänster
-				currentOrder_g = noOrder;
-			}        
-			break;
-		}
-
-		case turnLeftBlind:
-		{
-			BlindStepsTaken_g += BlindStepsTaken_g;
-			if (BlindStepsTaken_g >= BlindStepsToTake_g)
-			{
-				currentDirection_g = (4 + (currentDirection_g - 1)) % 4; // minskar currentDirection_g med ett vilket medför att vi svänger åt vänster
-				currentOrder_g = noOrder;
-				BlindStepsTaken_g = 0;
-			}
-			break;
+			currentDirection_g = nextDirection_g;
+			currentOrder_g = noOrder;
+			BlindStepsTaken_g = 0;
 		}
 	}
+	if(currentOrder_g == turnSeeing)	
+	{
+		closeEnoughToTurn = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
+		if (closeEnoughToTurn)
+		{
+			currentOrder_g = noOrder;
+			currentDirection_g = nextDirection_g;
+		}
+	}
+	return;
 }
 /*
 / 
@@ -1553,8 +1526,50 @@ void makeGaitTransition(enum gait newGait)
         }
     }
 }
+
+int frontAvailable()
+{
+	int northAvailable = currentNode_g.northAvailible;
+	int eastAvailable = currentNode_g.eastAvailible;
+	int southAvailable = currentNode_g.southAvailible;
+	int westAvailable = currentNode_g.westAvailible;
+	
+	switch (currentDirection_g)
+	{
+		case north:
+		{
+			return northAvailable;
+			break;
+		}
+		
+		case east:
+		{
+			return eastAvailable;
+			break;
+		}
+		
+		case south:
+		{
+			return southAvailable;
+			break;
+		}
+		
+		case west:
+		{
+			return westAvailable;
+			break;
+		}
+	}
+	return 0;
+}
+
+
 void gaitController()
 {
+	
+	// tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
+	
+	
 	if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
 	{
 		calcRegulation(decideRegulationDirection(), TRUE);
@@ -1740,7 +1755,31 @@ void gaitController()
         {
             directionHasChanged = FALSE;
             needToCalcGait = TRUE;
-            switch(nextDirection_g)
+			if (currentGait == standStill)
+			{
+				transitionStartToTrot();
+			}
+			currentGait = trotGait;
+            if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
+		    {
+				if (nextDirection_g == currentDirection_g | nextDirection_g == ((currentDirection_g + 2) % 4)) // undersöker om nästa riktning är fram eller bak relativt nuvarande riktning
+				{
+					currentDirection_g = nextDirection_g; // om fram eller bak så är det bar att byta
+				}
+				else 
+				{
+					if (frontAvailable()) // om vänster eller höger rel. nuvarande riktning måste vi undersöka om vi ska svänga blint eller med syn
+					{
+						currentOrder_g = turnBlind;
+					}
+					else
+					{
+						currentOrder_g = turnSeeing;
+					}
+				}
+			}
+			/*
+			switch(nextDirection_g)
             {
                 case north:
                 {
@@ -1754,9 +1793,9 @@ void gaitController()
                     if (currentOrder_g == noOrder)
                     {
                         // Om nästa riktning är åt norr så ska vi undersöka om vi går åt öst eller väst och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == east) 
+                        if(currentDirection_g == east) 
                         {
-                            if(eastAvailable)
+                            if(frontAvailable())
                             {
                                 currentOrder_g = turnLeftBlind;
                             }
@@ -1765,7 +1804,7 @@ void gaitController()
                                 currentOrder_g = turnLeft;
                             }
                         }
-                        else if (currentDirection == west)
+                        else if (currentDirection_g == west)
                         {
                             if (westAvailable)
                             {
@@ -1797,7 +1836,7 @@ void gaitController()
                     if (currentOrder_g == noOrder)
                     {
                         // Om nästa riktning är åt öst så ska vi undersöka om vi går åt syd eller norr och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == south) 
+                        if(currentDirection_g == south) 
                         {
                             if(southAvailable)
                             {
@@ -1808,7 +1847,7 @@ void gaitController()
                                 currentOrder_g = turnLeft;
                             }
                         }
-                        else if (currentDirection == north)
+                        else if (currentDirection_g == north)
                         {
                             if (northAvailable)
                             {
@@ -1839,7 +1878,7 @@ void gaitController()
                     if (currentOrder_g == noOrder)
                     {
                         // Om nästa riktning är åt syd så ska vi undersöka om vi går åt väst eller öst och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == west) 
+                        if(currentDirection_g == west) 
                         {
                             if(westAvailable)
                             {
@@ -1850,7 +1889,7 @@ void gaitController()
                                 currentOrder_g = turnLeft;
                             }
                         }
-                        else if (currentDirection == east)
+                        else if (currentDirection_g == east)
                         {
                             if (eastAvailable)
                             {
@@ -1880,7 +1919,7 @@ void gaitController()
                     if (currentOrder_g == noOrder)
                     {
                         // Om nästa riktning är åt väst så ska vi undersöka om vi går åt norr eller syd och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == north) 
+                        if(currentDirection_g == north) 
                         {
                             if(northAvailable)
                             {
@@ -1891,7 +1930,7 @@ void gaitController()
                                 currentOrder_g = turnLeft;
                             }
                         }
-                        else if (currentDirection == south)
+                        else if (currentDirection_g == south)
                         {
                             if (southAvailable)
                             {
@@ -1918,7 +1957,7 @@ void gaitController()
                     currentDirection_g = noDirection;                    
                     break;
                 }
-            }
+            }*/
         }
     }
     if(optionsHasChanged_g == 1)
@@ -2069,8 +2108,7 @@ void sendChangedRobotParameters()
 
 int main(void)
 {
-    
-    initUSART();
+	initUSART();
     spiMasterInit();
     EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     EIMSK = (EIMSK | 3); // Möjliggör externa avbrott på INT1/0
@@ -2080,13 +2118,14 @@ int main(void)
     nextPos_g = 1;
     currentControlMode_g = manual;
     currentDirection_g = north;
-    nextDirection_g = north;
+	nextDirection_g = north;
     currentOptionInstruction_g = 0;
     initNodeAndSteering();
     directionHasChanged = FALSE;
     currentGait = standStill;
     optionsHasChanged_g = 0;
-    
+    BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+	
     int nodeAdded = FALSE;
     timer0Init();
     timer2Init();
@@ -2104,7 +2143,7 @@ int main(void)
     //makeCreepGait(gaitResolution_g);
     setTimerPeriod(TIMER_0, newGaitResolutionTime);
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
-    
+    sendAllRobotParameters();
 
     int i = 0;
 
@@ -2127,14 +2166,16 @@ int main(void)
 			transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
             transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
             transmitAllDataToCommUnit();
-            if (sendStuff && i < 120)
+            /*
+			if (sendStuff && i < 120)
             {
                 transmitDataToCommUnit(NODE_INFO, makeNodeData(&nodeArray[i]));
                 i++;
                          
             }
             else
-                transmitDataToCommUnit(NODE_INFO, &currentNode_g);
+                transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+				*/
             resetCommTimer();
     	}
         /*
