@@ -31,7 +31,7 @@ void bluetoothInit()
     UCSRB = (1<<RXEN)|(1<<TXEN)|(1<<RXCIE); //Sätt på sändare och mottagare, samt sätt på interrupts vid recieve complete respektive tom buffer.
     UCSRC = (1<<URSEL)|(3<<UCSZ0)|(0<<UPM1)|(0<<UPM0); //Sätt 8-bit meddelanden samt ingen paritet
     DDRA = (0<<DDA1)|(1<<DDA0)|(1<<DDA2); //Definiera en input och en output
-    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet
+    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 }
 
 void spiInit(void)
@@ -68,7 +68,8 @@ void spiReset()
 
 void removeFirst ()
 {
-    if (first_p_g == NULL)
+    cli();
+	if (first_p_g == NULL)
     {
         return;
     }
@@ -78,6 +79,7 @@ void removeFirst ()
         free (first_p_g);
         first_p_g = temp_p;
     }
+	sei();
 }
 
 void processList()
@@ -125,7 +127,7 @@ int main(void)
 	{
         while(last_p_g != NULL)   //Gå igenom listan tills den blir tom
         {
-          processList();   
+		  processList();   
         }
         MCUCR = (1<<SE); //Sleep enable
 	    sleep_mode(); //Gå in i sleep mode om det inte finns något att göra
