@@ -203,7 +203,7 @@ enum direction currentDirection_g;
 enum direction nextDirection_g;
 
 enum controlMode{
-    manual,
+    manual = 0,
     exploration,
     returnToLeak,
     waitForInput
