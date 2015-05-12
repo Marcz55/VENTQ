@@ -54,8 +54,9 @@ int sideDistance3; // Beror på sensor 5 och 6
 int sideDistance4; // Beror på sensor 7 och 8
 
 
-int leakFound = 0; // "Bool" 1=true, 0=false
+int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
+int leakSensitivity_g = 6; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
 
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
@@ -87,7 +88,7 @@ int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal
 //int angleTable[] = {0, (180/3.141592)*asin(1/(sqrt(1 + 15*15))), (180/3.141592)*asin(2/(sqrt(4 + 15*15))), (180/3.141592)*asin(3/(sqrt(9 + 15*15))), (180/3.141592)*asin(4/(sqrt(16 + 15*15))), (180/3.141592)*asin(5/(sqrt(25 + 15*15))), (180/3.141592)*asin(6/(sqrt(36 + 15*15))), (180/3.141592)*asin(7/(sqrt(49 + 15*15))), (180/3.141592)*asin(8/(sqrt(64 + 15*15))), (180/3.141592)*asin(9/(sqrt(81 + 15*15))), (180/3.141592)*asin(10/(sqrt(100 + 15*15))), (180/3.141592)*asin(11/(sqrt(121 + 15*15))), (180/3.141592)*asin(12/(sqrt(144 + 15*15))), (180/3.141592)*asin(13/(sqrt(169 + 15*15))), (180/3.141592)*asin(14/(sqrt(196 + 15*15)))};
 
 #define differentAngles 150 // Hur många vinklar som finns i look-up-table
-#define sidelenght	175U	// Sidan mellan två sensorer, 175 millimeter, U för att undvika overflow för värden större än 46
+#define sidelenght	118U	// Sidan mellan två sensorer, 175 millimeter, U för att undvika overflow för värden större än 46
 #define displayE	PORTB1	// E på displayen
 #define displayRS	PORTB0	// RS på displayen
 #define MISO        PORTB6
@@ -511,7 +512,7 @@ void splitDataBytes(int recievedHeader)
 				}
 				case LEAK_HEADER:
 				{
-					dataToSplit = leakFound;
+					dataToSplit = leakFound_g;
 					break;
 				}
 				case SENSOR_3:
@@ -626,7 +627,7 @@ ISR(SPISTC_vect)//SPI-överföring klar
     }    
 }
 
-ISR(INT0_vect)
+ISR(INT2_vect)
 {
 	potentialLeak_g += 1;
 }
@@ -634,8 +635,8 @@ ISR(INT0_vect)
 int main(void)
 {	
 	initPorts();
-    MCUCR = 0b1111; // Stigande flank på INT1/0 genererar avbrott
-    GICR = (GICR | 3); // Möjliggör externa avbrott på INT1/0
+    //MCUCR = 0b1111; // Stigande flank på INT1/0 genererar avbrott
+    GICR = (GICR | 32); // Möjliggör externa avbrott på INT2
 	
 	int iteration = 0; // Iterator för vilken avläsning på sensorn som görs
 	
@@ -645,10 +646,13 @@ int main(void)
 
     while(1)
     {
-		if(potentialLeak_g > 1)
+		if(potentialLeak_g > leakSensitivity_g)
 		{
-			leakFound = 1;
-			
+			leakFound_g = 1;
+		} 
+		else 
+		{
+			leakFound_g = 0;	
 		}
 		//leakFound = !leakBit;
 		potentialLeak_g = 0;
@@ -713,7 +717,8 @@ int main(void)
 			writeSensor(sideAngle1);
 			writeSensor(sideAngle2);
 			writeSensor(sideAngle3);
-			writeSensor(sideAngle4);
+			//writeSensor(sideAngle4);
+			writeSensor(leakFound_g);
 		
 			PORTB = (1<<displayE);
 			PORTD = (1<<PORTD7); // Rad 1
