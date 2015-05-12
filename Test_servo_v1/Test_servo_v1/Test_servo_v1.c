@@ -44,7 +44,7 @@ int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
-float kProportionalAngle_g = -0.8;
+float kProportionalAngle_g = 0.8;
 
 
 /*
@@ -942,7 +942,7 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 
 	translationRight = kProportionalTranslation_g * translationRegulationError;
 	int leftSideStepLengthAdjust = (kProportionalAngle_g * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-	int rightSideStepLengthAdjust = kProportionalAngle_g * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
+	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
 		
 	if (translationRight > 60)
 	{
