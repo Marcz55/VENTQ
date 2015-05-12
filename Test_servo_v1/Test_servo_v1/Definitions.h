@@ -132,6 +132,13 @@
 #define CCW_ROTATION 2
 #define NO_ROTATION 0
 
+#define EXPLORATION_MODE_INSTRUCTION 208
+#define MANUAL_MODE_INSTRUCTION 200
+#define RETURN_TO_LEAK_1 192
+#define RETURN_TO_LEAK_2 193
+#define RETURN_TO_LEAK_3 194
+#define RETURN_TO_LEAK_4 195
+#define RETURN_TO_LEAK_5 196
 
 
 #define CORRIDOR  0         // Dessa är möjliga tal i whatNode
@@ -155,7 +162,7 @@
 // arrays som värden hämtade ifrån sensorenheten skall ligga i
 int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
 int angleValue_g[5]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
-
+int isLeakVisible_g;
 // ---------------------- 
 
 #define TRUE 1

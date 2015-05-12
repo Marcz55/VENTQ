@@ -19,14 +19,14 @@
 
 
 
-int stepLength_g = 60;
+int stepLength_g = 80;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
-int startPositionZ_g = -100;
-int stepHeight_g =  30;
+int startPositionZ_g = -80;
+int stepHeight_g =  20;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_80; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
 
 
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
@@ -39,11 +39,11 @@ int BlindStepsTaken_g = 0;
 int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
 // ------ Inställningar för robot-datorkommunikation ------
-int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
+int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
-float kProportionalAngle_g = -0.8;
+float kProportionalAngle_g = -0.4;
 
 
 /*
@@ -624,11 +624,29 @@ void move()
 
 int isMovementInstruction(int instruction)
 {
-	if ((0b10000000 & instruction) == 0b10000000)
+	if ((0b11000000 & instruction) == 0b00000000)
 	{
-		return FALSE;
+		return TRUE;
 	}
-	return TRUE;
+	return FALSE;
+}
+
+int isOptionInstruction(int instruction)
+{
+	if ((0b11000000 & instruction) == 0b10000000)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int isControlModeInstruction(int instruction)
+{
+	if ((0b11000000 & instruction) == 0b11000000)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 ISR(INT0_vect) // avbrott från kommunikationsenheten
@@ -642,10 +660,46 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 		currentRotationInstruction = (instruction & 0b11110000) >> 4;
 		directionHasChanged = 1;
 	}
-	else
+	else if (isOptionInstruction(instruction))
 	{
 		optionsHasChanged_g = 1;
 		currentOptionInstruction_g = instruction;
+	}
+	else if (isControlModeInstruction(instruction))
+	{
+		switch(instruction)
+		{
+			case EXPLORATION_MODE_INSTRUCTION:
+			{
+				currentControlMode_g = exploration;
+				break;
+			}
+			case MANUAL_MODE_INSTRUCTION:
+			{
+				currentControlMode_g = manual;
+				break;
+			}
+			case RETURN_TO_LEAK_1:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_2:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_3:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_4:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_5:
+			{
+				break;
+			}
+		}
 	}
 }
 
@@ -1526,7 +1580,7 @@ void increaseKRotation()
 
 void decreaseKRotation()
 {
-	if (kProportionalAngle_g > 0.1)
+	if (kProportionalAngle_g > -1)
 	{
 		kProportionalAngle_g = kProportionalAngle_g - 0.1;
 	}
@@ -1922,12 +1976,12 @@ void sendChangedRobotParameters()
     }
     if (sendKPAngle) 
     {
-        transmitDataToCommUnit(K_P_ANGLE_HEADER, kProportionalAngle_g);
+        transmitDataToCommUnit(K_P_ANGLE_HEADER, 100*kProportionalAngle_g);
         sendKPAngle = FALSE;
     }
     if (sendKPTrans) 
     {
-        transmitDataToCommUnit(K_P_TRANS_HEADER, kProportionalTranslation_g);
+        transmitDataToCommUnit(K_P_TRANS_HEADER, 100*kProportionalTranslation_g);
         sendKPTrans = FALSE;
     }
     if (sendGaitResTime) 
@@ -1937,6 +1991,10 @@ void sendChangedRobotParameters()
     }
 }
 
+void checkForLeak()
+{
+	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
+}
 int main(void)
 {
     
@@ -1958,6 +2016,7 @@ int main(void)
     optionsHasChanged_g = 0;
     
     int nodeAdded = FALSE;
+	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
     timer0Init();
     timer2Init();
     sei();
@@ -1975,8 +2034,7 @@ int main(void)
     setTimerPeriod(TIMER_0, newGaitResolutionTime);
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
-
-    int i = 0;
+	sendAllRobotParameters();
 
     // ---- Main-Loop ----
     while (1)
@@ -1990,20 +2048,31 @@ int main(void)
     	}
     	if (commTimerPeriodEnd())
     	{
-            updateAllDistanceSensorData();
+			updateAllDistanceSensorData();            
             updateTotalAngle();
+			checkForLeak();
             sendChangedRobotParameters();
-			transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-            transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
-            transmitAllDataToCommUnit();
-            if (sendStuff && i < 120)
+            if (sendDataToPC)
+			{
+				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+				transmitAllDataToCommUnit();
+				sendDataToPC = FALSE;
+			}
+			else
+			{
+				sendDataToPC = TRUE;
+			}
+            /*
+			if (sendStuff && i < 120)
             {
                 transmitDataToCommUnit(NODE_INFO, makeNodeData(&nodeArray[i]));
                 i++;
                          
             }
             else
-                transmitDataToCommUnit(NODE_INFO, &currentNode_g);
+                transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+				*/
             resetCommTimer();
     	}
         /*
@@ -2013,8 +2082,8 @@ int main(void)
         
         if (currentControlMode_g != manual)
         {
-          //  if (nodesAndControl()) // Funktionen returnerar TRUE om en ny nod lagts till.
-            //    nodeAdded = TRUE;
+            //if (nodesAndControl()) // Funktionen returnerar TRUE om en ny nod lagts till.
+              //  nodeAdded = TRUE;
             nodesAndControl();
         }
         

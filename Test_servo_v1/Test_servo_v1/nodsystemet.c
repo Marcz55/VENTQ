@@ -9,11 +9,7 @@
 
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
-
 // ----------------------------------------------------------------------------------------------------- fixa...
-int     isLeakVisible_g = 0;
-
-
 
 
 #define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
@@ -34,26 +30,7 @@ int distanceToFrontWall_g = 0;
 int leaksToPass_g = 0;
 int currentPath = 0;
 
-
 int wantedLeak = 0;
-
-/*
-struct node
-{
-    int     whatNode;           // Alla typer av noder är definade som siffror
-    int     nodeID;             // Nodens unika id
-    int     pathsExplored;      // Är bägge hållen utforskade är denna 2
-    int     wayIn;
-    int     nextDirection;      // Väderstrecken är siffror som är definade
-    int     northAvailible;     // Finns riktningen norr i noden?   Om sant => 1, annars 0
-    int     eastAvailible;
-    int     southAvailible;
-    int     westAvailible;
-    int     containsLeak;       // Finns läcka i "noden", kan bara finnas om det är en korridor
-    int     leakID;             // Fanns en läcka får den ett unikt id, annars är denna 0
-};
-*/
-
 
 int makeNodeData(node* nodeToSend)
 {
@@ -239,8 +216,12 @@ int whatNodeType()
                 return END_OF_MAZE;   // Slutet på labyrinten
             }
         }
-
-        return DEAD_END;             // Detta måste vara en återvändsgränd
+		if (nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END) //------------------------------------------------------------------------------------------------------------ test
+		{
+			return END_OF_MAZE;
+		}//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+		return DEAD_END;             // Detta måste vara en återvändsgränd
     }
     else // Här är summan lika med 0, dvs väggar på alla sidor, bör betyda Z-sväng
     {
@@ -504,14 +485,6 @@ int decideDirection()      // Autonoma läget
         }
     }
 }
-/*
-int main()
-{
-    initNodeAndSteering();
-
-    nodesAndControl();
-}
-*/
 
 void initNodeAndSteering()
 {
