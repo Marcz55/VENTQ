@@ -13,19 +13,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY
   4 .debug_aranges 000003d8  00000000  00000000  0000a774  2**0
                   CONTENTS, READONLY, DEBUGGING
-  5 .debug_info   00005685  00000000  00000000  0000ab4c  2**0
+  5 .debug_info   0000569d  00000000  00000000  0000ab4c  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_abbrev 00000bd3  00000000  00000000  000101d1  2**0
+  6 .debug_abbrev 00000bc4  00000000  00000000  000101e9  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_line   00002dc7  00000000  00000000  00010da4  2**0
+  7 .debug_line   00002dc7  00000000  00000000  00010dad  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_frame  0000108c  00000000  00000000  00013b6c  2**2
+  8 .debug_frame  0000108c  00000000  00000000  00013b74  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00001423  00000000  00000000  00014bf8  2**0
+  9 .debug_str    0000145e  00000000  00000000  00014c00  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    00005106  00000000  00000000  0001601b  2**0
+ 10 .debug_loc    00005106  00000000  00000000  0001605e  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 000003d0  00000000  00000000  0001b121  2**0
+ 11 .debug_ranges 000003d0  00000000  00000000  0001b164  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -210,12 +210,6 @@ Disassembly of section .text:
      152:	56 cf       	rjmp	.-340    	; 0x0 <__vectors>
 
 00000154 <makeNodeData>:
-
-// FÃ¥r finnas i bÃ¤gge, behÃ¶vs i MapMode
-int whatWayIn()
-{
-    return currentDirection_g;
-}
      154:	fc 01       	movw	r30, r24
      156:	22 85       	ldd	r18, Z+10	; 0x0a
      158:	33 85       	ldd	r19, Z+11	; 0x0b
@@ -302,7 +296,7 @@ int whatWayIn()
      216:	80 93 68 01 	sts	0x0168, r24
      21a:	80 91 2a 0c 	lds	r24, 0x0C2A
      21e:	90 91 2b 0c 	lds	r25, 0x0C2B
-     222:	89 3b       	cpi	r24, 0xB9	; 185
+     222:	81 3e       	cpi	r24, 0xE1	; 225
      224:	91 40       	sbci	r25, 0x01	; 1
      226:	3c f0       	brlt	.+14     	; 0x236 <updateTempDirections+0x72>
      228:	81 e0       	ldi	r24, 0x01	; 1
@@ -314,7 +308,7 @@ int whatWayIn()
      23a:	10 92 00 01 	sts	0x0100, r1
      23e:	80 91 2c 0c 	lds	r24, 0x0C2C
      242:	90 91 2d 0c 	lds	r25, 0x0C2D
-     246:	89 3b       	cpi	r24, 0xB9	; 185
+     246:	81 3e       	cpi	r24, 0xE1	; 225
      248:	91 40       	sbci	r25, 0x01	; 1
      24a:	3c f0       	brlt	.+14     	; 0x25a <updateTempDirections+0x96>
      24c:	81 e0       	ldi	r24, 0x01	; 1
@@ -326,7 +320,7 @@ int whatWayIn()
      25e:	10 92 78 01 	sts	0x0178, r1
      262:	80 91 2e 0c 	lds	r24, 0x0C2E
      266:	90 91 2f 0c 	lds	r25, 0x0C2F
-     26a:	89 3b       	cpi	r24, 0xB9	; 185
+     26a:	81 3e       	cpi	r24, 0xE1	; 225
      26c:	91 40       	sbci	r25, 0x01	; 1
      26e:	3c f0       	brlt	.+14     	; 0x27e <updateTempDirections+0xba>
      270:	81 e0       	ldi	r24, 0x01	; 1
@@ -338,7 +332,7 @@ int whatWayIn()
      282:	10 92 76 01 	sts	0x0176, r1
      286:	80 91 30 0c 	lds	r24, 0x0C30
      28a:	90 91 31 0c 	lds	r25, 0x0C31
-     28e:	89 3b       	cpi	r24, 0xB9	; 185
+     28e:	81 3e       	cpi	r24, 0xE1	; 225
      290:	91 40       	sbci	r25, 0x01	; 1
      292:	3c f0       	brlt	.+14     	; 0x2a2 <updateTempDirections+0xde>
      294:	81 e0       	ldi	r24, 0x01	; 1
@@ -643,7 +637,7 @@ int whatWayIn()
      568:	39 f4       	brne	.+14     	; 0x578 <checkIfNewNode+0x8a>
      56a:	20 91 68 01 	lds	r18, 0x0168
      56e:	30 91 69 01 	lds	r19, 0x0169
-     572:	29 3b       	cpi	r18, 0xB9	; 185
+     572:	21 3e       	cpi	r18, 0xE1	; 225
      574:	31 40       	sbci	r19, 0x01	; 1
      576:	f4 f4       	brge	.+60     	; 0x5b4 <checkIfNewNode+0xc6>
      578:	75 df       	rcall	.-278    	; 0x464 <isChangeDetected>
@@ -945,85 +939,55 @@ int whatWayIn()
      800:	08 95       	ret
 
 00000802 <updateCurrentNode>:
-
-// MapMode
-void updateCurrentNode()          // Uppdaterar tempnoden, eg. skapar en ny nod
-{
      802:	cf 93       	push	r28
      804:	df 93       	push	r29
-    currentNode_g.whatNode = whatNodeType();
      806:	d7 de       	rcall	.-594    	; 0x5b6 <whatNodeType>
      808:	c0 ea       	ldi	r28, 0xA0	; 160
      80a:	d1 e0       	ldi	r29, 0x01	; 1
      80c:	99 83       	std	Y+1, r25	; 0x01
      80e:	88 83       	st	Y, r24
-    currentNode_g.nodeID = TcrossingID(currentNode_g.whatNode);                                     // Ã„r alltid 0 om det inte Ã¤r en T_CROSSING
      810:	30 df       	rcall	.-416    	; 0x672 <TcrossingID>
      812:	90 93 a3 01 	sts	0x01A3, r25
      816:	80 93 a2 01 	sts	0x01A2, r24
-    currentNode_g.pathsExplored = calcPathsExplored(currentNode_g.whatNode, currentNode_g.nodeID);     // Ã„r alltid 0 om det inte Ã¤r en T_CROSSING
      81a:	bc 01       	movw	r22, r24
      81c:	88 81       	ld	r24, Y
      81e:	99 81       	ldd	r25, Y+1	; 0x01
      820:	ca df       	rcall	.-108    	; 0x7b6 <calcPathsExplored>
      822:	90 93 a5 01 	sts	0x01A5, r25
      826:	80 93 a4 01 	sts	0x01A4, r24
-}
-
-// FÃ¥r finnas i bÃ¤gge, behÃ¶vs i MapMode
-int whatWayIn()
-{
-    return currentDirection_g;
      82a:	80 91 9f 01 	lds	r24, 0x019F
      82e:	90 e0       	ldi	r25, 0x00	; 0
      830:	90 93 a7 01 	sts	0x01A7, r25
      834:	80 93 a6 01 	sts	0x01A6, r24
-{
-    currentNode_g.whatNode = whatNodeType();
-    currentNode_g.nodeID = TcrossingID(currentNode_g.whatNode);                                     // Ã„r alltid 0 om det inte Ã¤r en T_CROSSING
-    currentNode_g.pathsExplored = calcPathsExplored(currentNode_g.whatNode, currentNode_g.nodeID);     // Ã„r alltid 0 om det inte Ã¤r en T_CROSSING
-    currentNode_g.wayIn = whatWayIn();
-    currentNode_g.nextDirection =  noDirection;            // SÃ¤tts till noDirection och Ã¤ndras i styrbeslut
      838:	84 e0       	ldi	r24, 0x04	; 4
      83a:	90 e0       	ldi	r25, 0x00	; 0
      83c:	90 93 a9 01 	sts	0x01A9, r25
      840:	80 93 a8 01 	sts	0x01A8, r24
-    currentNode_g.northAvailible = tempNorthAvailible_g;
      844:	80 91 00 01 	lds	r24, 0x0100
      848:	90 91 01 01 	lds	r25, 0x0101
      84c:	90 93 ab 01 	sts	0x01AB, r25
      850:	80 93 aa 01 	sts	0x01AA, r24
-    currentNode_g.eastAvailible = tempEastAvailible_g;
      854:	80 91 78 01 	lds	r24, 0x0178
      858:	90 91 79 01 	lds	r25, 0x0179
      85c:	90 93 ad 01 	sts	0x01AD, r25
      860:	80 93 ac 01 	sts	0x01AC, r24
-    currentNode_g.southAvailible = tempSouthAvailible_g;
      864:	80 91 76 01 	lds	r24, 0x0176
      868:	90 91 77 01 	lds	r25, 0x0177
      86c:	90 93 af 01 	sts	0x01AF, r25
      870:	80 93 ae 01 	sts	0x01AE, r24
-    currentNode_g.westAvailible = tempWestAvailible_g;
      874:	80 91 74 01 	lds	r24, 0x0174
      878:	90 91 75 01 	lds	r25, 0x0175
      87c:	90 93 b1 01 	sts	0x01B1, r25
      880:	80 93 b0 01 	sts	0x01B0, r24
-    currentNode_g.containsLeak = FALSE;                    // En ny nod kan inte initieras med en lÃ¤cka
      884:	10 92 b3 01 	sts	0x01B3, r1
      888:	10 92 b2 01 	sts	0x01B2, r1
-    currentNode_g.leakID = 0;
      88c:	10 92 b5 01 	sts	0x01B5, r1
      890:	10 92 b4 01 	sts	0x01B4, r1
-}
      894:	df 91       	pop	r29
      896:	cf 91       	pop	r28
      898:	08 95       	ret
 
 0000089a <placeNodeInArray>:
-
-void placeNodeInArray()
-{
-    nodeArray[lastAddedNodeIndex_g].whatNode        = currentNode_g.whatNode;
      89a:	80 91 7a 01 	lds	r24, 0x017A
      89e:	90 91 7b 01 	lds	r25, 0x017B
      8a2:	26 e1       	ldi	r18, 0x16	; 22
@@ -1038,52 +1002,42 @@ void placeNodeInArray()
      8b6:	90 91 a1 01 	lds	r25, 0x01A1
      8ba:	91 83       	std	Z+1, r25	; 0x01
      8bc:	80 83       	st	Z, r24
-    nodeArray[lastAddedNodeIndex_g].nodeID          = currentNode_g.nodeID;
      8be:	80 91 a2 01 	lds	r24, 0x01A2
      8c2:	90 91 a3 01 	lds	r25, 0x01A3
      8c6:	93 83       	std	Z+3, r25	; 0x03
      8c8:	82 83       	std	Z+2, r24	; 0x02
-    nodeArray[lastAddedNodeIndex_g].pathsExplored   = currentNode_g.pathsExplored;
      8ca:	80 91 a4 01 	lds	r24, 0x01A4
      8ce:	90 91 a5 01 	lds	r25, 0x01A5
      8d2:	95 83       	std	Z+5, r25	; 0x05
      8d4:	84 83       	std	Z+4, r24	; 0x04
-    nodeArray[lastAddedNodeIndex_g].wayIn           = currentNode_g.wayIn;
      8d6:	80 91 a6 01 	lds	r24, 0x01A6
      8da:	90 91 a7 01 	lds	r25, 0x01A7
      8de:	97 83       	std	Z+7, r25	; 0x07
      8e0:	86 83       	std	Z+6, r24	; 0x06
-    nodeArray[lastAddedNodeIndex_g].nextDirection   = currentNode_g.nextDirection;
      8e2:	80 91 a8 01 	lds	r24, 0x01A8
      8e6:	90 91 a9 01 	lds	r25, 0x01A9
      8ea:	91 87       	std	Z+9, r25	; 0x09
      8ec:	80 87       	std	Z+8, r24	; 0x08
-    nodeArray[lastAddedNodeIndex_g].northAvailible  = currentNode_g.northAvailible;
      8ee:	80 91 aa 01 	lds	r24, 0x01AA
      8f2:	90 91 ab 01 	lds	r25, 0x01AB
      8f6:	93 87       	std	Z+11, r25	; 0x0b
      8f8:	82 87       	std	Z+10, r24	; 0x0a
-    nodeArray[lastAddedNodeIndex_g].eastAvailible   = currentNode_g.eastAvailible;
      8fa:	80 91 ac 01 	lds	r24, 0x01AC
      8fe:	90 91 ad 01 	lds	r25, 0x01AD
      902:	95 87       	std	Z+13, r25	; 0x0d
      904:	84 87       	std	Z+12, r24	; 0x0c
-    nodeArray[lastAddedNodeIndex_g].southAvailible  = currentNode_g.southAvailible;
      906:	80 91 ae 01 	lds	r24, 0x01AE
      90a:	90 91 af 01 	lds	r25, 0x01AF
      90e:	97 87       	std	Z+15, r25	; 0x0f
      910:	86 87       	std	Z+14, r24	; 0x0e
-    nodeArray[lastAddedNodeIndex_g].westAvailible   = currentNode_g.westAvailible;
      912:	80 91 b0 01 	lds	r24, 0x01B0
      916:	90 91 b1 01 	lds	r25, 0x01B1
      91a:	91 8b       	std	Z+17, r25	; 0x11
      91c:	80 8b       	std	Z+16, r24	; 0x10
-    nodeArray[lastAddedNodeIndex_g].containsLeak    = currentNode_g.containsLeak;
      91e:	80 91 b2 01 	lds	r24, 0x01B2
      922:	90 91 b3 01 	lds	r25, 0x01B3
      926:	93 8b       	std	Z+19, r25	; 0x13
      928:	82 8b       	std	Z+18, r24	; 0x12
-    nodeArray[lastAddedNodeIndex_g].leakID          = currentNode_g.leakID;
      92a:	80 91 b4 01 	lds	r24, 0x01B4
      92e:	90 91 b5 01 	lds	r25, 0x01B5
      932:	95 8b       	std	Z+21, r25	; 0x15
@@ -1091,10 +1045,6 @@ void placeNodeInArray()
      936:	08 95       	ret
 
 00000938 <makeLeakPath>:
-}
-
-void makeLeakPath(char wantedLeak_g)
-{
      938:	cf 92       	push	r12
      93a:	df 92       	push	r13
      93c:	ef 92       	push	r14
@@ -1109,64 +1059,29 @@ void makeLeakPath(char wantedLeak_g)
      952:	f1 e0       	ldi	r31, 0x01	; 1
      954:	6e e1       	ldi	r22, 0x1E	; 30
      956:	7c e0       	ldi	r23, 0x0C	; 12
-    int index = 0;
      958:	c0 e0       	ldi	r28, 0x00	; 0
      95a:	d0 e0       	ldi	r29, 0x00	; 0
-
-            leaksToPass_g = 0;
-        }
-        else if (nodeArray[i].containsLeak == TRUE)
-        {
-            if (nodeArray[i].leakID == wantedLeak_g)
      95c:	90 e0       	ldi	r25, 0x00	; 0
-                    pathToLeak[index] = noDirection;
-                    index --;
-                }
-            }
-
-            leaksToPass_g = 0;
      95e:	c1 2c       	mov	r12, r1
      960:	d1 2c       	mov	r13, r1
-            {
-                if (nodeArray[i].nodeID == 1)
-                    pathToLeak[0] = noDirection;
-                else
-                {
-                    pathToLeak[index] = noDirection;
      962:	04 e0       	ldi	r16, 0x04	; 4
      964:	10 e0       	ldi	r17, 0x00	; 0
-                pathToLeak[index - 1] = nodeArray[i].nextDirection;
-            }
-            else if (nodeArray[i].pathsExplored == 2)
-            {
-                if (nodeArray[i].nodeID == 1)
-                    pathToLeak[0] = noDirection;
      966:	0f 2e       	mov	r0, r31
      968:	f2 e0       	ldi	r31, 0x02	; 2
      96a:	ef 2e       	mov	r14, r31
      96c:	f1 e0       	ldi	r31, 0x01	; 1
      96e:	ff 2e       	mov	r15, r31
      970:	f0 2d       	mov	r31, r0
-{
-    int index = 0;
-    int i = 0;
-    for (i; i < 121; i++)
-    {
-        if (nodeArray[i].whatNode == T_CROSSING)
      972:	20 81       	ld	r18, Z
      974:	31 81       	ldd	r19, Z+1	; 0x01
      976:	23 30       	cpi	r18, 0x03	; 3
      978:	31 05       	cpc	r19, r1
      97a:	b1 f5       	brne	.+108    	; 0x9e8 <makeLeakPath+0xb0>
-        {
-            if (nodeArray[i].pathsExplored == 0)
      97c:	24 81       	ldd	r18, Z+4	; 0x04
      97e:	35 81       	ldd	r19, Z+5	; 0x05
      980:	21 15       	cp	r18, r1
      982:	31 05       	cpc	r19, r1
      984:	61 f4       	brne	.+24     	; 0x99e <makeLeakPath+0x66>
-            {
-                pathToLeak[index] = nodeArray[i].nextDirection;
      986:	9e 01       	movw	r18, r28
      988:	22 0f       	add	r18, r18
      98a:	33 1f       	adc	r19, r19
@@ -1177,16 +1092,11 @@ void makeLeakPath(char wantedLeak_g)
      994:	d9 01       	movw	r26, r18
      996:	4d 93       	st	X+, r20
      998:	5c 93       	st	X, r21
-                index ++;
      99a:	21 96       	adiw	r28, 0x01	; 1
      99c:	22 c0       	rjmp	.+68     	; 0x9e2 <makeLeakPath+0xaa>
-            }
-            else if (nodeArray[i].pathsExplored == 1)
      99e:	21 30       	cpi	r18, 0x01	; 1
      9a0:	31 05       	cpc	r19, r1
      9a2:	59 f4       	brne	.+22     	; 0x9ba <makeLeakPath+0x82>
-            {
-                pathToLeak[index - 1] = nodeArray[i].nextDirection;
      9a4:	9e 01       	movw	r18, r28
      9a6:	22 0f       	add	r18, r18
      9a8:	33 1f       	adc	r19, r19
@@ -1198,26 +1108,18 @@ void makeLeakPath(char wantedLeak_g)
      9b4:	4d 93       	st	X+, r20
      9b6:	5c 93       	st	X, r21
      9b8:	14 c0       	rjmp	.+40     	; 0x9e2 <makeLeakPath+0xaa>
-            }
-            else if (nodeArray[i].pathsExplored == 2)
      9ba:	22 30       	cpi	r18, 0x02	; 2
      9bc:	31 05       	cpc	r19, r1
      9be:	89 f4       	brne	.+34     	; 0x9e2 <makeLeakPath+0xaa>
-            {
-                if (nodeArray[i].nodeID == 1)
      9c0:	22 81       	ldd	r18, Z+2	; 0x02
      9c2:	33 81       	ldd	r19, Z+3	; 0x03
      9c4:	21 30       	cpi	r18, 0x01	; 1
      9c6:	31 05       	cpc	r19, r1
      9c8:	21 f4       	brne	.+8      	; 0x9d2 <makeLeakPath+0x9a>
-                    pathToLeak[0] = noDirection;
      9ca:	d7 01       	movw	r26, r14
      9cc:	0d 93       	st	X+, r16
      9ce:	1c 93       	st	X, r17
      9d0:	08 c0       	rjmp	.+16     	; 0x9e2 <makeLeakPath+0xaa>
-                else
-                {
-                    pathToLeak[index] = noDirection;
      9d2:	de 01       	movw	r26, r28
      9d4:	aa 0f       	add	r26, r26
      9d6:	bb 1f       	adc	r27, r27
@@ -1225,24 +1127,15 @@ void makeLeakPath(char wantedLeak_g)
      9da:	be 4f       	sbci	r27, 0xFE	; 254
      9dc:	0d 93       	st	X+, r16
      9de:	1c 93       	st	X, r17
-                    index --;
      9e0:	21 97       	sbiw	r28, 0x01	; 1
-                }
-            }
-
-            leaksToPass_g = 0;
      9e2:	4c 2d       	mov	r20, r12
      9e4:	5d 2d       	mov	r21, r13
      9e6:	11 c0       	rjmp	.+34     	; 0xa0a <makeLeakPath+0xd2>
-        }
-        else if (nodeArray[i].containsLeak == TRUE)
      9e8:	22 89       	ldd	r18, Z+18	; 0x12
      9ea:	33 89       	ldd	r19, Z+19	; 0x13
      9ec:	21 30       	cpi	r18, 0x01	; 1
      9ee:	31 05       	cpc	r19, r1
      9f0:	61 f4       	brne	.+24     	; 0xa0a <makeLeakPath+0xd2>
-        {
-            if (nodeArray[i].leakID == wantedLeak_g)
      9f2:	24 89       	ldd	r18, Z+20	; 0x14
      9f4:	35 89       	ldd	r19, Z+21	; 0x15
      9f6:	28 17       	cp	r18, r24
@@ -1251,30 +1144,15 @@ void makeLeakPath(char wantedLeak_g)
      9fc:	50 93 67 01 	sts	0x0167, r21
      a00:	40 93 66 01 	sts	0x0166, r20
      a04:	0b c0       	rjmp	.+22     	; 0xa1c <makeLeakPath+0xe4>
-                break;
-            else
-                leaksToPass_g ++;
      a06:	4f 5f       	subi	r20, 0xFF	; 255
      a08:	5f 4f       	sbci	r21, 0xFF	; 255
      a0a:	76 96       	adiw	r30, 0x16	; 22
-
-void makeLeakPath(char wantedLeak_g)
-{
-    int index = 0;
-    int i = 0;
-    for (i; i < 121; i++)
      a0c:	e6 17       	cp	r30, r22
      a0e:	f7 07       	cpc	r31, r23
      a10:	09 f0       	breq	.+2      	; 0xa14 <makeLeakPath+0xdc>
      a12:	af cf       	rjmp	.-162    	; 0x972 <makeLeakPath+0x3a>
      a14:	50 93 67 01 	sts	0x0167, r21
      a18:	40 93 66 01 	sts	0x0166, r20
-                break;
-            else
-                leaksToPass_g ++;
-        }
-    }
-}
      a1c:	df 91       	pop	r29
      a1e:	cf 91       	pop	r28
      a20:	1f 91       	pop	r17
@@ -1286,131 +1164,62 @@ void makeLeakPath(char wantedLeak_g)
      a2c:	08 95       	ret
 
 00000a2e <northToNext>:
-
-int northToNext()
-{
-    if (currentNode_g.eastAvailible == TRUE)
      a2e:	80 91 ac 01 	lds	r24, 0x01AC
      a32:	90 91 ad 01 	lds	r25, 0x01AD
      a36:	81 30       	cpi	r24, 0x01	; 1
      a38:	91 05       	cpc	r25, r1
      a3a:	a1 f0       	breq	.+40     	; 0xa64 <northToNext+0x36>
-    {
-        return east;
-    }
-    else if (currentNode_g.northAvailible == TRUE)
      a3c:	80 91 aa 01 	lds	r24, 0x01AA
      a40:	90 91 ab 01 	lds	r25, 0x01AB
      a44:	01 97       	sbiw	r24, 0x01	; 1
      a46:	49 f0       	breq	.+18     	; 0xa5a <northToNext+0x2c>
-    {
-        return north;
-    }
-    else if (currentNode_g.westAvailible == TRUE)
      a48:	80 91 b0 01 	lds	r24, 0x01B0
      a4c:	90 91 b1 01 	lds	r25, 0x01B1
      a50:	01 97       	sbiw	r24, 0x01	; 1
      a52:	31 f4       	brne	.+12     	; 0xa60 <northToNext+0x32>
-    {
-        return west;
      a54:	83 e0       	ldi	r24, 0x03	; 3
      a56:	90 e0       	ldi	r25, 0x00	; 0
      a58:	08 95       	ret
-    {
-        return east;
-    }
-    else if (currentNode_g.northAvailible == TRUE)
-    {
-        return north;
      a5a:	80 e0       	ldi	r24, 0x00	; 0
      a5c:	90 e0       	ldi	r25, 0x00	; 0
      a5e:	08 95       	ret
-    {
-        return west;
-    }
-    else
-    {
-        return south;       // I detta fall Ã¤r det en DEAD_END
      a60:	82 e0       	ldi	r24, 0x02	; 2
      a62:	90 e0       	ldi	r25, 0x00	; 0
-    }
-}
      a64:	08 95       	ret
 
 00000a66 <eastToNext>:
-
-
-int eastToNext()
-{
-    if (currentNode_g.southAvailible == TRUE)
      a66:	80 91 ae 01 	lds	r24, 0x01AE
      a6a:	90 91 af 01 	lds	r25, 0x01AF
      a6e:	01 97       	sbiw	r24, 0x01	; 1
      a70:	81 f0       	breq	.+32     	; 0xa92 <eastToNext+0x2c>
-    {
-        return south;
-    }
-    else if (currentNode_g.eastAvailible == TRUE)
      a72:	80 91 ac 01 	lds	r24, 0x01AC
      a76:	90 91 ad 01 	lds	r25, 0x01AD
      a7a:	81 30       	cpi	r24, 0x01	; 1
      a7c:	91 05       	cpc	r25, r1
      a7e:	71 f0       	breq	.+28     	; 0xa9c <eastToNext+0x36>
-    {
-        return east;
-    }
-    else if (currentNode_g.northAvailible == TRUE)
      a80:	80 91 aa 01 	lds	r24, 0x01AA
      a84:	90 91 ab 01 	lds	r25, 0x01AB
      a88:	01 97       	sbiw	r24, 0x01	; 1
      a8a:	31 f4       	brne	.+12     	; 0xa98 <eastToNext+0x32>
-    {
-        return north;
      a8c:	80 e0       	ldi	r24, 0x00	; 0
      a8e:	90 e0       	ldi	r25, 0x00	; 0
      a90:	08 95       	ret
-
-int eastToNext()
-{
-    if (currentNode_g.southAvailible == TRUE)
-    {
-        return south;
      a92:	82 e0       	ldi	r24, 0x02	; 2
      a94:	90 e0       	ldi	r25, 0x00	; 0
      a96:	08 95       	ret
-    {
-        return north;
-    }
-    else
-    {
-        return west;
      a98:	83 e0       	ldi	r24, 0x03	; 3
      a9a:	90 e0       	ldi	r25, 0x00	; 0
-    }
-}
      a9c:	08 95       	ret
 
 00000a9e <southToNext>:
-
-int southToNext()
-{
-    if (currentNode_g.westAvailible == TRUE)
      a9e:	80 91 b0 01 	lds	r24, 0x01B0
      aa2:	90 91 b1 01 	lds	r25, 0x01B1
      aa6:	01 97       	sbiw	r24, 0x01	; 1
      aa8:	89 f0       	breq	.+34     	; 0xacc <southToNext+0x2e>
-    {
-        return west;
-    }
-    else if (currentNode_g.southAvailible == TRUE)
      aaa:	80 91 ae 01 	lds	r24, 0x01AE
      aae:	90 91 af 01 	lds	r25, 0x01AF
      ab2:	01 97       	sbiw	r24, 0x01	; 1
      ab4:	71 f0       	breq	.+28     	; 0xad2 <southToNext+0x34>
-    {
-        return south;
-    }
-    else if (currentNode_g.eastAvailible == TRUE)
      ab6:	81 e0       	ldi	r24, 0x01	; 1
      ab8:	90 e0       	ldi	r25, 0x00	; 0
      aba:	20 91 ac 01 	lds	r18, 0x01AC
@@ -1420,208 +1229,107 @@ int southToNext()
      ac6:	39 f0       	breq	.+14     	; 0xad6 <southToNext+0x38>
      ac8:	80 e0       	ldi	r24, 0x00	; 0
      aca:	08 95       	ret
-
-int southToNext()
-{
-    if (currentNode_g.westAvailible == TRUE)
-    {
-        return west;
      acc:	83 e0       	ldi	r24, 0x03	; 3
      ace:	90 e0       	ldi	r25, 0x00	; 0
      ad0:	08 95       	ret
-    }
-    else if (currentNode_g.southAvailible == TRUE)
-    {
-        return south;
      ad2:	82 e0       	ldi	r24, 0x02	; 2
      ad4:	90 e0       	ldi	r25, 0x00	; 0
-    }
-    else
-    {
-        return north;
-    }
-}
      ad6:	08 95       	ret
 
 00000ad8 <westToNext>:
-
-int westToNext()
-{
-    if (currentNode_g.northAvailible == TRUE)
      ad8:	80 91 aa 01 	lds	r24, 0x01AA
      adc:	90 91 ab 01 	lds	r25, 0x01AB
      ae0:	01 97       	sbiw	r24, 0x01	; 1
      ae2:	79 f0       	breq	.+30     	; 0xb02 <westToNext+0x2a>
-    {
-        return north;
-    }
-    else if (currentNode_g.westAvailible == TRUE)
      ae4:	80 91 b0 01 	lds	r24, 0x01B0
      ae8:	90 91 b1 01 	lds	r25, 0x01B1
      aec:	01 97       	sbiw	r24, 0x01	; 1
      aee:	61 f0       	breq	.+24     	; 0xb08 <westToNext+0x30>
-    {
-        return west;
-    }
-    else if (currentNode_g.southAvailible == TRUE)
      af0:	80 91 ae 01 	lds	r24, 0x01AE
      af4:	90 91 af 01 	lds	r25, 0x01AF
      af8:	01 97       	sbiw	r24, 0x01	; 1
      afa:	49 f4       	brne	.+18     	; 0xb0e <westToNext+0x36>
-    {
-        return south;
      afc:	82 e0       	ldi	r24, 0x02	; 2
      afe:	90 e0       	ldi	r25, 0x00	; 0
      b00:	08 95       	ret
-
-int westToNext()
-{
-    if (currentNode_g.northAvailible == TRUE)
-    {
-        return north;
      b02:	80 e0       	ldi	r24, 0x00	; 0
      b04:	90 e0       	ldi	r25, 0x00	; 0
      b06:	08 95       	ret
-    }
-    else if (currentNode_g.westAvailible == TRUE)
-    {
-        return west;
      b08:	83 e0       	ldi	r24, 0x03	; 3
      b0a:	90 e0       	ldi	r25, 0x00	; 0
      b0c:	08 95       	ret
-    {
-        return south;
-    }
-    else
-    {
-        return east;
      b0e:	81 e0       	ldi	r24, 0x01	; 1
      b10:	90 e0       	ldi	r25, 0x00	; 0
-    }
-}
      b12:	08 95       	ret
 
 00000b14 <decideDirection>:
-
-int decideDirection()      // Autonoma lÃ¤get
-{
-    enum direction tempDirection = currentDirection_g;
-    if (currentNode_g.whatNode == CORRIDOR)
      b14:	80 91 a0 01 	lds	r24, 0x01A0
      b18:	90 91 a1 01 	lds	r25, 0x01A1
      b1c:	89 2b       	or	r24, r25
      b1e:	21 f4       	brne	.+8      	; 0xb28 <decideDirection+0x14>
-    {
-        return currentDirection_g;
      b20:	20 91 9f 01 	lds	r18, 0x019F
      b24:	30 e0       	ldi	r19, 0x00	; 0
      b26:	1b c0       	rjmp	.+54     	; 0xb5e <decideDirection+0x4a>
-    }
-    else
-    {
-        if (currentDirection_g == north)
      b28:	80 91 9f 01 	lds	r24, 0x019F
      b2c:	81 11       	cpse	r24, r1
      b2e:	04 c0       	rjmp	.+8      	; 0xb38 <decideDirection+0x24>
-        {
-            tempDirection = northToNext();
      b30:	7e df       	rcall	.-260    	; 0xa2e <northToNext>
-            return tempDirection;
      b32:	9c 01       	movw	r18, r24
      b34:	33 27       	eor	r19, r19
      b36:	13 c0       	rjmp	.+38     	; 0xb5e <decideDirection+0x4a>
-        }
-        else if (currentDirection_g == east)
      b38:	81 30       	cpi	r24, 0x01	; 1
      b3a:	21 f4       	brne	.+8      	; 0xb44 <decideDirection+0x30>
-        {
-            tempDirection = eastToNext();
      b3c:	94 df       	rcall	.-216    	; 0xa66 <eastToNext>
-            return tempDirection;
      b3e:	9c 01       	movw	r18, r24
      b40:	33 27       	eor	r19, r19
      b42:	0d c0       	rjmp	.+26     	; 0xb5e <decideDirection+0x4a>
-        }
-        else if (currentDirection_g == south)
      b44:	82 30       	cpi	r24, 0x02	; 2
      b46:	21 f4       	brne	.+8      	; 0xb50 <decideDirection+0x3c>
-        {
-            tempDirection = southToNext();
      b48:	aa df       	rcall	.-172    	; 0xa9e <southToNext>
-            return tempDirection;
      b4a:	9c 01       	movw	r18, r24
      b4c:	33 27       	eor	r19, r19
      b4e:	07 c0       	rjmp	.+14     	; 0xb5e <decideDirection+0x4a>
-        }
-        else if (currentDirection_g == west)
      b50:	83 30       	cpi	r24, 0x03	; 3
      b52:	21 f4       	brne	.+8      	; 0xb5c <decideDirection+0x48>
-        {
-            tempDirection = westToNext();
      b54:	c1 df       	rcall	.-126    	; 0xad8 <westToNext>
-            return tempDirection;
      b56:	9c 01       	movw	r18, r24
      b58:	33 27       	eor	r19, r19
      b5a:	01 c0       	rjmp	.+2      	; 0xb5e <decideDirection+0x4a>
      b5c:	08 95       	ret
      b5e:	82 2f       	mov	r24, r18
      b60:	93 2f       	mov	r25, r19
-        }
-    }
-}
      b62:	08 95       	ret
 
 00000b64 <initNodeAndSteering>:
-
-void initNodeAndSteering()
-{
-    // BÃ¶rjar i en Ã¥tervÃ¤ndsgrÃ¤nd med norr som frammÃ¥t
-    nodeArray[0].whatNode = MAZE_START;
      b64:	86 e0       	ldi	r24, 0x06	; 6
      b66:	90 e0       	ldi	r25, 0x00	; 0
      b68:	90 93 b9 01 	sts	0x01B9, r25
      b6c:	80 93 b8 01 	sts	0x01B8, r24
-    nodeArray[0].nodeID = 0;                // Nodens ID initieras som 0, Ã¤ndras om det Ã¤r en T_CROSSING
      b70:	10 92 bb 01 	sts	0x01BB, r1
      b74:	10 92 ba 01 	sts	0x01BA, r1
-    nodeArray[0].pathsExplored = 0;
      b78:	10 92 bd 01 	sts	0x01BD, r1
      b7c:	10 92 bc 01 	sts	0x01BC, r1
-    nodeArray[0].wayIn = north;
      b80:	10 92 bf 01 	sts	0x01BF, r1
      b84:	10 92 be 01 	sts	0x01BE, r1
-    nodeArray[0].nextDirection = north;
      b88:	10 92 c1 01 	sts	0x01C1, r1
      b8c:	10 92 c0 01 	sts	0x01C0, r1
-    nodeArray[0].northAvailible = TRUE;     // BÃ¶rjar i Ã¥tervÃ¤ndsgrÃ¤nd med tillgÃ¤nglig rikt. norr
      b90:	81 e0       	ldi	r24, 0x01	; 1
      b92:	90 e0       	ldi	r25, 0x00	; 0
      b94:	90 93 c3 01 	sts	0x01C3, r25
      b98:	80 93 c2 01 	sts	0x01C2, r24
-    nodeArray[0].eastAvailible = FALSE;
      b9c:	10 92 c5 01 	sts	0x01C5, r1
      ba0:	10 92 c4 01 	sts	0x01C4, r1
-    nodeArray[0].southAvailible = FALSE;
      ba4:	10 92 c7 01 	sts	0x01C7, r1
      ba8:	10 92 c6 01 	sts	0x01C6, r1
-    nodeArray[0].westAvailible = FALSE;
      bac:	10 92 c9 01 	sts	0x01C9, r1
      bb0:	10 92 c8 01 	sts	0x01C8, r1
-    nodeArray[0].containsLeak = FALSE;
      bb4:	10 92 cb 01 	sts	0x01CB, r1
      bb8:	10 92 ca 01 	sts	0x01CA, r1
-    nodeArray[0].leakID = 0;
      bbc:	10 92 cd 01 	sts	0x01CD, r1
      bc0:	10 92 cc 01 	sts	0x01CC, r1
      bc4:	08 95       	ret
 
 00000bc6 <nodesAndControl>:
-}
-
-int nodesAndControl()
-{
-	int newNodeAdded = FALSE;
-    switch(currentControlMode_g)
      bc6:	80 91 9e 01 	lds	r24, 0x019E
      bca:	82 30       	cpi	r24, 0x02	; 2
      bcc:	09 f4       	brne	.+2      	; 0xbd0 <nodesAndControl+0xa>
@@ -1632,44 +1340,27 @@ int nodesAndControl()
      bd6:	81 30       	cpi	r24, 0x01	; 1
      bd8:	09 f0       	breq	.+2      	; 0xbdc <nodesAndControl+0x16>
      bda:	0d c1       	rjmp	.+538    	; 0xdf6 <nodesAndControl+0x230>
-    {
-        case exploration  :
-
-            updateTempDirections();
      bdc:	f3 da       	rcall	.-2586   	; 0x1c4 <updateTempDirections>
-            updateLeakInfo();           // Kollar ifall lÃ¤cka finns, och lÃ¤gger till i noden om det fanns
      bde:	85 db       	rcall	.-2294   	; 0x2ea <updateLeakInfo>
-
-            if (checkIfNewNode() == TRUE)
      be0:	86 dc       	rcall	.-1780   	; 0x4ee <checkIfNewNode>
      be2:	01 97       	sbiw	r24, 0x01	; 1
      be4:	59 f5       	brne	.+86     	; 0xc3c <nodesAndControl+0x76>
-            {
-                updateCurrentNode();
      be6:	0d de       	rcall	.-998    	; 0x802 <updateCurrentNode>
-                directionHasChanged = TRUE;
      be8:	81 e0       	ldi	r24, 0x01	; 1
      bea:	90 e0       	ldi	r25, 0x00	; 0
      bec:	90 93 33 0c 	sts	0x0C33, r25
      bf0:	80 93 32 0c 	sts	0x0C32, r24
-                nextDirection_g = decideDirection();
      bf4:	8f df       	rcall	.-226    	; 0xb14 <decideDirection>
      bf6:	80 93 34 0c 	sts	0x0C34, r24
-                
-                if (canMakeNew() == TRUE)
      bfa:	b2 db       	rcall	.-2204   	; 0x360 <canMakeNew>
      bfc:	01 97       	sbiw	r24, 0x01	; 1
      bfe:	09 f5       	brne	.+66     	; 0xc42 <nodesAndControl+0x7c>
-                {
-                    lastAddedNodeIndex_g ++;
      c00:	80 91 7a 01 	lds	r24, 0x017A
      c04:	90 91 7b 01 	lds	r25, 0x017B
      c08:	01 96       	adiw	r24, 0x01	; 1
      c0a:	90 93 7b 01 	sts	0x017B, r25
      c0e:	80 93 7a 01 	sts	0x017A, r24
-                    placeNodeInArray();
      c12:	43 de       	rcall	.-890    	; 0x89a <placeNodeInArray>
-                    nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lÃ¤gger in styrbeslut i arrayen
      c14:	80 91 7a 01 	lds	r24, 0x017A
      c18:	90 91 7b 01 	lds	r25, 0x017B
      c1c:	26 e1       	ldi	r18, 0x16	; 22
@@ -1684,27 +1375,14 @@ int nodesAndControl()
      c30:	90 e0       	ldi	r25, 0x00	; 0
      c32:	91 87       	std	Z+9, r25	; 0x09
      c34:	80 87       	std	Z+8, r24	; 0x08
-					newNodeAdded = TRUE;
      c36:	81 e0       	ldi	r24, 0x01	; 1
      c38:	90 e0       	ldi	r25, 0x00	; 0
      c3a:	05 c0       	rjmp	.+10     	; 0xc46 <nodesAndControl+0x80>
-    nodeArray[0].leakID = 0;
-}
-
-int nodesAndControl()
-{
-	int newNodeAdded = FALSE;
      c3c:	80 e0       	ldi	r24, 0x00	; 0
      c3e:	90 e0       	ldi	r25, 0x00	; 0
      c40:	02 c0       	rjmp	.+4      	; 0xc46 <nodesAndControl+0x80>
      c42:	80 e0       	ldi	r24, 0x00	; 0
      c44:	90 e0       	ldi	r25, 0x00	; 0
-                    nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lÃ¤gger in styrbeslut i arrayen
-					newNodeAdded = TRUE;
-                }
-            }
-
-            if (nodeArray[lastAddedNodeIndex_g].whatNode == END_OF_MAZE)
      c46:	20 91 7a 01 	lds	r18, 0x017A
      c4a:	30 91 7b 01 	lds	r19, 0x017B
      c4e:	46 e1       	ldi	r20, 0x16	; 22
@@ -1721,17 +1399,9 @@ int nodesAndControl()
      c64:	31 05       	cpc	r19, r1
      c66:	09 f0       	breq	.+2      	; 0xc6a <nodesAndControl+0xa4>
      c68:	d7 c0       	rjmp	.+430    	; 0xe18 <nodesAndControl+0x252>
-            {
-                currentControlMode_g = waitForInput;
      c6a:	23 e0       	ldi	r18, 0x03	; 3
      c6c:	20 93 9e 01 	sts	0x019E, r18
      c70:	08 95       	ret
-            }
-            break;
-
-        case waitForInput  :
-
-            switch(currentOptionInstruction_g)
      c72:	80 91 b6 01 	lds	r24, 0x01B6
      c76:	90 91 b7 01 	lds	r25, 0x01B7
      c7a:	82 3e       	cpi	r24, 0xE2	; 226
@@ -1752,126 +1422,71 @@ int nodesAndControl()
      c98:	91 05       	cpc	r25, r1
      c9a:	69 f1       	breq	.+90     	; 0xcf6 <nodesAndControl+0x130>
      c9c:	36 c0       	rjmp	.+108    	; 0xd0a <nodesAndControl+0x144>
-            {
-                case 0b11100000  :
-                    wantedLeak = 1;
      c9e:	81 e0       	ldi	r24, 0x01	; 1
      ca0:	90 e0       	ldi	r25, 0x00	; 0
      ca2:	90 93 63 01 	sts	0x0163, r25
      ca6:	80 93 62 01 	sts	0x0162, r24
-                    makeLeakPath(wantedLeak);
      caa:	46 de       	rcall	.-884    	; 0x938 <makeLeakPath>
-                    currentControlMode_g = returnToLeak;
      cac:	82 e0       	ldi	r24, 0x02	; 2
      cae:	80 93 9e 01 	sts	0x019E, r24
-                    break;
      cb2:	2b c0       	rjmp	.+86     	; 0xd0a <nodesAndControl+0x144>
-                case 0b11100001  :
-                    wantedLeak = 2;
      cb4:	82 e0       	ldi	r24, 0x02	; 2
      cb6:	90 e0       	ldi	r25, 0x00	; 0
      cb8:	90 93 63 01 	sts	0x0163, r25
      cbc:	80 93 62 01 	sts	0x0162, r24
-                    makeLeakPath(wantedLeak);
      cc0:	3b de       	rcall	.-906    	; 0x938 <makeLeakPath>
-                    currentControlMode_g = returnToLeak;
      cc2:	82 e0       	ldi	r24, 0x02	; 2
      cc4:	80 93 9e 01 	sts	0x019E, r24
-                    break;
      cc8:	20 c0       	rjmp	.+64     	; 0xd0a <nodesAndControl+0x144>
-                case 0b11100010  :
-                    wantedLeak = 3;
      cca:	83 e0       	ldi	r24, 0x03	; 3
      ccc:	90 e0       	ldi	r25, 0x00	; 0
      cce:	90 93 63 01 	sts	0x0163, r25
      cd2:	80 93 62 01 	sts	0x0162, r24
-                    makeLeakPath(wantedLeak);
      cd6:	30 de       	rcall	.-928    	; 0x938 <makeLeakPath>
-                    currentControlMode_g = returnToLeak;
      cd8:	82 e0       	ldi	r24, 0x02	; 2
      cda:	80 93 9e 01 	sts	0x019E, r24
-                    break;
      cde:	15 c0       	rjmp	.+42     	; 0xd0a <nodesAndControl+0x144>
-                case 0b11100011  :
-                    wantedLeak = 4;
      ce0:	84 e0       	ldi	r24, 0x04	; 4
      ce2:	90 e0       	ldi	r25, 0x00	; 0
      ce4:	90 93 63 01 	sts	0x0163, r25
      ce8:	80 93 62 01 	sts	0x0162, r24
-                    makeLeakPath(wantedLeak);
      cec:	25 de       	rcall	.-950    	; 0x938 <makeLeakPath>
-                    currentControlMode_g = returnToLeak;
      cee:	82 e0       	ldi	r24, 0x02	; 2
      cf0:	80 93 9e 01 	sts	0x019E, r24
-                    break;
      cf4:	0a c0       	rjmp	.+20     	; 0xd0a <nodesAndControl+0x144>
-                case 0b11100100  :
-                    wantedLeak = 5;
      cf6:	85 e0       	ldi	r24, 0x05	; 5
      cf8:	90 e0       	ldi	r25, 0x00	; 0
      cfa:	90 93 63 01 	sts	0x0163, r25
      cfe:	80 93 62 01 	sts	0x0162, r24
-                    makeLeakPath(wantedLeak);
      d02:	1a de       	rcall	.-972    	; 0x938 <makeLeakPath>
-                    currentControlMode_g = returnToLeak;
      d04:	82 e0       	ldi	r24, 0x02	; 2
      d06:	80 93 9e 01 	sts	0x019E, r24
-                    break;
-                default  :
-                    break;
-            }
-            
-            if (currentDirection_g != noDirection)
      d0a:	80 91 9f 01 	lds	r24, 0x019F
      d0e:	84 30       	cpi	r24, 0x04	; 4
      d10:	09 f4       	brne	.+2      	; 0xd14 <nodesAndControl+0x14e>
      d12:	74 c0       	rjmp	.+232    	; 0xdfc <nodesAndControl+0x236>
-            {
-                directionHasChanged = TRUE;
      d14:	81 e0       	ldi	r24, 0x01	; 1
      d16:	90 e0       	ldi	r25, 0x00	; 0
      d18:	90 93 33 0c 	sts	0x0C33, r25
      d1c:	80 93 32 0c 	sts	0x0C32, r24
-                nextDirection_g = noDirection;
      d20:	84 e0       	ldi	r24, 0x04	; 4
      d22:	80 93 34 0c 	sts	0x0C34, r24
-    nodeArray[0].leakID = 0;
-}
-
-int nodesAndControl()
-{
-	int newNodeAdded = FALSE;
      d26:	80 e0       	ldi	r24, 0x00	; 0
      d28:	90 e0       	ldi	r25, 0x00	; 0
      d2a:	08 95       	ret
-            }
-            break;
-
-        case returnToLeak  :
-			{
-			updateTempDirections();
      d2c:	4b da       	rcall	.-2922   	; 0x1c4 <updateTempDirections>
-
-			if (checkIfNewNode() == TRUE)
      d2e:	df db       	rcall	.-2114   	; 0x4ee <checkIfNewNode>
      d30:	01 97       	sbiw	r24, 0x01	; 1
      d32:	41 f5       	brne	.+80     	; 0xd84 <nodesAndControl+0x1be>
-			{
-				updateCurrentNode();
      d34:	66 dd       	rcall	.-1332   	; 0x802 <updateCurrentNode>
-
-				if (currentNode_g.whatNode == T_CROSSING)
      d36:	80 91 a0 01 	lds	r24, 0x01A0
      d3a:	90 91 a1 01 	lds	r25, 0x01A1
      d3e:	03 97       	sbiw	r24, 0x03	; 3
      d40:	c1 f4       	brne	.+48     	; 0xd72 <nodesAndControl+0x1ac>
-				{
-					directionHasChanged = TRUE;
      d42:	81 e0       	ldi	r24, 0x01	; 1
      d44:	90 e0       	ldi	r25, 0x00	; 0
      d46:	90 93 33 0c 	sts	0x0C33, r25
      d4a:	80 93 32 0c 	sts	0x0C32, r24
-					nextDirection_g = pathToLeak[currentPath];
      d4e:	80 91 64 01 	lds	r24, 0x0164
      d52:	90 91 65 01 	lds	r25, 0x0165
      d56:	fc 01       	movw	r30, r24
@@ -1881,28 +1496,16 @@ int nodesAndControl()
      d5e:	fe 4f       	sbci	r31, 0xFE	; 254
      d60:	20 81       	ld	r18, Z
      d62:	20 93 34 0c 	sts	0x0C34, r18
-					currentPath ++;
      d66:	01 96       	adiw	r24, 0x01	; 1
      d68:	90 93 65 01 	sts	0x0165, r25
      d6c:	80 93 64 01 	sts	0x0164, r24
      d70:	09 c0       	rjmp	.+18     	; 0xd84 <nodesAndControl+0x1be>
-					// skicka info om detta till datorn
-				}
-				else
-				{
-					nextDirection_g = decideDirection();
      d72:	d0 de       	rcall	.-608    	; 0xb14 <decideDirection>
      d74:	80 93 34 0c 	sts	0x0C34, r24
-					directionHasChanged = TRUE;
      d78:	81 e0       	ldi	r24, 0x01	; 1
      d7a:	90 e0       	ldi	r25, 0x00	; 0
      d7c:	90 93 33 0c 	sts	0x0C33, r25
      d80:	80 93 32 0c 	sts	0x0C32, r24
-					// Skicka info om detta till datorn
-				}
-			}
-
-			if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vÃ¤gvalet
      d84:	e0 91 64 01 	lds	r30, 0x0164
      d88:	f0 91 65 01 	lds	r31, 0x0165
      d8c:	ee 0f       	add	r30, r30
@@ -1913,67 +1516,36 @@ int nodesAndControl()
      d96:	91 81       	ldd	r25, Z+1	; 0x01
      d98:	04 97       	sbiw	r24, 0x04	; 4
      d9a:	99 f5       	brne	.+102    	; 0xe02 <nodesAndControl+0x23c>
-			{
-				if (validLeak() == TRUE)
      d9c:	87 da       	rcall	.-2802   	; 0x2ac <validLeak>
      d9e:	01 97       	sbiw	r24, 0x01	; 1
      da0:	99 f5       	brne	.+102    	; 0xe08 <nodesAndControl+0x242>
-				{
-					if (currentNode_g.containsLeak == FALSE)   // Denna koll gÃ¶r att samma lÃ¤cka inte hanteras igen som en ny
      da2:	80 91 b2 01 	lds	r24, 0x01B2
      da6:	90 91 b3 01 	lds	r25, 0x01B3
      daa:	89 2b       	or	r24, r25
      dac:	81 f5       	brne	.+96     	; 0xe0e <nodesAndControl+0x248>
-					{
-						currentNode_g.containsLeak = TRUE;
      dae:	81 e0       	ldi	r24, 0x01	; 1
      db0:	90 e0       	ldi	r25, 0x00	; 0
      db2:	90 93 b3 01 	sts	0x01B3, r25
      db6:	80 93 b2 01 	sts	0x01B2, r24
-
-						if (leaksToPass_g == 0)
      dba:	80 91 66 01 	lds	r24, 0x0166
      dbe:	90 91 67 01 	lds	r25, 0x0167
      dc2:	00 97       	sbiw	r24, 0x00	; 0
      dc4:	81 f4       	brne	.+32     	; 0xde6 <nodesAndControl+0x220>
-						{
-							if (currentDirection_g != noDirection)
      dc6:	80 91 9f 01 	lds	r24, 0x019F
      dca:	84 30       	cpi	r24, 0x04	; 4
      dcc:	19 f1       	breq	.+70     	; 0xe14 <nodesAndControl+0x24e>
-							{
-								directionHasChanged = TRUE;     // LÃ¤ckan Ã¤r nu hittad
      dce:	81 e0       	ldi	r24, 0x01	; 1
      dd0:	90 e0       	ldi	r25, 0x00	; 0
      dd2:	90 93 33 0c 	sts	0x0C33, r25
      dd6:	80 93 32 0c 	sts	0x0C32, r24
-								nextDirection_g = noDirection;
      dda:	84 e0       	ldi	r24, 0x04	; 4
      ddc:	80 93 34 0c 	sts	0x0C34, r24
-    nodeArray[0].leakID = 0;
-}
-
-int nodesAndControl()
-{
-	int newNodeAdded = FALSE;
      de0:	80 e0       	ldi	r24, 0x00	; 0
      de2:	90 e0       	ldi	r25, 0x00	; 0
      de4:	08 95       	ret
-								directionHasChanged = TRUE;     // LÃ¤ckan Ã¤r nu hittad
-								nextDirection_g = noDirection;
-							}
-						}
-						else
-						leaksToPass_g --;
      de6:	01 97       	sbiw	r24, 0x01	; 1
      de8:	90 93 67 01 	sts	0x0167, r25
      dec:	80 93 66 01 	sts	0x0166, r24
-    nodeArray[0].leakID = 0;
-}
-
-int nodesAndControl()
-{
-	int newNodeAdded = FALSE;
      df0:	80 e0       	ldi	r24, 0x00	; 0
      df2:	90 e0       	ldi	r25, 0x00	; 0
      df4:	08 95       	ret
@@ -1994,12 +1566,6 @@ int nodesAndControl()
      e12:	08 95       	ret
      e14:	80 e0       	ldi	r24, 0x00	; 0
      e16:	90 e0       	ldi	r25, 0x00	; 0
-			}
-        default:
-			break;
-    }
-	return newNodeAdded;
-}
      e18:	08 95       	ret
 
 00000e1a <timer0Init>:
@@ -2273,6 +1839,12 @@ int nodesAndControl()
     1052:	18 95       	reti
 
 00001054 <spiMasterInit>:
+    spiTransmitToSensorUnit(highDataByte);
+    _delay_us(5);
+    spiTransmitToSensorUnit(lowDataByte);
+    _delay_us(5);
+    sei();
+}
     1054:	86 e0       	ldi	r24, 0x06	; 6
     1056:	81 b9       	out	0x01, r24	; 1
     1058:	84 e0       	ldi	r24, 0x04	; 4
@@ -2342,7 +1914,15 @@ int nodesAndControl()
     10d0:	08 95       	ret
 
 000010d2 <fetchDataFromSensorUnit>:
+
+
+// Ger tillbaka vÃ¤rde motsvarande den headern som skickades.
+int fetchDataFromSensorUnit(int header_)
+{
     10d2:	cf 93       	push	r28
+    uint8_t lowDataByte;
+    uint8_t highDataByte;
+    spiTransmitToSensorUnit(header_);
     10d4:	c8 df       	rcall	.-112    	; 0x1066 <spiTransmitToSensorUnit>
 	#else
 		//round up by default
@@ -2354,15 +1934,22 @@ int nodesAndControl()
     10d8:	8a 95       	dec	r24
     10da:	f1 f7       	brne	.-4      	; 0x10d8 <fetchDataFromSensorUnit+0x6>
     10dc:	00 c0       	rjmp	.+0      	; 0x10de <fetchDataFromSensorUnit+0xc>
+    _delay_us(5);
+    spiTransmitToSensorUnit(TRASH);
     10de:	88 eb       	ldi	r24, 0xB8	; 184
     10e0:	c2 df       	rcall	.-124    	; 0x1066 <spiTransmitToSensorUnit>
+    highDataByte = inbuffer;
     10e2:	c0 91 3b 0c 	lds	r28, 0x0C3B
     10e6:	8a e1       	ldi	r24, 0x1A	; 26
     10e8:	8a 95       	dec	r24
     10ea:	f1 f7       	brne	.-4      	; 0x10e8 <fetchDataFromSensorUnit+0x16>
     10ec:	00 c0       	rjmp	.+0      	; 0x10ee <fetchDataFromSensorUnit+0x1c>
+    _delay_us(5);
+    spiTransmitToSensorUnit(TRASH);
     10ee:	88 eb       	ldi	r24, 0xB8	; 184
     10f0:	ba df       	rcall	.-140    	; 0x1066 <spiTransmitToSensorUnit>
+    lowDataByte = inbuffer;
+    return lowDataByte + (highDataByte << 8);
     10f2:	20 91 3b 0c 	lds	r18, 0x0C3B
     10f6:	8c 2f       	mov	r24, r28
     10f8:	90 e0       	ldi	r25, 0x00	; 0
@@ -2374,12 +1961,6 @@ int nodesAndControl()
     1104:	08 95       	ret
 
 00001106 <initUSART>:
-        // VÃ¤nta tills den sÃ¤nt klart det sista
-    }
-    USART0RecieveMode();
-    sei(); // TillÃ¥t interrupts igen
-    
-}
     1106:	80 e1       	ldi	r24, 0x10	; 16
     1108:	8a b9       	out	0x0a, r24	; 10
     110a:	1b b8       	out	0x0b, r1	; 11
@@ -2401,8 +1982,6 @@ int nodesAndControl()
     1130:	08 95       	ret
 
 00001132 <USARTSendInstruction5>:
-void USARTSendInstruction5(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3, int parameter4)
-{
     1132:	cf 92       	push	r12
     1134:	ef 92       	push	r14
     1136:	ff 92       	push	r15
@@ -2414,57 +1993,33 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
     1142:	d6 2f       	mov	r29, r22
     1144:	14 2f       	mov	r17, r20
     1146:	f2 2e       	mov	r15, r18
-    PORTD = (0<<PORTD4);
-}
-
-void USART0SendMode()
-{
-    PORTD = (1<<PORTD4);
     1148:	80 e1       	ldi	r24, 0x10	; 16
     114a:	8b b9       	out	0x0b, r24	; 11
-}
-void USARTSendInstruction5(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3, int parameter4)
-{
-    // sÃ¤tt USART till sÃ¤ndlÃ¤ge
-    USART0SendMode();
-    UCSR0A = UCSR0A | (0 << 6); // Gjorde sÃ¥ att vi kunde skicka en instruktion efter en instruktion/read.
     114c:	e0 ec       	ldi	r30, 0xC0	; 192
     114e:	f0 e0       	ldi	r31, 0x00	; 0
     1150:	80 81       	ld	r24, Z
     1152:	80 83       	st	Z, r24
-    USARTWriteChar(0xFF);
     1154:	8f ef       	ldi	r24, 0xFF	; 255
     1156:	e5 df       	rcall	.-54     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(0xFF);
     1158:	8f ef       	ldi	r24, 0xFF	; 255
     115a:	e3 df       	rcall	.-58     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(ID);
     115c:	8c 2f       	mov	r24, r28
     115e:	e1 df       	rcall	.-62     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(7); // Paketets lÃ¤ngd.
     1160:	87 e0       	ldi	r24, 0x07	; 7
     1162:	df df       	rcall	.-66     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(instruction);
     1164:	8d 2f       	mov	r24, r29
     1166:	dd df       	rcall	.-70     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(parameter0);
     1168:	81 2f       	mov	r24, r17
     116a:	db df       	rcall	.-74     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(parameter1);
     116c:	8f 2d       	mov	r24, r15
     116e:	d9 df       	rcall	.-78     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(parameter2);
     1170:	80 2f       	mov	r24, r16
     1172:	d7 df       	rcall	.-82     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(parameter3);
     1174:	8e 2d       	mov	r24, r14
     1176:	d5 df       	rcall	.-86     	; 0x1122 <USARTWriteChar>
-    USARTWriteChar(parameter4);
     1178:	8c 2d       	mov	r24, r12
     117a:	d3 df       	rcall	.-90     	; 0x1122 <USARTWriteChar>
-    cli();
     117c:	f8 94       	cli
-    USARTWriteChar(~(ID+7+instruction+parameter0+parameter1+parameter2+parameter3+parameter4)); // Checksum
     117e:	87 e0       	ldi	r24, 0x07	; 7
     1180:	8c 0d       	add	r24, r12
     1182:	e8 0e       	add	r14, r24
@@ -2476,28 +2031,13 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
     118e:	8c 0f       	add	r24, r28
     1190:	80 95       	com	r24
     1192:	c7 df       	rcall	.-114    	; 0x1122 <USARTWriteChar>
-    while(!TXD0_FINISHED) //TXD0 sÃ¤tts till 1 dÃ¥ all data shiftats ut ifrÃ¥n usarten
     1194:	e0 ec       	ldi	r30, 0xC0	; 192
     1196:	f0 e0       	ldi	r31, 0x00	; 0
     1198:	80 81       	ld	r24, Z
     119a:	86 ff       	sbrs	r24, 6
     119c:	fd cf       	rjmp	.-6      	; 0x1198 <USARTSendInstruction5+0x66>
-#define TXD0_DATA (UDR0)
-#define RXD0_DATA (UDR0)
-
-void USART0RecieveMode() 
-{
-    PORTD = (0<<PORTD4);
     119e:	1b b8       	out	0x0b, r1	; 11
-        // VÃ¤nta tills den sÃ¤nt klart det sista
-    }
-    ;
-    USART0RecieveMode();
-    //char test1 = RXD0_DATA; // FÃ¶r att lÃ¤sa det som Ã¤r i reciever bufferten, anvÃ¤nds nu fÃ¶r att readchar ska funka
-    sei(); // TillÃ¥t interrupts igen
     11a0:	78 94       	sei
-    
-}
     11a2:	df 91       	pop	r29
     11a4:	cf 91       	pop	r28
     11a6:	1f 91       	pop	r17
@@ -2508,12 +2048,6 @@ void USART0RecieveMode()
     11b0:	08 95       	ret
 
 000011b2 <sendAllRobotParameters>:
-            break;
-        }
-        case trotGait:
-        {
-            transitionStartToTrot();
-            currentGait = trotGait;
     11b2:	60 91 39 0c 	lds	r22, 0x0C39
     11b6:	70 91 3a 0c 	lds	r23, 0x0C3A
     11ba:	80 e8       	ldi	r24, 0x80	; 128
@@ -17136,25 +16670,14 @@ void USART0RecieveMode()
     97c0:	08 95       	ret
 
 000097c2 <frontAvailable>:
-    }
-}
-
-int frontAvailable()
-{
-	int northAvailable = currentNode_g.northAvailible;
     97c2:	40 91 aa 01 	lds	r20, 0x01AA
     97c6:	30 91 ab 01 	lds	r19, 0x01AB
-	int eastAvailable = currentNode_g.eastAvailible;
     97ca:	e0 91 ac 01 	lds	r30, 0x01AC
     97ce:	70 91 ad 01 	lds	r23, 0x01AD
-	int southAvailable = currentNode_g.southAvailible;
     97d2:	80 91 ae 01 	lds	r24, 0x01AE
     97d6:	90 91 af 01 	lds	r25, 0x01AF
-	int westAvailable = currentNode_g.westAvailible;
     97da:	60 91 b0 01 	lds	r22, 0x01B0
     97de:	50 91 b1 01 	lds	r21, 0x01B1
-	
-	switch (currentDirection_g)
     97e2:	20 91 9f 01 	lds	r18, 0x019F
     97e6:	22 30       	cpi	r18, 0x02	; 2
     97e8:	b9 f0       	breq	.+46     	; 0x9818 <frontAvailable+0x56>
@@ -17169,57 +16692,21 @@ int frontAvailable()
     97fa:	24 30       	cpi	r18, 0x04	; 4
     97fc:	41 f0       	breq	.+16     	; 0x980e <frontAvailable+0x4c>
     97fe:	06 c0       	rjmp	.+12     	; 0x980c <frontAvailable+0x4a>
-			break;
-		}
-		
-		case east:
-		{
-			return eastAvailable;
     9800:	8e 2f       	mov	r24, r30
     9802:	97 2f       	mov	r25, r23
     9804:	08 95       	ret
-			break;
-		}
-		
-		case west:
-		{
-			return westAvailable;
     9806:	86 2f       	mov	r24, r22
     9808:	95 2f       	mov	r25, r21
     980a:	08 95       	ret
     980c:	08 95       	ret
-			break;
-		}
-		
-		case noDirection:
-		{
-			return 0;
     980e:	80 e0       	ldi	r24, 0x00	; 0
     9810:	90 e0       	ldi	r25, 0x00	; 0
     9812:	08 95       	ret
-	
-	switch (currentDirection_g)
-	{
-		case north:
-		{
-			return northAvailable;
     9814:	84 2f       	mov	r24, r20
     9816:	93 2f       	mov	r25, r19
-		{
-			return 0;
-			break;
-		}
-	}
-}
     9818:	08 95       	ret
 
 0000981a <gaitController>:
-{
-	
-	// tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
-	
-	
-	if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     981a:	20 91 81 01 	lds	r18, 0x0181
     981e:	30 91 82 01 	lds	r19, 0x0182
     9822:	80 91 62 14 	lds	r24, 0x1462
@@ -17230,17 +16717,11 @@ int frontAvailable()
     9830:	80 91 9e 01 	lds	r24, 0x019E
     9834:	88 23       	and	r24, r24
     9836:	99 f0       	breq	.+38     	; 0x985e <gaitController+0x44>
-	{
-		calcRegulation(decideRegulationDirection(), TRUE);
     9838:	0e 94 88 1d 	call	0x3b10	; 0x3b10 <decideRegulationDirection>
     983c:	61 e0       	ldi	r22, 0x01	; 1
     983e:	70 e0       	ldi	r23, 0x00	; 0
     9840:	0e 94 88 1c 	call	0x3910	; 0x3910 <calcRegulation>
-		applyOrder();
     9844:	0e 94 cd 1d 	call	0x3b9a	; 0x3b9a <applyOrder>
-	}
-
-    if((currentPos_g == posToCalcGait) && (needToCalcGait))
     9848:	20 91 81 01 	lds	r18, 0x0181
     984c:	30 91 82 01 	lds	r19, 0x0182
     9850:	80 91 62 14 	lds	r24, 0x1462
@@ -17252,9 +16733,6 @@ int frontAvailable()
     9862:	90 91 4f 01 	lds	r25, 0x014F
     9866:	89 2b       	or	r24, r25
     9868:	e1 f0       	breq	.+56     	; 0x98a2 <gaitController+0x88>
-    {
-       
-        switch(currentGait)
     986a:	80 91 83 01 	lds	r24, 0x0183
     986e:	81 30       	cpi	r24, 0x01	; 1
     9870:	39 f0       	breq	.+14     	; 0x9880 <gaitController+0x66>
@@ -17262,58 +16740,31 @@ int frontAvailable()
     9874:	82 30       	cpi	r24, 0x02	; 2
     9876:	59 f0       	breq	.+22     	; 0x988e <gaitController+0x74>
     9878:	10 c0       	rjmp	.+32     	; 0x989a <gaitController+0x80>
-        {
-            case standStill:
-            {
-                standStillGait();
     987a:	0e 94 f2 36 	call	0x6de4	; 0x6de4 <standStillGait>
-                break;
     987e:	0d c0       	rjmp	.+26     	; 0x989a <gaitController+0x80>
-            }
-            case trotGait:
-            {
-    
-                MakeTrotGait(gaitResolution_g);
     9880:	80 91 54 01 	lds	r24, 0x0154
     9884:	90 91 55 01 	lds	r25, 0x0155
     9888:	0e 94 85 38 	call	0x710a	; 0x710a <MakeTrotGait>
-                break;
     988c:	06 c0       	rjmp	.+12     	; 0x989a <gaitController+0x80>
-            }
-            case creepGait:
-            {
-                makeCreepGait(gaitResolution_g);
     988e:	80 91 54 01 	lds	r24, 0x0154
     9892:	90 91 55 01 	lds	r25, 0x0155
     9896:	0e 94 9c 24 	call	0x4938	; 0x4938 <makeCreepGait>
-                break;
-            }
-        }
-        needToCalcGait = FALSE;
     989a:	10 92 4f 01 	sts	0x014F, r1
     989e:	10 92 4e 01 	sts	0x014E, r1
-    }
-    if (currentControlMode_g == manual)
     98a2:	80 91 9e 01 	lds	r24, 0x019E
     98a6:	81 11       	cpse	r24, r1
     98a8:	18 c1       	rjmp	.+560    	; 0x9ada <gaitController+0x2c0>
-    {
-        if (directionHasChanged)
     98aa:	80 91 32 0c 	lds	r24, 0x0C32
     98ae:	90 91 33 0c 	lds	r25, 0x0C33
     98b2:	89 2b       	or	r24, r25
     98b4:	09 f4       	brne	.+2      	; 0x98b8 <gaitController+0x9e>
     98b6:	4a c1       	rjmp	.+660    	; 0x9b4c <gaitController+0x332>
-        {
-            directionHasChanged = FALSE;
     98b8:	10 92 33 0c 	sts	0x0C33, r1
     98bc:	10 92 32 0c 	sts	0x0C32, r1
-            needToCalcGait = TRUE;
     98c0:	81 e0       	ldi	r24, 0x01	; 1
     98c2:	90 e0       	ldi	r25, 0x00	; 0
     98c4:	90 93 4f 01 	sts	0x014F, r25
     98c8:	80 93 4e 01 	sts	0x014E, r24
-            switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
     98cc:	80 91 98 01 	lds	r24, 0x0198
     98d0:	90 91 99 01 	lds	r25, 0x0199
     98d4:	81 30       	cpi	r24, 0x01	; 1
@@ -17326,48 +16777,28 @@ int frontAvailable()
     98e2:	09 f0       	breq	.+2      	; 0x98e6 <gaitController+0xcc>
     98e4:	48 c0       	rjmp	.+144    	; 0x9976 <gaitController+0x15c>
     98e6:	33 c0       	rjmp	.+102    	; 0x994e <gaitController+0x134>
-            {
-                case CW_ROTATION:
-                {
-                    if (currentGait == standStill)
     98e8:	80 91 83 01 	lds	r24, 0x0183
     98ec:	81 11       	cpse	r24, r1
     98ee:	05 c0       	rjmp	.+10     	; 0x98fa <gaitController+0xe0>
-                    {
-                        transitionStartToTrot();
     98f0:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                        currentGait = trotGait;
     98f4:	81 e0       	ldi	r24, 0x01	; 1
     98f6:	80 93 83 01 	sts	0x0183, r24
-                    }
-                    regulation_g[1] = stepLengthRotationAdjust;
     98fa:	80 91 52 01 	lds	r24, 0x0152
     98fe:	90 91 53 01 	lds	r25, 0x0153
     9902:	90 93 4f 10 	sts	0x104F, r25
     9906:	80 93 4e 10 	sts	0x104E, r24
-                    regulation_g[2] = -stepLengthRotationAdjust;
     990a:	91 95       	neg	r25
     990c:	81 95       	neg	r24
     990e:	91 09       	sbc	r25, r1
     9910:	90 93 51 10 	sts	0x1051, r25
     9914:	80 93 50 10 	sts	0x1050, r24
-                    break;
     9918:	2e c0       	rjmp	.+92     	; 0x9976 <gaitController+0x15c>
-                }
-                case CCW_ROTATION:
-                {
-                    if (currentGait == standStill)
     991a:	80 91 83 01 	lds	r24, 0x0183
     991e:	81 11       	cpse	r24, r1
     9920:	05 c0       	rjmp	.+10     	; 0x992c <gaitController+0x112>
-                    {
-                        transitionStartToTrot();
     9922:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                        currentGait = trotGait;
     9926:	81 e0       	ldi	r24, 0x01	; 1
     9928:	80 93 83 01 	sts	0x0183, r24
-                    }
-                    regulation_g[1] = -stepLengthRotationAdjust;
     992c:	80 91 52 01 	lds	r24, 0x0152
     9930:	90 91 53 01 	lds	r25, 0x0153
     9934:	22 27       	eor	r18, r18
@@ -17376,37 +16807,21 @@ int frontAvailable()
     993a:	39 0b       	sbc	r19, r25
     993c:	30 93 4f 10 	sts	0x104F, r19
     9940:	20 93 4e 10 	sts	0x104E, r18
-                    regulation_g[2] = stepLengthRotationAdjust;
     9944:	90 93 51 10 	sts	0x1051, r25
     9948:	80 93 50 10 	sts	0x1050, r24
-                    break;
     994c:	14 c0       	rjmp	.+40     	; 0x9976 <gaitController+0x15c>
-                }
-                case NO_ROTATION:
-                {
-                    if ((currentDirection_g == noDirection) && (currentGait == trotGait))
     994e:	80 91 9f 01 	lds	r24, 0x019F
     9952:	84 30       	cpi	r24, 0x04	; 4
     9954:	41 f4       	brne	.+16     	; 0x9966 <gaitController+0x14c>
     9956:	80 91 83 01 	lds	r24, 0x0183
     995a:	81 30       	cpi	r24, 0x01	; 1
     995c:	21 f4       	brne	.+8      	; 0x9966 <gaitController+0x14c>
-                    {
-                        returnToStartPosition();
     995e:	0e 94 1b 1e 	call	0x3c36	; 0x3c36 <returnToStartPosition>
-                        currentGait = standStill;
     9962:	10 92 83 01 	sts	0x0183, r1
-                    }
-                    regulation_g[1] = 0;
     9966:	10 92 4f 10 	sts	0x104F, r1
     996a:	10 92 4e 10 	sts	0x104E, r1
-                    regulation_g[2] = 0;
     996e:	10 92 51 10 	sts	0x1051, r1
     9972:	10 92 50 10 	sts	0x1050, r1
-                    break;
-                }
-            }
-            switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
     9976:	80 91 9a 01 	lds	r24, 0x019A
     997a:	90 91 9b 01 	lds	r25, 0x019B
     997e:	8b 30       	cpi	r24, 0x0B	; 11
@@ -17417,248 +16832,128 @@ int frontAvailable()
     9988:	ea 5b       	subi	r30, 0xBA	; 186
     998a:	ff 4f       	sbci	r31, 0xFF	; 255
     998c:	09 c6       	rjmp	.+3090   	; 0xa5a0 <__tablejump2__>
-            {
-                case NORTH_HEADER:
-                {
-                    if (currentGait == standStill)
     998e:	80 91 83 01 	lds	r24, 0x0183
     9992:	81 11       	cpse	r24, r1
     9994:	02 c0       	rjmp	.+4      	; 0x999a <gaitController+0x180>
-                    {
-                        transitionStartToTrot();
     9996:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    currentGait = trotGait;
     999a:	81 e0       	ldi	r24, 0x01	; 1
     999c:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = north;
     99a0:	10 92 9f 01 	sts	0x019F, r1
-                    regulation_g[0] = 0;
     99a4:	10 92 4d 10 	sts	0x104D, r1
     99a8:	10 92 4c 10 	sts	0x104C, r1
-                    break;
     99ac:	cf c0       	rjmp	.+414    	; 0x9b4c <gaitController+0x332>
-                }
-                case NORTH_EAST_HEADER:
-                {
-                    if (currentGait == standStill)
     99ae:	80 91 83 01 	lds	r24, 0x0183
     99b2:	81 11       	cpse	r24, r1
     99b4:	02 c0       	rjmp	.+4      	; 0x99ba <gaitController+0x1a0>
-                    {
-                        transitionStartToTrot();
     99b6:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentGait = trotGait;
     99ba:	81 e0       	ldi	r24, 0x01	; 1
     99bc:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = north;
     99c0:	10 92 9f 01 	sts	0x019F, r1
-                    regulation_g[0] = stepLength_g;
     99c4:	80 91 5e 01 	lds	r24, 0x015E
     99c8:	90 91 5f 01 	lds	r25, 0x015F
     99cc:	90 93 4d 10 	sts	0x104D, r25
     99d0:	80 93 4c 10 	sts	0x104C, r24
-                    break;
     99d4:	bb c0       	rjmp	.+374    	; 0x9b4c <gaitController+0x332>
-                }
-                case EAST_HEADER:
-                {
-                    if (currentGait == standStill)
     99d6:	80 91 83 01 	lds	r24, 0x0183
     99da:	81 11       	cpse	r24, r1
     99dc:	02 c0       	rjmp	.+4      	; 0x99e2 <gaitController+0x1c8>
-                    {
-                        transitionStartToTrot();
     99de:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    currentGait = trotGait;
     99e2:	81 e0       	ldi	r24, 0x01	; 1
     99e4:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = east;
     99e8:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = 0;
     99ec:	10 92 4d 10 	sts	0x104D, r1
     99f0:	10 92 4c 10 	sts	0x104C, r1
-                    break;
     99f4:	ab c0       	rjmp	.+342    	; 0x9b4c <gaitController+0x332>
-                    }
-                case SOUTH_EAST_HEADER:
-                {
-                    if (currentGait == standStill)
     99f6:	80 91 83 01 	lds	r24, 0x0183
     99fa:	81 11       	cpse	r24, r1
     99fc:	02 c0       	rjmp	.+4      	; 0x9a02 <gaitController+0x1e8>
-                    {
-                        transitionStartToTrot();
     99fe:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentGait = trotGait;
     9a02:	81 e0       	ldi	r24, 0x01	; 1
     9a04:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = east;
     9a08:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = stepLength_g;
     9a0c:	80 91 5e 01 	lds	r24, 0x015E
     9a10:	90 91 5f 01 	lds	r25, 0x015F
     9a14:	90 93 4d 10 	sts	0x104D, r25
     9a18:	80 93 4c 10 	sts	0x104C, r24
-                    break;
     9a1c:	97 c0       	rjmp	.+302    	; 0x9b4c <gaitController+0x332>
-                }
-                case SOUTH_HEADER:
-                {
-                    if (currentGait == standStill)
     9a1e:	80 91 83 01 	lds	r24, 0x0183
     9a22:	81 11       	cpse	r24, r1
     9a24:	02 c0       	rjmp	.+4      	; 0x9a2a <gaitController+0x210>
-                    {
-                        transitionStartToTrot();
     9a26:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    currentGait = trotGait;
     9a2a:	81 e0       	ldi	r24, 0x01	; 1
     9a2c:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = south;
     9a30:	82 e0       	ldi	r24, 0x02	; 2
     9a32:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = 0;
     9a36:	10 92 4d 10 	sts	0x104D, r1
     9a3a:	10 92 4c 10 	sts	0x104C, r1
-                    break;
     9a3e:	86 c0       	rjmp	.+268    	; 0x9b4c <gaitController+0x332>
-                }
-                case SOUTH_WEST_HEADER:
-                {
-                    if (currentGait == standStill)
     9a40:	80 91 83 01 	lds	r24, 0x0183
     9a44:	81 11       	cpse	r24, r1
     9a46:	02 c0       	rjmp	.+4      	; 0x9a4c <gaitController+0x232>
-                    {
-                        transitionStartToTrot();
     9a48:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    // Huvudsaklig rörelseriktning söder. Västlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentGait = trotGait;
     9a4c:	81 e0       	ldi	r24, 0x01	; 1
     9a4e:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = south;
     9a52:	82 e0       	ldi	r24, 0x02	; 2
     9a54:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = stepLength_g;
     9a58:	80 91 5e 01 	lds	r24, 0x015E
     9a5c:	90 91 5f 01 	lds	r25, 0x015F
     9a60:	90 93 4d 10 	sts	0x104D, r25
     9a64:	80 93 4c 10 	sts	0x104C, r24
-                    break;
     9a68:	71 c0       	rjmp	.+226    	; 0x9b4c <gaitController+0x332>
-                }
-                case WEST_HEADER:
-                {
-                    if (currentGait == standStill)
     9a6a:	80 91 83 01 	lds	r24, 0x0183
     9a6e:	81 11       	cpse	r24, r1
     9a70:	02 c0       	rjmp	.+4      	; 0x9a76 <gaitController+0x25c>
-                    {
-                        transitionStartToTrot();
     9a72:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    currentGait = trotGait;
     9a76:	81 e0       	ldi	r24, 0x01	; 1
     9a78:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = west;
     9a7c:	83 e0       	ldi	r24, 0x03	; 3
     9a7e:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = 0;
     9a82:	10 92 4d 10 	sts	0x104D, r1
     9a86:	10 92 4c 10 	sts	0x104C, r1
-                    break;
     9a8a:	60 c0       	rjmp	.+192    	; 0x9b4c <gaitController+0x332>
-                }
-                case NORTH_WEST_HEADER:
-                {
-                    if (currentGait == standStill)
     9a8c:	80 91 83 01 	lds	r24, 0x0183
     9a90:	81 11       	cpse	r24, r1
     9a92:	02 c0       	rjmp	.+4      	; 0x9a98 <gaitController+0x27e>
-                    {
-                        transitionStartToTrot();
     9a94:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-                    }
-                    // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
-                    currentGait = trotGait;
     9a98:	81 e0       	ldi	r24, 0x01	; 1
     9a9a:	80 93 83 01 	sts	0x0183, r24
-                    currentDirection_g = west;
     9a9e:	83 e0       	ldi	r24, 0x03	; 3
     9aa0:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = stepLength_g;
     9aa4:	80 91 5e 01 	lds	r24, 0x015E
     9aa8:	90 91 5f 01 	lds	r25, 0x015F
     9aac:	90 93 4d 10 	sts	0x104D, r25
     9ab0:	80 93 4c 10 	sts	0x104C, r24
-                    break;
     9ab4:	4b c0       	rjmp	.+150    	; 0x9b4c <gaitController+0x332>
-                }
-                case NO_MOVEMENT_DIRECTION_HEADER:
-                {
-                    if(currentRotationInstruction == NO_ROTATION)
     9ab6:	80 91 98 01 	lds	r24, 0x0198
     9aba:	90 91 99 01 	lds	r25, 0x0199
     9abe:	89 2b       	or	r24, r25
     9ac0:	21 f4       	brne	.+8      	; 0x9aca <gaitController+0x2b0>
-                    {
-                        returnToStartPosition();
     9ac2:	0e 94 1b 1e 	call	0x3c36	; 0x3c36 <returnToStartPosition>
-                        currentGait = standStill;
     9ac6:	10 92 83 01 	sts	0x0183, r1
-                    }
-                    currentDirection_g = noDirection;
     9aca:	84 e0       	ldi	r24, 0x04	; 4
     9acc:	80 93 9f 01 	sts	0x019F, r24
-                    regulation_g[0] = 0;
     9ad0:	10 92 4d 10 	sts	0x104D, r1
     9ad4:	10 92 4c 10 	sts	0x104C, r1
-                    break;
     9ad8:	39 c0       	rjmp	.+114    	; 0x9b4c <gaitController+0x332>
-            }
-        }
-	}
-    else // Controlmode är något annat än manuellt
-    {
-        if(directionHasChanged) // nodesAndControl har tagit ett styrbeslut
     9ada:	80 91 32 0c 	lds	r24, 0x0C32
     9ade:	90 91 33 0c 	lds	r25, 0x0C33
     9ae2:	89 2b       	or	r24, r25
     9ae4:	99 f1       	breq	.+102    	; 0x9b4c <gaitController+0x332>
-        {
-            directionHasChanged = FALSE;
     9ae6:	10 92 33 0c 	sts	0x0C33, r1
     9aea:	10 92 32 0c 	sts	0x0C32, r1
-            needToCalcGait = TRUE;
     9aee:	81 e0       	ldi	r24, 0x01	; 1
     9af0:	90 e0       	ldi	r25, 0x00	; 0
     9af2:	90 93 4f 01 	sts	0x014F, r25
     9af6:	80 93 4e 01 	sts	0x014E, r24
-			if (currentGait == standStill)
     9afa:	80 91 83 01 	lds	r24, 0x0183
     9afe:	81 11       	cpse	r24, r1
     9b00:	02 c0       	rjmp	.+4      	; 0x9b06 <gaitController+0x2ec>
-			{
-				transitionStartToTrot();
     9b02:	0e 94 dc 22 	call	0x45b8	; 0x45b8 <transitionStartToTrot>
-			}
-			currentGait = trotGait;
     9b06:	81 e0       	ldi	r24, 0x01	; 1
     9b08:	80 93 83 01 	sts	0x0183, r24
-            if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
     9b0c:	80 91 7c 01 	lds	r24, 0x017C
     9b10:	81 11       	cpse	r24, r1
     9b12:	1c c0       	rjmp	.+56     	; 0x9b4c <gaitController+0x332>
-		    {
-				if (nextDirection_g == currentDirection_g || (nextDirection_g == ((currentDirection_g + 2) % 4))) // undersöker om nästa riktning är fram eller bak relativt nuvarande riktning
     9b14:	40 91 34 0c 	lds	r20, 0x0C34
     9b18:	80 91 9f 01 	lds	r24, 0x019F
     9b1c:	48 17       	cp	r20, r24
@@ -17672,49 +16967,27 @@ int frontAvailable()
     9b2c:	28 17       	cp	r18, r24
     9b2e:	39 07       	cpc	r19, r25
     9b30:	19 f4       	brne	.+6      	; 0x9b38 <gaitController+0x31e>
-				{
-					currentDirection_g = nextDirection_g; // om fram eller bak så är det bar att byta
     9b32:	40 93 9f 01 	sts	0x019F, r20
     9b36:	0a c0       	rjmp	.+20     	; 0x9b4c <gaitController+0x332>
-				}
-				else 
-				{
-					if (frontAvailable()) // om vänster eller höger rel. nuvarande riktning måste vi undersöka om vi ska svänga blint eller med syn
     9b38:	44 de       	rcall	.-888    	; 0x97c2 <frontAvailable>
     9b3a:	89 2b       	or	r24, r25
     9b3c:	21 f0       	breq	.+8      	; 0x9b46 <gaitController+0x32c>
-					{
-						currentOrder_g = turnBlind;
     9b3e:	81 e0       	ldi	r24, 0x01	; 1
     9b40:	80 93 7c 01 	sts	0x017C, r24
     9b44:	03 c0       	rjmp	.+6      	; 0x9b4c <gaitController+0x332>
-					}
-					else
-					{
-						currentOrder_g = turnSeeing;
     9b46:	82 e0       	ldi	r24, 0x02	; 2
     9b48:	80 93 7c 01 	sts	0x017C, r24
-					}
-				}
-			}
-        }
-    }
-    if(optionsHasChanged_g == 1)
     9b4c:	80 91 96 01 	lds	r24, 0x0196
     9b50:	90 91 97 01 	lds	r25, 0x0197
     9b54:	01 97       	sbiw	r24, 0x01	; 1
     9b56:	09 f0       	breq	.+2      	; 0x9b5a <gaitController+0x340>
     9b58:	86 c0       	rjmp	.+268    	; 0x9c66 <gaitController+0x44c>
-    {
-        optionsHasChanged_g = FALSE;
     9b5a:	10 92 97 01 	sts	0x0197, r1
     9b5e:	10 92 96 01 	sts	0x0196, r1
-        needToCalcGait = TRUE;
     9b62:	81 e0       	ldi	r24, 0x01	; 1
     9b64:	90 e0       	ldi	r25, 0x00	; 0
     9b66:	90 93 4f 01 	sts	0x014F, r25
     9b6a:	80 93 4e 01 	sts	0x014E, r24
-        switch (currentOptionInstruction_g)
     9b6e:	e0 91 b6 01 	lds	r30, 0x01B6
     9b72:	f0 91 b7 01 	lds	r31, 0x01B7
     9b76:	e0 58       	subi	r30, 0x80	; 128
@@ -17726,181 +16999,85 @@ int frontAvailable()
     9b82:	ef 5a       	subi	r30, 0xAF	; 175
     9b84:	ff 4f       	sbci	r31, 0xFF	; 255
     9b86:	0c c5       	rjmp	.+2584   	; 0xa5a0 <__tablejump2__>
-        {
-            case INCREASE_LEG_WIDTH:
-            {
-                increaseLegWidth();
     9b88:	aa dc       	rcall	.-1708   	; 0x94de <increaseLegWidth>
-                sendLegWidth = TRUE;
     9b8a:	81 e0       	ldi	r24, 0x01	; 1
     9b8c:	90 e0       	ldi	r25, 0x00	; 0
     9b8e:	90 93 91 01 	sts	0x0191, r25
     9b92:	80 93 90 01 	sts	0x0190, r24
-                break;
     9b96:	08 95       	ret
-            }
-            
-            case DECREASE_LEG_WIDTH:
-            {
-                decreaseLegWidth();
     9b98:	bc dc       	rcall	.-1672   	; 0x9512 <decreaseLegWidth>
-                sendLegWidth = TRUE;
     9b9a:	81 e0       	ldi	r24, 0x01	; 1
     9b9c:	90 e0       	ldi	r25, 0x00	; 0
     9b9e:	90 93 91 01 	sts	0x0191, r25
     9ba2:	80 93 90 01 	sts	0x0190, r24
-                break;
     9ba6:	08 95       	ret
-            }
-            
-            case INCREASE_LEG_HEIGHT:
-            {
-                increaseLegHeight();
     9ba8:	dc dc       	rcall	.-1608   	; 0x9562 <increaseLegHeight>
-                sendRobotHeight = TRUE;
     9baa:	81 e0       	ldi	r24, 0x01	; 1
     9bac:	90 e0       	ldi	r25, 0x00	; 0
     9bae:	90 93 8d 01 	sts	0x018D, r25
     9bb2:	80 93 8c 01 	sts	0x018C, r24
-                break;
     9bb6:	08 95       	ret
-            }
-            
-            case DECREASE_LEG_HEIGHT:
-            {
-                decreaseLegHeight();
     9bb8:	c6 dc       	rcall	.-1652   	; 0x9546 <decreaseLegHeight>
-                sendRobotHeight = TRUE;
     9bba:	81 e0       	ldi	r24, 0x01	; 1
     9bbc:	90 e0       	ldi	r25, 0x00	; 0
     9bbe:	90 93 8d 01 	sts	0x018D, r25
     9bc2:	80 93 8c 01 	sts	0x018C, r24
-                break;
     9bc6:	08 95       	ret
-            }
-            
-            case INCREASE_STEP_LENGTH:
-            {
-                increaseStepLength();
     9bc8:	da dc       	rcall	.-1612   	; 0x957e <increaseStepLength>
-                sendStepLength = TRUE;
     9bca:	81 e0       	ldi	r24, 0x01	; 1
     9bcc:	90 e0       	ldi	r25, 0x00	; 0
     9bce:	90 93 8b 01 	sts	0x018B, r25
     9bd2:	80 93 8a 01 	sts	0x018A, r24
-                break;
     9bd6:	08 95       	ret
-            }
-            
-            case DECREASE_STEP_LENGTH:
-            {
-                decreaseStepLength();
     9bd8:	df dc       	rcall	.-1602   	; 0x9598 <decreaseStepLength>
-                sendStepLength = TRUE;
     9bda:	81 e0       	ldi	r24, 0x01	; 1
     9bdc:	90 e0       	ldi	r25, 0x00	; 0
     9bde:	90 93 8b 01 	sts	0x018B, r25
     9be2:	80 93 8a 01 	sts	0x018A, r24
-                break;
     9be6:	08 95       	ret
-            }
-            
-            case INCREASE_STEP_HEIGHT:
-            {
-                increaseStepHeight();
     9be8:	2e dd       	rcall	.-1444   	; 0x9646 <increaseStepHeight>
-                sendStepHeight = TRUE;
     9bea:	81 e0       	ldi	r24, 0x01	; 1
     9bec:	90 e0       	ldi	r25, 0x00	; 0
     9bee:	90 93 8f 01 	sts	0x018F, r25
     9bf2:	80 93 8e 01 	sts	0x018E, r24
-                break;
     9bf6:	08 95       	ret
-            }
-            
-            case DECREASE_STEP_HEIGHT:
-            {
-                decreaseStepHeight();
     9bf8:	33 dd       	rcall	.-1434   	; 0x9660 <decreaseStepHeight>
-                sendStepHeight = TRUE;
     9bfa:	81 e0       	ldi	r24, 0x01	; 1
     9bfc:	90 e0       	ldi	r25, 0x00	; 0
     9bfe:	90 93 8f 01 	sts	0x018F, r25
     9c02:	80 93 8e 01 	sts	0x018E, r24
-                break;
     9c06:	08 95       	ret
-            }
-            
-            case INCREASE_GAIT_RESOLUTION_TIME:
-            {
-                increaseGaitResolutionTime();
     9c08:	d4 dc       	rcall	.-1624   	; 0x95b2 <increaseGaitResolutionTime>
-                sendGaitResTime = TRUE;
     9c0a:	81 e0       	ldi	r24, 0x01	; 1
     9c0c:	90 e0       	ldi	r25, 0x00	; 0
     9c0e:	90 93 85 01 	sts	0x0185, r25
     9c12:	80 93 84 01 	sts	0x0184, r24
-                break;
     9c16:	08 95       	ret
-            }
-            
-            case DECREASE_GAIT_RESOLUTION_TIME:
-            {
-                decreaseGaitResolutionTime();
     9c18:	f1 dc       	rcall	.-1566   	; 0x95fc <decreaseGaitResolutionTime>
-                sendGaitResTime = TRUE;
     9c1a:	81 e0       	ldi	r24, 0x01	; 1
     9c1c:	90 e0       	ldi	r25, 0x00	; 0
     9c1e:	90 93 85 01 	sts	0x0185, r25
     9c22:	80 93 84 01 	sts	0x0184, r24
-                break;
     9c26:	08 95       	ret
-            }
-            
-            case INCREASE_K_TRANSLATION:
-            {
-                increaseKTranslation();
     9c28:	28 dd       	rcall	.-1456   	; 0x967a <increaseKTranslation>
-                sendKPTrans = TRUE;
     9c2a:	81 e0       	ldi	r24, 0x01	; 1
     9c2c:	90 e0       	ldi	r25, 0x00	; 0
     9c2e:	90 93 87 01 	sts	0x0187, r25
     9c32:	80 93 86 01 	sts	0x0186, r24
-                break;
     9c36:	08 95       	ret
-            }
-            
-            case DECREASE_K_TRANSLATION:
-            {
-                decreaseKTranslation();
     9c38:	49 dd       	rcall	.-1390   	; 0x96cc <decreaseKTranslation>
-                sendKPTrans = TRUE;
     9c3a:	81 e0       	ldi	r24, 0x01	; 1
     9c3c:	90 e0       	ldi	r25, 0x00	; 0
     9c3e:	90 93 87 01 	sts	0x0187, r25
     9c42:	80 93 86 01 	sts	0x0186, r24
-                break;
     9c46:	08 95       	ret
-            }
-            
-            case INCREASE_K_ROTATION:
-            {
-                increaseKRotation();
     9c48:	6a dd       	rcall	.-1324   	; 0x971e <increaseKRotation>
-                sendKPAngle = TRUE;
     9c4a:	81 e0       	ldi	r24, 0x01	; 1
     9c4c:	90 e0       	ldi	r25, 0x00	; 0
     9c4e:	90 93 89 01 	sts	0x0189, r25
     9c52:	80 93 88 01 	sts	0x0188, r24
-                break;
     9c56:	08 95       	ret
-            }
-            
-            case DECREASE_K_ROTATION:
-            {
-                decreaseKRotation();
     9c58:	8b dd       	rcall	.-1258   	; 0x9770 <decreaseKRotation>
-                sendKPAngle = TRUE;
     9c5a:	81 e0       	ldi	r24, 0x01	; 1
     9c5c:	90 e0       	ldi	r25, 0x00	; 0
     9c5e:	90 93 89 01 	sts	0x0189, r25
@@ -17908,50 +17085,32 @@ int frontAvailable()
     9c66:	08 95       	ret
 
 00009c68 <sendChangedRobotParameters>:
-    }
-}
-
-void sendChangedRobotParameters()
-{
-    if (sendLegWidth)
     9c68:	80 91 90 01 	lds	r24, 0x0190
     9c6c:	90 91 91 01 	lds	r25, 0x0191
     9c70:	89 2b       	or	r24, r25
     9c72:	61 f0       	breq	.+24     	; 0x9c8c <sendChangedRobotParameters+0x24>
-    {
-        transmitDataToCommUnit(LEG_DISTANCE_HEADER, startPositionX_g);
     9c74:	60 91 5c 01 	lds	r22, 0x015C
     9c78:	70 91 5d 01 	lds	r23, 0x015D
     9c7c:	80 e4       	ldi	r24, 0x40	; 64
     9c7e:	90 e0       	ldi	r25, 0x00	; 0
     9c80:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendLegWidth = FALSE;
     9c84:	10 92 91 01 	sts	0x0191, r1
     9c88:	10 92 90 01 	sts	0x0190, r1
-    }        
-    if (sendStepHeight)
     9c8c:	80 91 8e 01 	lds	r24, 0x018E
     9c90:	90 91 8f 01 	lds	r25, 0x018F
     9c94:	89 2b       	or	r24, r25
     9c96:	61 f0       	breq	.+24     	; 0x9cb0 <sendChangedRobotParameters+0x48>
-    {
-        transmitDataToCommUnit(STEP_HEIGHT_HEADER, stepHeight_g);
     9c98:	60 91 56 01 	lds	r22, 0x0156
     9c9c:	70 91 57 01 	lds	r23, 0x0157
     9ca0:	88 e4       	ldi	r24, 0x48	; 72
     9ca2:	90 e0       	ldi	r25, 0x00	; 0
     9ca4:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendStepHeight = FALSE;
     9ca8:	10 92 8f 01 	sts	0x018F, r1
     9cac:	10 92 8e 01 	sts	0x018E, r1
-    }
-    if (sendRobotHeight)
     9cb0:	80 91 8c 01 	lds	r24, 0x018C
     9cb4:	90 91 8d 01 	lds	r25, 0x018D
     9cb8:	89 2b       	or	r24, r25
     9cba:	79 f0       	breq	.+30     	; 0x9cda <sendChangedRobotParameters+0x72>
-    {
-        transmitDataToCommUnit(ROBOT_HEIGHT_HEADER, -startPositionZ_g);
     9cbc:	60 91 58 01 	lds	r22, 0x0158
     9cc0:	70 91 59 01 	lds	r23, 0x0159
     9cc4:	71 95       	neg	r23
@@ -17960,33 +17119,23 @@ void sendChangedRobotParameters()
     9cca:	88 e3       	ldi	r24, 0x38	; 56
     9ccc:	90 e0       	ldi	r25, 0x00	; 0
     9cce:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendRobotHeight = FALSE;
     9cd2:	10 92 8d 01 	sts	0x018D, r1
     9cd6:	10 92 8c 01 	sts	0x018C, r1
-    }
-    if (sendStepLength) 
     9cda:	80 91 8a 01 	lds	r24, 0x018A
     9cde:	90 91 8b 01 	lds	r25, 0x018B
     9ce2:	89 2b       	or	r24, r25
     9ce4:	61 f0       	breq	.+24     	; 0x9cfe <sendChangedRobotParameters+0x96>
-    {
-        transmitDataToCommUnit(STEP_LENGTH_HEADER, stepLength_g);
     9ce6:	60 91 5e 01 	lds	r22, 0x015E
     9cea:	70 91 5f 01 	lds	r23, 0x015F
     9cee:	80 e5       	ldi	r24, 0x50	; 80
     9cf0:	90 e0       	ldi	r25, 0x00	; 0
     9cf2:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendStepLength = FALSE;
     9cf6:	10 92 8b 01 	sts	0x018B, r1
     9cfa:	10 92 8a 01 	sts	0x018A, r1
-    }
-    if (sendKPAngle) 
     9cfe:	80 91 88 01 	lds	r24, 0x0188
     9d02:	90 91 89 01 	lds	r25, 0x0189
     9d06:	89 2b       	or	r24, r25
     9d08:	b1 f0       	breq	.+44     	; 0x9d36 <sendChangedRobotParameters+0xce>
-    {
-        transmitDataToCommUnit(K_P_ANGLE_HEADER, 100*kProportionalAngle_g);
     9d0a:	20 e0       	ldi	r18, 0x00	; 0
     9d0c:	30 e0       	ldi	r19, 0x00	; 0
     9d0e:	48 ec       	ldi	r20, 0xC8	; 200
@@ -18000,17 +17149,12 @@ void sendChangedRobotParameters()
     9d26:	80 e3       	ldi	r24, 0x30	; 48
     9d28:	90 e0       	ldi	r25, 0x00	; 0
     9d2a:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendKPAngle = FALSE;
     9d2e:	10 92 89 01 	sts	0x0189, r1
     9d32:	10 92 88 01 	sts	0x0188, r1
-    }
-    if (sendKPTrans) 
     9d36:	80 91 86 01 	lds	r24, 0x0186
     9d3a:	90 91 87 01 	lds	r25, 0x0187
     9d3e:	89 2b       	or	r24, r25
     9d40:	b1 f0       	breq	.+44     	; 0x9d6e <sendChangedRobotParameters+0x106>
-    {
-        transmitDataToCommUnit(K_P_TRANS_HEADER, 100*kProportionalTranslation_g);
     9d42:	20 e0       	ldi	r18, 0x00	; 0
     9d44:	30 e0       	ldi	r19, 0x00	; 0
     9d46:	48 ec       	ldi	r20, 0xC8	; 200
@@ -18024,34 +17168,22 @@ void sendChangedRobotParameters()
     9d5e:	88 e2       	ldi	r24, 0x28	; 40
     9d60:	90 e0       	ldi	r25, 0x00	; 0
     9d62:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendKPTrans = FALSE;
     9d66:	10 92 87 01 	sts	0x0187, r1
     9d6a:	10 92 86 01 	sts	0x0186, r1
-    }
-    if (sendGaitResTime) 
     9d6e:	80 91 84 01 	lds	r24, 0x0184
     9d72:	90 91 85 01 	lds	r25, 0x0185
     9d76:	89 2b       	or	r24, r25
     9d78:	61 f0       	breq	.+24     	; 0x9d92 <sendChangedRobotParameters+0x12a>
-    {
-        transmitDataToCommUnit(STEP_INCREMENT_TIME_HEADER, gaitResolutionTime_g);
     9d7a:	60 91 39 0c 	lds	r22, 0x0C39
     9d7e:	70 91 3a 0c 	lds	r23, 0x0C3A
     9d82:	80 e8       	ldi	r24, 0x80	; 128
     9d84:	90 e0       	ldi	r25, 0x00	; 0
     9d86:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-        sendGaitResTime = FALSE;
     9d8a:	10 92 85 01 	sts	0x0185, r1
     9d8e:	10 92 84 01 	sts	0x0184, r1
     9d92:	08 95       	ret
 
 00009d94 <checkForLeak>:
-    }
-}
-
-void checkForLeak()
-{
-	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
     9d94:	88 e9       	ldi	r24, 0x98	; 152
     9d96:	90 e0       	ldi	r25, 0x00	; 0
     9d98:	0e 94 69 08 	call	0x10d2	; 0x10d2 <fetchDataFromSensorUnit>
@@ -18060,50 +17192,30 @@ void checkForLeak()
     9da4:	08 95       	ret
 
 00009da6 <main>:
-}
-int main(void)
-{
-	initUSART();
     9da6:	0e 94 83 08 	call	0x1106	; 0x1106 <initUSART>
-    spiMasterInit();
     9daa:	0e 94 2a 08 	call	0x1054	; 0x1054 <spiMasterInit>
-    EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     9dae:	8f e0       	ldi	r24, 0x0F	; 15
     9db0:	80 93 69 00 	sts	0x0069, r24
-    EIMSK = (EIMSK | 3); // Möjliggör externa avbrott på INT1/0
     9db4:	8d b3       	in	r24, 0x1d	; 29
     9db6:	83 60       	ori	r24, 0x03	; 3
     9db8:	8d bb       	out	0x1d, r24	; 29
-
-    // initiering av globala variabler
-    currentPos_g = 0;
     9dba:	10 92 82 01 	sts	0x0182, r1
     9dbe:	10 92 81 01 	sts	0x0181, r1
-    nextPos_g = 1;
     9dc2:	81 e0       	ldi	r24, 0x01	; 1
     9dc4:	90 e0       	ldi	r25, 0x00	; 0
     9dc6:	90 93 21 01 	sts	0x0121, r25
     9dca:	80 93 20 01 	sts	0x0120, r24
-    currentControlMode_g = manual;
     9dce:	10 92 9e 01 	sts	0x019E, r1
-    currentDirection_g = north;
     9dd2:	10 92 9f 01 	sts	0x019F, r1
-	nextDirection_g = north;
     9dd6:	10 92 34 0c 	sts	0x0C34, r1
-    currentOptionInstruction_g = 0;
     9dda:	10 92 b7 01 	sts	0x01B7, r1
     9dde:	10 92 b6 01 	sts	0x01B6, r1
-    initNodeAndSteering();
     9de2:	0e 94 b2 05 	call	0xb64	; 0xb64 <initNodeAndSteering>
-    directionHasChanged = FALSE;
     9de6:	10 92 33 0c 	sts	0x0C33, r1
     9dea:	10 92 32 0c 	sts	0x0C32, r1
-    currentGait = standStill;
     9dee:	10 92 83 01 	sts	0x0183, r1
-    optionsHasChanged_g = 0;
     9df2:	10 92 97 01 	sts	0x0197, r1
     9df6:	10 92 96 01 	sts	0x0196, r1
-    BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
     9dfa:	80 91 60 01 	lds	r24, 0x0160
     9dfe:	90 91 61 01 	lds	r25, 0x0161
     9e02:	08 97       	sbiw	r24, 0x08	; 8
@@ -18123,16 +17235,9 @@ int main(void)
     9e22:	a4 d1       	rcall	.+840    	; 0xa16c <__fixsfsi>
     9e24:	70 93 93 01 	sts	0x0193, r23
     9e28:	60 93 92 01 	sts	0x0192, r22
-	
-    int nodeAdded = FALSE;
-	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
-    timer0Init();
     9e2c:	0e 94 0d 07 	call	0xe1a	; 0xe1a <timer0Init>
-    timer2Init();
     9e30:	0e 94 19 07 	call	0xe32	; 0xe32 <timer2Init>
-    sei();
     9e34:	78 94       	sei
-    MoveToStartPosition();
     9e36:	0e 94 e8 0e 	call	0x1dd0	; 0x1dd0 <MoveToStartPosition>
 	#else
 		//round up by default
@@ -18149,91 +17254,39 @@ int main(void)
     9e46:	e1 f7       	brne	.-8      	; 0x9e40 <main+0x9a>
     9e48:	00 c0       	rjmp	.+0      	; 0x9e4a <main+0xa4>
     9e4a:	00 00       	nop
-    //moveToCreepStartPosition();
-    _delay_ms(1000);
-    //currentDirection_g = east;
-    //makeCreepGait(gaitResolution_g);
-    standStillGait();
     9e4c:	0e 94 f2 36 	call	0x6de4	; 0x6de4 <standStillGait>
-
-    //currentGait = creepGait;
-
-    //moveToCreepStartPosition();
-    //makeCreepGait(gaitResolution_g);
-    setTimerPeriod(TIMER_0, newGaitResolutionTime);
     9e50:	60 91 50 01 	lds	r22, 0x0150
     9e54:	70 91 51 01 	lds	r23, 0x0151
     9e58:	80 e0       	ldi	r24, 0x00	; 0
     9e5a:	90 e0       	ldi	r25, 0x00	; 0
     9e5c:	0e 94 28 07 	call	0xe50	; 0xe50 <setTimerPeriod>
-    setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     9e60:	60 91 4c 01 	lds	r22, 0x014C
     9e64:	70 91 4d 01 	lds	r23, 0x014D
     9e68:	82 e0       	ldi	r24, 0x02	; 2
     9e6a:	90 e0       	ldi	r25, 0x00	; 0
     9e6c:	0e 94 28 07 	call	0xe50	; 0xe50 <setTimerPeriod>
-    
-	sendAllRobotParameters();
     9e70:	0e 94 d9 08 	call	0x11b2	; 0x11b2 <sendAllRobotParameters>
-    currentGait = standStill;
-    optionsHasChanged_g = 0;
-    BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
-	
-    int nodeAdded = FALSE;
-	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
     9e74:	c0 e0       	ldi	r28, 0x00	; 0
     9e76:	d0 e0       	ldi	r29, 0x00	; 0
-				transmitAllDataToCommUnit();
-				sendDataToPC = FALSE;
-			}
-			else
-			{
-				sendDataToPC = TRUE;
     9e78:	01 e0       	ldi	r16, 0x01	; 1
     9e7a:	10 e0       	ldi	r17, 0x00	; 0
-            if (sendDataToPC)
-			{
-				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
-				transmitAllDataToCommUnit();
-				sendDataToPC = FALSE;
     9e7c:	e1 2c       	mov	r14, r1
     9e7e:	f1 2c       	mov	r15, r1
-
-    // ---- Main-Loop ----
-    while (1)
-    {
-	    
-    	if (legTimerPeriodEnd())
     9e80:	0e 94 ca 07 	call	0xf94	; 0xf94 <legTimerPeriodEnd>
     9e84:	89 2b       	or	r24, r25
     9e86:	29 f0       	breq	.+10     	; 0x9e92 <main+0xec>
-    	{
-    	    move();
     9e88:	0e 94 36 1b 	call	0x366c	; 0x366c <move>
-    	    resetLegTimer(); 
     9e8c:	0e 94 ff 07 	call	0xffe	; 0xffe <resetLegTimer>
-            gaitController();
     9e90:	c4 dc       	rcall	.-1656   	; 0x981a <gaitController>
-    	}
-    	if (commTimerPeriodEnd())
     9e92:	0e 94 e4 07 	call	0xfc8	; 0xfc8 <commTimerPeriodEnd>
     9e96:	89 2b       	or	r24, r25
     9e98:	09 f1       	breq	.+66     	; 0x9edc <main+0x136>
-    	{
-			updateAllDistanceSensorData();            
     9e9a:	0e 94 5e 1c 	call	0x38bc	; 0x38bc <updateAllDistanceSensorData>
-            updateTotalAngle();
     9e9e:	0e 94 7f 1c 	call	0x38fe	; 0x38fe <updateTotalAngle>
-			checkForLeak();
     9ea2:	78 df       	rcall	.-272    	; 0x9d94 <checkForLeak>
-            sendChangedRobotParameters();
     9ea4:	e1 de       	rcall	.-574    	; 0x9c68 <sendChangedRobotParameters>
-            if (sendDataToPC)
     9ea6:	cd 2b       	or	r28, r29
     9ea8:	a9 f0       	breq	.+42     	; 0x9ed4 <main+0x12e>
-			{
-				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
     9eaa:	80 ea       	ldi	r24, 0xA0	; 160
     9eac:	91 e0       	ldi	r25, 0x01	; 1
     9eae:	0e 94 aa 00 	call	0x154	; 0x154 <makeNodeData>
@@ -18241,44 +17294,21 @@ int main(void)
     9eb4:	80 ea       	ldi	r24, 0xA0	; 160
     9eb6:	90 e0       	ldi	r25, 0x00	; 0
     9eb8:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
     9ebc:	60 91 34 0c 	lds	r22, 0x0C34
     9ec0:	70 e0       	ldi	r23, 0x00	; 0
     9ec2:	8c ef       	ldi	r24, 0xFC	; 252
     9ec4:	90 e0       	ldi	r25, 0x00	; 0
     9ec6:	0e 94 4f 08 	call	0x109e	; 0x109e <transmitDataToCommUnit>
-				transmitAllDataToCommUnit();
     9eca:	0e 94 0b 1c 	call	0x3816	; 0x3816 <transmitAllDataToCommUnit>
-				sendDataToPC = FALSE;
     9ece:	ce 2d       	mov	r28, r14
     9ed0:	df 2d       	mov	r29, r15
     9ed2:	02 c0       	rjmp	.+4      	; 0x9ed8 <main+0x132>
-			}
-			else
-			{
-				sendDataToPC = TRUE;
     9ed4:	c0 2f       	mov	r28, r16
     9ed6:	d1 2f       	mov	r29, r17
-                         
-            }
-            else
-                transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-				*/
-            resetCommTimer();
     9ed8:	0e 94 03 08 	call	0x1006	; 0x1006 <resetCommTimer>
-        /*
-        nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
-        Kan dessutom ändra på controlMode.
-        */
-        
-        if (currentControlMode_g != manual)
     9edc:	80 91 9e 01 	lds	r24, 0x019E
     9ee0:	88 23       	and	r24, r24
     9ee2:	71 f2       	breq	.-100    	; 0x9e80 <main+0xda>
-        {
-            //if (nodesAndControl()) // Funktionen returnerar TRUE om en ny nod lagts till.
-              //  nodeAdded = TRUE;
-            nodesAndControl();
     9ee4:	0e 94 e3 05 	call	0xbc6	; 0xbc6 <nodesAndControl>
     9ee8:	cb cf       	rjmp	.-106    	; 0x9e80 <main+0xda>
 
