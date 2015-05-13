@@ -885,16 +885,16 @@ END GROUP
                 0x000097c2       0x58 Test_servo_v1.o
                 0x000097c2                frontAvailable
  .text.gaitController
-                0x0000981a      0x44a Test_servo_v1.o
+                0x0000981a      0x44e Test_servo_v1.o
                 0x0000981a                gaitController
  .text.sendChangedRobotParameters
-                0x00009c64      0x12c Test_servo_v1.o
-                0x00009c64                sendChangedRobotParameters
+                0x00009c68      0x12c Test_servo_v1.o
+                0x00009c68                sendChangedRobotParameters
  .text.checkForLeak
-                0x00009d90       0x12 Test_servo_v1.o
-                0x00009d90                checkForLeak
- .text.main     0x00009da2      0x148 Test_servo_v1.o
-                0x00009da2                main
+                0x00009d94       0x12 Test_servo_v1.o
+                0x00009d94                checkForLeak
+ .text.main     0x00009da6      0x144 Test_servo_v1.o
+                0x00009da6                main
  .text.avr-libc.fplib
                 0x00009eea       0x1c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(acos.o)
                 0x00009eea                acos
@@ -1376,18 +1376,18 @@ END GROUP
  .debug_frame   0x00000330      0x1f0 USART.o
  .debug_frame   0x00000520      0xb6c Test_servo_v1.o
 
-.debug_str      0x00000000     0x145f
+.debug_str      0x00000000     0x1423
  *(.debug_str)
- .debug_str     0x00000000      0x53c nodsystemet.o
-                                0x575 (size before relaxing)
- .debug_str     0x0000053c      0x1b4 Timer.o
+ .debug_str     0x00000000      0x540 nodsystemet.o
+                                0x579 (size before relaxing)
+ .debug_str     0x00000540      0x1b4 Timer.o
                                 0x3ab (size before relaxing)
- .debug_str     0x000006f0      0x111 SPI.o
+ .debug_str     0x000006f4      0x111 SPI.o
                                 0x31e (size before relaxing)
- .debug_str     0x00000801      0x288 USART.o
+ .debug_str     0x00000805      0x248 USART.o
                                 0x3ac (size before relaxing)
- .debug_str     0x00000a89      0x9d6 Test_servo_v1.o
-                                0xe65 (size before relaxing)
+ .debug_str     0x00000a4d      0x9d6 Test_servo_v1.o
+                                0xe6a (size before relaxing)
 
 .debug_loc      0x00000000     0x5106
  *(.debug_loc)

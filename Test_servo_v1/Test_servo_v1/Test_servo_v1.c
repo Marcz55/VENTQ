@@ -1633,6 +1633,7 @@ void gaitController()
 	if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
 	{
 		calcRegulation(decideRegulationDirection(), TRUE);
+		applyOrder();
 	}
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -2039,8 +2040,7 @@ int main(void)
     	if (legTimerPeriodEnd())
     	{
     	    move();
-    	    resetLegTimer();
-            applyOrder(); // kan likväl göras i gaitcontroller men läggs här tillfälligt för att lättare hitta den 
+    	    resetLegTimer(); 
             gaitController();
     	}
     	if (commTimerPeriodEnd())
