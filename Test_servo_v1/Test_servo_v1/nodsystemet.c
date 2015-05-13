@@ -13,7 +13,7 @@ int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection
 
 
 #define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
-#define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
+#define MAX_WALL_DISTANCE 480    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
@@ -164,6 +164,63 @@ int isChangeDetected()
         return FALSE;
     }
 }
+/*
+void chooseAndSetFrontSensor(int direction_)
+{
+	// bestämma vilka sensorer som tempDirAvalible ska sättas till
+	if (direction_ == north)
+	{
+		if (distanceValue_g[främre sensor åt east] > MAX_WALL_DISTANCE)
+			tempEastAvailible_g = TRUE;
+		else
+			tempEastAvailible_g = FALSE;
+		
+		if (distanceValue_g[främre sensor åt west] > MAX_WALL_DISTANCE)
+			tempWestAvailible_g = TRUE;
+		else
+			tempWestAvailible_g = FALSE;		
+	}
+	
+	else if (direction_ == east)
+	{
+		if (distanceValue_g[främre sensor åt north] > MAX_WALL_DISTANCE)
+			tempNorthAvailible_g = TRUE;
+		else
+			tempNorthAvailible_g = FALSE;
+		
+		if (distanceValue_g[främre sensor åt south] > MAX_WALL_DISTANCE)
+			tempSouthAvailible_g = TRUE;
+		else
+			tempSouthAvailible_g = FALSE;
+	}
+	
+	else if (direction_ == south)
+	{
+		if (distanceValue_g[främre sensor åt west] > MAX_WALL_DISTANCE)
+			tempWestAvailible_g = TRUE;
+		else
+			tempWestAvailible_g = FALSE;
+
+		if (distanceValue_g[främre sensor åt east] > MAX_WALL_DISTANCE)
+			tempEastAvailible_g = TRUE;
+		else
+			tempEastAvailible_g = FALSE;
+	}
+	
+	else
+	{
+		if (distanceValue_g[främre sensor åt north] > MAX_WALL_DISTANCE)
+			tempNorthAvailible_g = TRUE;
+		else
+			tempNorthAvailible_g = FALSE;
+			
+		if (distanceValue_g[främre sensor åt south] > MAX_WALL_DISTANCE)
+			tempSouthAvailible_g = TRUE;
+		else
+			tempSouthAvailible_g = FALSE;
+	}
+}
+*/
 
 // MapMode
 // Denna funktion hanterar konstiga fenomen i Z_CROSSING, hanteras dock som två st 2vägskorsningar
@@ -171,23 +228,36 @@ int checkIfNewNode()
 {
 	if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
 	{
-		if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
+		if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 40))
 			return FALSE;
-		else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 80))
+		else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 40))
 			return FALSE;
-		else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 80))
+		else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 40))
 			return FALSE;
-		else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 80))
+		else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 40))
 			return FALSE;
 	}
     if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
     }
+	
+	
     else if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL))
     {
         return TRUE;    // Förändringen va en vägg där fram, nu har roboten gått tillräckligt långt
     }
+	
+	/*
+	else if (isChangeDetected() == TRUE) //----------------------------------------------------------------------------
+	{
+		chooseAndSetFrontSensor(currentDirection_g);
+		return TRUE;
+	} //---------------------------------------------------------------------------------------------------------------
+	*/
+	
+	
+	
     else
         return FALSE;
 }
@@ -216,10 +286,11 @@ int whatNodeType()
                 return END_OF_MAZE;   // Slutet på labyrinten
             }
         }
+		
 		if (nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END) //------------------------------------------------------------------------------------------------------------ test
 		{
 			return END_OF_MAZE;
-		}//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+		} //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
         
 		return DEAD_END;             // Detta måste vara en återvändsgränd
     }

@@ -9,6 +9,7 @@
 #ifndef SPI_H_
 #define SPI_H_
 
+// ---- Headers för komm mellan styr- och sensorenhet ----
 
 #define DISTANCE_NORTH 202
 #define DISTANCE_EAST 208
