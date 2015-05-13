@@ -56,8 +56,8 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
-int leakSensitivity_g = 6; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
-
+int leakSensitivity_g = 8; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+int leakCounter_g = 0;
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
 // Måste skapa en per sensor
@@ -648,11 +648,18 @@ int main(void)
     {
 		if(potentialLeak_g > leakSensitivity_g)
 		{
-			leakFound_g = 1;
+			leakCounter_g ++;
 		} 
 		else 
 		{
-			leakFound_g = 0;	
+			leakCounter_g = 0;
+			leakFound_g = 0;
+		}
+		
+		if (leakCounter_g >= 3)
+		{
+			leakFound_g = 1;
+			leakCounter_g = 0;
 		}
 		//leakFound = !leakBit;
 		potentialLeak_g = 0;
@@ -716,8 +723,7 @@ int main(void)
 
 			writeSensor(sideAngle1);
 			writeSensor(sideAngle2);
-			writeSensor(sideAngle3);
-			//writeSensor(sideAngle4);
+			writeSensor(potentialLeak_g);
 			writeSensor(leakFound_g);
 		
 			PORTB = (1<<displayE);
