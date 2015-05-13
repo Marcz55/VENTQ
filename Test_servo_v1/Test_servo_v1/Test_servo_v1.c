@@ -1823,19 +1823,28 @@ void gaitController()
 			currentGait = trotGait;
             if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
 		    {
-				if (nextDirection_g == currentDirection_g || (nextDirection_g == ((currentDirection_g + 2) % 4))) // undersöker om nästa riktning är fram eller bak relativt nuvarande riktning
+				if (nextDirection_g == noDirection)
 				{
-					currentDirection_g = nextDirection_g; // om fram eller bak så är det bar att byta
+					returnToStartPosition();
+					currentGait = standStill;
+					currentDirection_g = noDirection;
 				}
-				else 
-				{
-					if (frontAvailable()) // om vänster eller höger rel. nuvarande riktning måste vi undersöka om vi ska svänga blint eller med syn
+				else
+				{	
+					if (nextDirection_g == currentDirection_g || (nextDirection_g == ((currentDirection_g + 2) % 4))) // undersöker om nästa riktning är fram eller bak relativt nuvarande riktning
 					{
-						currentOrder_g = turnBlind;
+						currentDirection_g = nextDirection_g; // om fram eller bak så är det bar att byta
 					}
-					else
+					else 
 					{
-						currentOrder_g = turnSeeing;
+						if (frontAvailable()) // om vänster eller höger rel. nuvarande riktning måste vi undersöka om vi ska svänga blint eller med syn
+						{
+							currentOrder_g = turnBlind;
+						}
+						else
+						{
+							currentOrder_g = turnSeeing;
+						}
 					}
 				}
 			}
