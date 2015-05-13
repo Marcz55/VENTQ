@@ -51,7 +51,8 @@ int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
 float kProportionalTranslation_g = 0.3;
 float kProportionalAngle_g = 0.4;
 
-
+// hanterar om vi har förkortat steglängden eller ej
+int stepLengthShortened_g == FALSE;
 
 /*
 // Joakims coola gångstil,
@@ -1033,13 +1034,32 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 		rightSideStepLengthAdjust = -60;
 	}
 		
-		
-		
-		
 	regulation_g[0] =  translationRight;
 	regulation_g[1] = leftSideStepLengthAdjust;
 	regulation_g[2] = rightSideStepLengthAdjust;
 		
+
+
+
+    // om vi har en vägg framför oss är det bäst att ta mindre steglängder
+    if (!frontAvailable())
+    {
+        if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
+        {
+           stepLength_g = stepLength_g/2;
+           stepLengthShortened_g = TRUE;
+       }
+    }
+    else
+    {
+        if (stepLengthShortened_g == TRUE) // om vi inte har en främre vägg men ändå har förkortad steglängd så låter vi steglängden bli den normala igen
+        {
+            stepLength_g = stepLength_g*2;
+            stepLengthShortened_g = FALSE;
+        }
+    }
+
+
 	needToCalcGait = 1; // när vi har reglerat behöver vi räkna om gångstilen
 	return;
 }
