@@ -51,8 +51,14 @@ int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
 float kProportionalTranslation_g = 0.3;
 float kProportionalAngle_g = 0.4;
 
+// hanterar om vi har förkortat steglängden eller ej
+int stepLengthShortened_g = FALSE;
 
+// hanterar fallen då vi går i manuellt läge och går diagonalt, ser till att vi normerar steglängden
+int diagonalMovement_g = FALSE;
 
+// avstånd ifrån sensorera till mitten av roboten (mm)
+int sensorOffset_g = 60;
 /*
 // Joakims coola gångstil,
 int stepLength_g = 40;
@@ -863,7 +869,6 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	
 
 	int translationRight = 0;
-	int sensorOffset = 60;// Avstånd ifrån sensorera till mitten av roboten (mm)
 
 	// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
 	int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
@@ -882,13 +887,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case east:
 				{
-					translationRegulationError = (distanceValue_g[east] + sensorOffset) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
+					translationRegulationError = (distanceValue_g[east] + sensorOffset_g) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
 					break;
 				}
 
 				case west:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset_g);
 					break;
 				}
 				case noDirection:
@@ -907,13 +912,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case south:
 				{
-					translationRegulationError = (distanceValue_g[south] + sensorOffset) - halfPathWidth_g;
+					translationRegulationError = (distanceValue_g[south] + sensorOffset_g) - halfPathWidth_g;
 					break;
 				}
 
 				case north:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset_g);
 					break;
 				}
 
@@ -933,13 +938,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case west:
 				{
-					translationRegulationError = (distanceValue_g[west] + sensorOffset) - halfPathWidth_g;
+					translationRegulationError = (distanceValue_g[west] + sensorOffset_g) - halfPathWidth_g;
 					break;
 				}
 
 				case east:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset_g);
 					break;
 				}
 
@@ -959,13 +964,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case north:
 				{
-					translationRegulationError = (distanceValue_g[north] + sensorOffset) - halfPathWidth_g;
+					translationRegulationError = (distanceValue_g[north] + sensorOffset_g) - halfPathWidth_g;
 					break;
 				}
 
 				case south:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset_g);
 					break;
 				}
 
@@ -1033,13 +1038,32 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 		rightSideStepLengthAdjust = -60;
 	}
 		
-		
-		
-		
 	regulation_g[0] =  translationRight;
 	regulation_g[1] = leftSideStepLengthAdjust;
 	regulation_g[2] = rightSideStepLengthAdjust;
 		
+
+
+
+    // om vi har en vägg framför oss är det bäst att ta mindre steglängder
+    if (!frontAvailable())
+    {
+        if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
+        {
+           stepLength_g = stepLength_g/2;
+           stepLengthShortened_g = TRUE;
+       }
+    }
+    else
+    {
+        if (stepLengthShortened_g == TRUE) // om vi inte har en främre vägg men ändå har förkortad steglängd så låter vi steglängden bli den normala igen
+        {
+            stepLength_g = stepLength_g*2;
+            stepLengthShortened_g = FALSE;
+        }
+    }
+
+
 	needToCalcGait = 1; // när vi har reglerat behöver vi räkna om gångstilen
 	return;
 }
@@ -1139,7 +1163,7 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
-		closeEnoughToTurn = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
+		closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
 		if (closeEnoughToTurn)
 		{
 			currentOrder_g = noOrder;
@@ -1703,6 +1727,9 @@ void gaitController()
                     break;
                 }
             }
+
+
+
             switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
             {
                 case NORTH_HEADER:
@@ -1714,6 +1741,13 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = north;
                     regulation_g[0] = 0;
+
+                    // om vi gick diagonalt innan måste vi nu sätta steglängden till rätt längd igen
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                 }
                 case NORTH_EAST_HEADER:
@@ -1726,6 +1760,13 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = north;
                     regulation_g[0] = stepLength_g;
+                    
+                    // om vi gick rakt innan så måste steglängden förminskas så den effektiva steglängden blir lika lång då den går diagonalt
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case EAST_HEADER:
@@ -1737,6 +1778,12 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = east;
                     regulation_g[0] = 0;
+
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                     }
                 case SOUTH_EAST_HEADER:
@@ -1749,6 +1796,11 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = east;
                     regulation_g[0] = stepLength_g;
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case SOUTH_HEADER:
@@ -1760,6 +1812,11 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = south;
                     regulation_g[0] = 0;
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                 }
                 case SOUTH_WEST_HEADER:
@@ -1772,6 +1829,11 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = south;
                     regulation_g[0] = stepLength_g;
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case WEST_HEADER:
@@ -1783,6 +1845,11 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = west;
                     regulation_g[0] = 0;
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                 }
                 case NORTH_WEST_HEADER:
@@ -1795,6 +1862,11 @@ void gaitController()
                     currentGait = trotGait;
                     currentDirection_g = west;
                     regulation_g[0] = stepLength_g;
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case NO_MOVEMENT_DIRECTION_HEADER:

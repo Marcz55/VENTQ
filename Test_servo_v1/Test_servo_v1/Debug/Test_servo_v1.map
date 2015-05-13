@@ -1344,21 +1344,21 @@ END GROUP
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x5685
+.debug_info     0x00000000     0x569d
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x00000000      0x7c2 nodsystemet.o
- .debug_info    0x000007c2      0x306 Timer.o
- .debug_info    0x00000ac8      0x587 SPI.o
- .debug_info    0x0000104f      0xb90 USART.o
- .debug_info    0x00001bdf     0x3aa6 Test_servo_v1.o
+ .debug_info    0x00000000      0x7c8 nodsystemet.o
+ .debug_info    0x000007c8      0x318 Timer.o
+ .debug_info    0x00000ae0      0x587 SPI.o
+ .debug_info    0x00001067      0xb90 USART.o
+ .debug_info    0x00001bf7     0x3aa6 Test_servo_v1.o
 
-.debug_abbrev   0x00000000      0xbd3
+.debug_abbrev   0x00000000      0xbc4
  *(.debug_abbrev)
- .debug_abbrev  0x00000000      0x28a nodsystemet.o
- .debug_abbrev  0x0000028a       0xf9 Timer.o
- .debug_abbrev  0x00000383      0x1c5 SPI.o
- .debug_abbrev  0x00000548      0x1f2 USART.o
- .debug_abbrev  0x0000073a      0x499 Test_servo_v1.o
+ .debug_abbrev  0x00000000      0x27b nodsystemet.o
+ .debug_abbrev  0x0000027b       0xf9 Timer.o
+ .debug_abbrev  0x00000374      0x1c5 SPI.o
+ .debug_abbrev  0x00000539      0x1f2 USART.o
+ .debug_abbrev  0x0000072b      0x499 Test_servo_v1.o
 
 .debug_line     0x00000000     0x2dc7
  *(.debug_line .debug_line.* .debug_line_end)
@@ -1376,17 +1376,17 @@ END GROUP
  .debug_frame   0x00000330      0x1f0 USART.o
  .debug_frame   0x00000520      0xb6c Test_servo_v1.o
 
-.debug_str      0x00000000     0x1423
+.debug_str      0x00000000     0x145e
  *(.debug_str)
- .debug_str     0x00000000      0x540 nodsystemet.o
-                                0x579 (size before relaxing)
- .debug_str     0x00000540      0x1b4 Timer.o
-                                0x3ab (size before relaxing)
- .debug_str     0x000006f4      0x111 SPI.o
+ .debug_str     0x00000000      0x53b nodsystemet.o
+                                0x574 (size before relaxing)
+ .debug_str     0x0000053b      0x179 Timer.o
+                                0x3bb (size before relaxing)
+ .debug_str     0x000006b4      0x14c SPI.o
                                 0x31e (size before relaxing)
- .debug_str     0x00000805      0x248 USART.o
-                                0x3ac (size before relaxing)
- .debug_str     0x00000a4d      0x9d6 Test_servo_v1.o
+ .debug_str     0x00000800      0x248 USART.o
+                                0x3a7 (size before relaxing)
+ .debug_str     0x00000a48      0xa16 Test_servo_v1.o
                                 0xe6a (size before relaxing)
 
 .debug_loc      0x00000000     0x5106
