@@ -2095,6 +2095,7 @@ int main(void)
 	
     int nodeAdded = FALSE;
 	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
+	initNodeRingBuffer(); // Fyller buffern med 5 st återvändsgränder med öppet åt norr. 
     timer0Init();
     timer2Init();
     sei();
@@ -2114,7 +2115,7 @@ int main(void)
     
 	sendAllRobotParameters();
 
-
+	int i = 0;
     // ---- Main-Loop ----
     while (1)
     {
@@ -2128,32 +2129,32 @@ int main(void)
     	if (commTimerPeriodEnd())
     	{
 	    updateAllDistanceSensorData();            
-            updateTotalAngle();
+        updateTotalAngle();
 	    checkForLeak();
-            sendChangedRobotParameters();
-            if (sendDataToPC)
+        sendChangedRobotParameters();
+        if (sendDataToPC)
 	    {
-		transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-		transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
-		transmitAllDataToCommUnit();
-		sendDataToPC = FALSE;
+			transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+			transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+			transmitAllDataToCommUnit();
+			sendDataToPC = FALSE;
 	    }
 	    else
 	    {
-		sendDataToPC = TRUE;
+			sendDataToPC = TRUE;
 	    }
-            
+          /*
 	    if (sendStuff && i < 120)
-            {
-		node* pNode = nodeArray[0];
-                transmitDataToCommUnit(NODE_INFO, makeNodeData(pNode+i*sizeof(node)));
-                i++;
+        {
+			node* pNode = nodeArray[0];
+            transmitDataToCommUnit(NODE_INFO, makeNodeData(pNode+i*sizeof(node)));
+            i++;
                          
-            }
-            else
+        }
+        else
 	    {
-                transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-	    }
+            transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+	    }*/
             resetCommTimer();
     	}
         /*

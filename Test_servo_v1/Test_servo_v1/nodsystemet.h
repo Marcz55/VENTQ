@@ -53,6 +53,7 @@ int lastAddedNodeIndex_g;
 int makeNodeData(node* nodeToSend);
 simpleNode getNode(NodeRingBuffer* buffer, uint8_t elementID);
 void addNode(NodeRingBuffer* buffer, simpleNode newNode);
+void initNodeRingBuffer();
 void updateTempDirections();
 int validLeak();
 void updateLeakInfo();

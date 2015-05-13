@@ -61,7 +61,15 @@ void addNode(NodeRingBuffer* buffer, simpleNode newNode)
         buffer->writeIndex = 0;
 }
 
-
+void initNodeRingBuffer()
+{
+	simpleNode dummyDeadEnd = {1,0,0,0};
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+}
 
 // Ska finnas i bägge modes
 void updateTempDirections()
@@ -167,7 +175,7 @@ int canMakeNew()
 void decideChangeFromMajority()
 {
     // Skapa och lägg in ny simpleNode i ringbuffern.
-    simpleNode newNode = {tempNorthAvalible, tempEastAvailible, tempSouthAvailible, tempWestAvailible};
+    simpleNode newNode = {tempNorthAvailible_g, tempEastAvailible_g, tempSouthAvailible_g, tempWestAvailible_g};
     addNode(&nodeRingBuffer, newNode);
     
     uint8_t votesFor = 0;
