@@ -2123,6 +2123,10 @@ void checkForLeak()
 }
 int tooCloseToFrontWall()
 {
+	if(currentDirection_g == noDirection)
+	{
+		return 0;
+	}
 	if(distanceValue_g[currentDirection_g] + sensorOffset_g < (stepLength_g/2 + halfPathWidth_g))
 	{
 		return 1;
@@ -2186,21 +2190,24 @@ int main(void)
 	    
     	if (legTimerPeriodEnd())
     	{
-			if(tooCloseToFrontWall) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
-			{
-				emergencyStop();
-			}
-			else
-			{
-    			move();
-    			resetLegTimer(); 
-				gaitController();
-			}
+			move();
+    		resetLegTimer(); 
+			gaitController();
 		}
     	if (commTimerPeriodEnd())
     	{
+<<<<<<< HEAD
             resetCommTimer();
 	        updateAllDistanceSensorData();            
+=======
+			updateAllDistanceSensorData();
+			if(tooCloseToFrontWall() && currentControlMode_g == exploration) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
+			{
+				cli();
+				_delay_ms(10000);
+				emergencyStop();
+			}
+>>>>>>> funkar fortfarande inte
             updateTotalAngle();
 
 	    
