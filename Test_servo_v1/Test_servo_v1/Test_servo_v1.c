@@ -15,8 +15,12 @@
 #include "Definitions.h"
 #include "nodsystemet.h"
 #include <stdlib.h>
-#include <Math.h>
 
+int halfPathWidth_g = 570/2; // Avståndet mellan väggar
+int regulation_g[3]; // array som regleringen sparas i
+
+int closeEnoughToTurn = 0;
+		
 
 
 int stepLength_g = 80;
@@ -38,13 +42,15 @@ int needToCalcGait = 1;
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
-int BlindStepsToTake_g = Math.round((halfPathWidth_g - 8)/stepLength_g);
+int BlindStepsToTake_g = 0;
+
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
-float kProportionalAngle_g = -0.4;
+float kProportionalAngle_g = 0.4;
+
 
 
 /*
@@ -759,8 +765,6 @@ ISR(INT1_vect)
 } 
 
 
-int halfPathWidth_g = 570/2; // Avståndet mellan väggar
-int regulation_g[3]; // array som regleringen sparas i
 
 
 
@@ -996,7 +1000,7 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 
 	translationRight = kProportionalTranslation_g * translationRegulationError;
 	int leftSideStepLengthAdjust = (kProportionalAngle_g * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-	int rightSideStepLengthAdjust = kProportionalAngle_g * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
+	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
 		
 	if (translationRight > 60)
 	{
@@ -1115,64 +1119,34 @@ int decideRegulationDirection()
 // används som en globalvariabel för att veta vilken typ av "action" vi ska göra.
 enum order{
 	noOrder, // inte utföra något
-	turnRight, // svänga höger med möjlighet att reglera mot en vägg framför roboten
-	turnLeft, // svänga vänster -"-
-	turnRightBlind, // svänga höger utan möjlighet att reglera mot någon vägg framför roboten
-	turnLeftBlind, // svänga vänster -"-
+	turnBlind,
+	turnSeeing
 };
 enum order currentOrder_g = noOrder;
 
 // en funktion som utför det currentAction_g anger
 void applyOrder()
 {
-	switch(currentOrder_g)
+	if(currentOrder_g == turnBlind)
 	{
-		case turnRight:
+		BlindStepsTaken_g = BlindStepsTaken_g + 1;
+		if(BlindStepsTaken_g >= BlindStepsToTake_g)
 		{
-			// vi ska svänga åt höger när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection_g] < stepLength_g/2 + halfPathWidth_g)
-			{
-				currentDirection_g = (currentDirection_g + 1) % 4; // ökar currentDirection_g med ett vilket medför att vi svänger åt höger
-				currentOrder_g = noOrder; 
-			}
-			break;
-		}
-		
-		case turnRightBlind:
-		{
-			BlindStepsTaken_g += BlindStepsTaken_g;
-			if (BlindStepsTaken_g >= BlindStepsToTake_g)
-			{
-				currentDirection_g = (currentDirection_g + 1) % 4; // ökar currentDirection_g med ett vilket medför att vi svänger åt höger
-				currentOrder_g = noOrder;
-				BlindStepsTaken_g = 0;
-			}
-			break;
-		}
-
-		case turnLeft:
-		{
-			// vi ska svänga åt vänster när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection_g] < stepLength_g/2 + halfPathWidth_g)
-			{
-				currentDirection_g = (4 + (currentDirection_g - 1)) % 4; // minskar currentDirection_g med ett vilket medför att vi svänger åt vänster
-				currentOrder_g = noOrder;
-			}        
-			break;
-		}
-
-		case turnLeftBlind:
-		{
-			BlindStepsTaken_g += BlindStepsTaken_g;
-			if (BlindStepsTaken_g >= BlindStepsToTake_g)
-			{
-				currentDirection_g = (4 + (currentDirection_g - 1)) % 4; // minskar currentDirection_g med ett vilket medför att vi svänger åt vänster
-				currentOrder_g = noOrder;
-				BlindStepsTaken_g = 0;
-			}
-			break;
+			currentDirection_g = nextDirection_g;
+			currentOrder_g = noOrder;
+			BlindStepsTaken_g = 0;
 		}
 	}
+	if(currentOrder_g == turnSeeing)	
+	{
+		closeEnoughToTurn = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
+		if (closeEnoughToTurn)
+		{
+			currentOrder_g = noOrder;
+			currentDirection_g = nextDirection_g;
+		}
+	}
+	return;
 }
 /*
 / 
@@ -1607,11 +1581,59 @@ void makeGaitTransition(enum gait newGait)
         }
     }
 }
+
+int frontAvailable()
+{
+	int northAvailable = currentNode_g.northAvailible;
+	int eastAvailable = currentNode_g.eastAvailible;
+	int southAvailable = currentNode_g.southAvailible;
+	int westAvailable = currentNode_g.westAvailible;
+	
+	switch (currentDirection_g)
+	{
+		case north:
+		{
+			return northAvailable;
+			break;
+		}
+		
+		case east:
+		{
+			return eastAvailable;
+			break;
+		}
+		
+		case south:
+		{
+			return southAvailable;
+			break;
+		}
+		
+		case west:
+		{
+			return westAvailable;
+			break;
+		}
+		
+		case noDirection:
+		{
+			return 0;
+			break;
+		}
+	}
+}
+
+
 void gaitController()
 {
+	
+	// tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
+	
+	
 	if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
 	{
 		calcRegulation(decideRegulationDirection(), TRUE);
+		applyOrder();
 	}
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -1794,185 +1816,38 @@ void gaitController()
         {
             directionHasChanged = FALSE;
             needToCalcGait = TRUE;
-            switch(nextDirection_g)
-            {
-                case north:
-                {
-                    if (currentGait == standStill)
-                    {
-                        transitionStartToTrot();
-                    }
-                    currentGait = trotGait;
-                   
-                    // Undersöker om vi ska göra en vanliga höger/vänster sväng eller en i blindo, kan bara göra en sväng om vi inte svänger just nu
-                    if (currentOrder_g == noOrder)
-                    {
-                        // Om nästa riktning är åt norr så ska vi undersöka om vi går åt öst eller väst och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == east) 
-                        {
-                            if(eastAvailable)
-                            {
-                                currentOrder_g = turnLeftBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnLeft;
-                            }
-                        }
-                        else if (currentDirection == west)
-                        {
-                            if (westAvailable)
-                            {
-                                currentOrder_g = turnRightBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnRight;
-                            }
-                        }
-                        // om nästa riktning är åt norr och vi inte går emot väst eller öst så är det bara att byta riktning 
-                        else
-                        {
-                            currentDirection_g = north;   
-                        }
-                        
-                    }
-                    break;
-                }
-                case east:
-                {
-                    if (currentGait == standStill)
-                    {
-                        transitionStartToTrot();
-                    }
-                    currentGait = trotGait;
-
-                    // Undersöker om vi ska göra en vanliga höger/vänster sväng eller en i blindo, kan bara göra en sväng om vi inte svänger just nu
-                    if (currentOrder_g == noOrder)
-                    {
-                        // Om nästa riktning är åt öst så ska vi undersöka om vi går åt syd eller norr och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == south) 
-                        {
-                            if(southAvailable)
-                            {
-                                currentOrder_g = turnLeftBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnLeft;
-                            }
-                        }
-                        else if (currentDirection == north)
-                        {
-                            if (northAvailable)
-                            {
-                                currentOrder_g = turnRightBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnRight;
-                            }
-                        }
-                        // om nästa riktning är åt öst och vi inte går emot syd eller norr så är det bara att byta riktning 
-                        else
-                        {
-                            currentDirection_g = east;   
-                        }
-                        
-                    }
-                    break;
-                }
-                case south:
-                {
-                    if (currentGait == standStill)
-                    {
-                        transitionStartToTrot();
-                    }
-                    currentGait = trotGait;
-                    // Undersöker om vi ska göra en vanliga höger/vänster sväng eller en i blindo, kan bara göra en sväng om vi inte svänger just nu
-                    if (currentOrder_g == noOrder)
-                    {
-                        // Om nästa riktning är åt syd så ska vi undersöka om vi går åt väst eller öst och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == west) 
-                        {
-                            if(westAvailable)
-                            {
-                                currentOrder_g = turnLeftBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnLeft;
-                            }
-                        }
-                        else if (currentDirection == east)
-                        {
-                            if (eastAvailable)
-                            {
-                                currentOrder_g = turnRightBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnRight;
-                            }
-                        }
-                        // om nästa riktning är åt syd och vi inte går emot väst eller öst så är det bara att byta riktning 
-                        else
-                        {
-                            currentDirection_g = south;   
-                        }
-                        
-                    }
-                    break;
-                }
-                case west:
-                {
-                    if (currentGait == standStill)
-                    {
-                        transitionStartToTrot();
-                    }
-                    currentGait = trotGait;
-                    if (currentOrder_g == noOrder)
-                    {
-                        // Om nästa riktning är åt väst så ska vi undersöka om vi går åt norr eller syd och om det finns en vägg att reglera emot (sväng i blindo eller ej)
-                        if(currentDirection == north) 
-                        {
-                            if(northAvailable)
-                            {
-                                currentOrder_g = turnLeftBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnLeft;
-                            }
-                        }
-                        else if (currentDirection == south)
-                        {
-                            if (southAvailable)
-                            {
-                                currentOrder_g = turnRightBlind;
-                            }
-                            else
-                            {
-                                currentOrder_g = turnRight;
-                            }
-                        }
-                        // om nästa riktning är åt väst och vi inte går emot norr eller syd så är det bara att byta riktning 
-                        else
-                        {
-                            currentDirection_g = west;   
-                        }
-                        
-                    }
-                    break;
-                }
-                case noDirection:
-                {
-                    returnToStartPosition();
-                    currentGait = standStill;
-                    currentDirection_g = noDirection;                    
-                    break;
-                }
-            }
+			if (currentGait == standStill)
+			{
+				transitionStartToTrot();
+			}
+			currentGait = trotGait;
+            if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
+		    {
+				if (nextDirection_g == noDirection)
+				{
+					returnToStartPosition();
+					currentGait = standStill;
+					currentDirection_g = noDirection;
+				}
+				else
+				{	
+					if (nextDirection_g == currentDirection_g || (nextDirection_g == ((currentDirection_g + 2) % 4))) // undersöker om nästa riktning är fram eller bak relativt nuvarande riktning
+					{
+						currentDirection_g = nextDirection_g; // om fram eller bak så är det bar att byta
+					}
+					else 
+					{
+						if (frontAvailable()) // om vänster eller höger rel. nuvarande riktning måste vi undersöka om vi ska svänga blint eller med syn
+						{
+							currentOrder_g = turnBlind;
+						}
+						else
+						{
+							currentOrder_g = turnSeeing;
+						}
+					}
+				}
+			}
         }
     }
     if(optionsHasChanged_g == 1)
@@ -2127,8 +2002,7 @@ void checkForLeak()
 }
 int main(void)
 {
-    
-    initUSART();
+	initUSART();
     spiMasterInit();
     EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     EIMSK = (EIMSK | 3); // Möjliggör externa avbrott på INT1/0
@@ -2138,13 +2012,14 @@ int main(void)
     nextPos_g = 1;
     currentControlMode_g = manual;
     currentDirection_g = north;
-    nextDirection_g = north;
+	nextDirection_g = north;
     currentOptionInstruction_g = 0;
     initNodeAndSteering();
     directionHasChanged = FALSE;
     currentGait = standStill;
     optionsHasChanged_g = 0;
-    
+    BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+	
     int nodeAdded = FALSE;
 	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
     timer0Init();
@@ -2166,6 +2041,7 @@ int main(void)
     
 	sendAllRobotParameters();
 
+
     // ---- Main-Loop ----
     while (1)
     {
@@ -2173,8 +2049,7 @@ int main(void)
     	if (legTimerPeriodEnd())
     	{
     	    move();
-    	    resetLegTimer();
-            applyOrder(); // kan likväl göras i gaitcontroller men läggs här tillfälligt för att lättare hitta den 
+    	    resetLegTimer(); 
             gaitController();
     	}
     	if (commTimerPeriodEnd())
