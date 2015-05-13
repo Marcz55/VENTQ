@@ -1626,15 +1626,16 @@ int frontAvailable()
 
 void gaitController()
 {
+
 	
-	// tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
+    // tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
 	
 	
-	if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
-	{
-		calcRegulation(decideRegulationDirection(), TRUE);
-		applyOrder();
-	}
+    if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
+    {
+	calcRegulation(decideRegulationDirection(), TRUE);
+	applyOrder();
+    }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
     {
@@ -2054,31 +2055,33 @@ int main(void)
     	}
     	if (commTimerPeriodEnd())
     	{
-			updateAllDistanceSensorData();            
+	    updateAllDistanceSensorData();            
             updateTotalAngle();
-			checkForLeak();
+	    checkForLeak();
             sendChangedRobotParameters();
             if (sendDataToPC)
-			{
-				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
-				transmitAllDataToCommUnit();
-				sendDataToPC = FALSE;
-			}
-			else
-			{
-				sendDataToPC = TRUE;
-			}
-            /*
-			if (sendStuff && i < 120)
+	    {
+		transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+		transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+		transmitAllDataToCommUnit();
+		sendDataToPC = FALSE;
+	    }
+	    else
+	    {
+		sendDataToPC = TRUE;
+	    }
+            
+	    if (sendStuff && i < 120)
             {
-                transmitDataToCommUnit(NODE_INFO, makeNodeData(&nodeArray[i]));
+		node* pNode = nodeArray[0];
+                transmitDataToCommUnit(NODE_INFO, makeNodeData(pNode+i*sizeof(node)));
                 i++;
                          
             }
             else
+	    {
                 transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-				*/
+	    }
             resetCommTimer();
     	}
         /*
@@ -2092,7 +2095,6 @@ int main(void)
               //  nodeAdded = TRUE;
             nodesAndControl();
         }
-               
     }
 }
 

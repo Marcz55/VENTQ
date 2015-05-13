@@ -46,6 +46,23 @@ int makeNodeData(node* nodeToSend)
     return data;
 }
 
+// Ringbuffer functions
+simpleNode getNode(NodeRingBuffer* buffer, uint8_t elementID)
+{
+    return buffer->array[elementID];
+}
+
+void addNode(NodeRingBuffer* buffer, simpleNode newNode)
+{
+    buffer->array[buffer->writeIndex] = newNode;
+    if (buffer->writeIndex <= 3)
+        buffer->writeIndex++;
+    else
+        buffer->writeIndex = 0;
+}
+
+
+
 // Ska finnas i bägge modes
 void updateTempDirections()
 {
@@ -146,22 +163,114 @@ int canMakeNew()
     }
 }
 
+// Använder nodeRingBuffer för att ta ett majoritetsbeslut och uppdaterar tempDirections därefter.
+void decideChangeFromMajority()
+{
+    // Skapa och lägg in ny simpleNode i ringbuffern.
+    simpleNode newNode = {tempNorthAvalible, tempEastAvailible, tempSouthAvailible, tempWestAvailible};
+    addNode(&nodeRingBuffer, newNode);
+    
+    uint8_t votesFor = 0;
+
+    uint8_t resultNorth;
+    uint8_t resultEast;
+    uint8_t resultSouth;
+    uint8_t resultWest;
+    
+    simpleNode node1 = getNode(&nodeRingBuffer, 0);
+    simpleNode node2 = getNode(&nodeRingBuffer, 1);
+    simpleNode node3 = getNode(&nodeRingBuffer, 2);
+    simpleNode node4 = getNode(&nodeRingBuffer, 3);
+    simpleNode node5 = getNode(&nodeRingBuffer, 4);
+    
+    uint8_t vote1;
+    uint8_t vote2;
+    uint8_t vote3;
+    uint8_t vote4;
+    uint8_t vote5;
+    
+    // Omröstning för northAvailable
+    vote1 = node1.northAvailable;
+    vote2 = node2.northAvailable;
+    vote3 = node3.northAvailable;
+    vote4 = node4.northAvailable;
+    vote5 = node5.northAvailable;
+    votesFor = vote1 + vote2 + vote3 + vote4 + vote5;
+    if (votesFor >= 3) // Majoritet öppet
+    {
+        resultNorth = TRUE;
+    }
+    else if(votesFor <= 2) // Majoritet stängt
+    {
+        resultNorth = FALSE;
+    }
+    
+    // Omröstning för eastAvailable
+    vote1 = node1.eastAvailable;
+    vote2 = node2.eastAvailable;
+    vote3 = node3.eastAvailable;
+    vote4 = node4.eastAvailable;
+    vote5 = node5.eastAvailable;
+    votesFor = vote1 + vote2 + vote3 + vote4 + vote5;
+    if (votesFor >= 3) // Majoritet öppet
+    {
+        resultEast = TRUE;
+    }
+    else if(votesFor <= 2) // Majoritet stängt
+    {
+        resultEast = FALSE;
+    }
+    
+    // Omröstning för southAvailable
+    vote1 = node1.southAvailable;
+    vote2 = node2.southAvailable;
+    vote3 = node3.southAvailable;
+    vote4 = node4.southAvailable;
+    vote5 = node5.southAvailable;
+    votesFor = vote1 + vote2 + vote3 + vote4 + vote5;
+    if (votesFor >= 3) // Majoritet öppet
+    {
+        resultSouth = TRUE;
+    }
+    else if(votesFor <= 2) // Majoritet stängt
+    {
+        resultSouth = FALSE;
+    }
+    
+    // Omröstning för westAvailable
+    vote1 = node1.westAvailable;
+    vote2 = node2.westAvailable;
+    vote3 = node3.westAvailable;
+    vote4 = node4.westAvailable;
+    vote5 = node5.westAvailable;
+    votesFor = vote1 + vote2 + vote3 + vote4 + vote5;
+    if (votesFor >= 3) // Majoritet öppet
+    {
+        resultWest = 1;
+    }
+    else if(votesFor <= 2) // Majoritet stängt
+    {
+        resultWest = 0;
+    }
+    
+     // Det finns alltid majoritet i alla beslut
+   
+    tempNorthAvailible_g  = resultNorth;
+    tempEastAvailible_g  = resultEast;
+    tempSouthAvailible_g = resultSouth;
+    tempWestAvailible_g = resultWest;
+}
+
 int isChangeDetected()
 {
     if ((currentNode_g.northAvailible == tempNorthAvailible_g) && (currentNode_g.eastAvailible == tempEastAvailible_g) &&
         (currentNode_g.southAvailible == tempSouthAvailible_g) && (currentNode_g.westAvailible == tempWestAvailible_g))
     {
-        validChange_g = 0;
         return FALSE;
     }
     else
     {
-        if (validChange_g == 1)
-        {
-            return TRUE;
-        }
-        validChange_g ++;
-        return FALSE;
+        return TRUE;
     }
 }
 /*
@@ -226,17 +335,18 @@ void chooseAndSetFrontSensor(int direction_)
 // Denna funktion hanterar konstiga fenomen i Z_CROSSING, hanteras dock som två st 2vägskorsningar
 int checkIfNewNode()
 {
-	if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
-	{
-		if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 40))
-			return FALSE;
-		else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 40))
-			return FALSE;
-		else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 40))
-			return FALSE;
-		else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 40))
-			return FALSE;
-	}
+    decideChangeFromMajority(); // denna sparar undan tempDir i ringBuffer och ändrar sedan tempDir till majoritetsbeslut. 
+    if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
+    {
+	if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 40))
+	    return FALSE;
+	else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 40))
+	    return FALSE;
+	else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 40))
+	    return FALSE;
+	else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 40))
+	    return FALSE;
+    }
     if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
@@ -575,7 +685,7 @@ void initNodeAndSteering()
 
 int nodesAndControl()
 {
-	int newNodeAdded = FALSE;
+    int newNodeAdded = FALSE;
     switch(currentControlMode_g)
     {
         case exploration  :
@@ -594,7 +704,7 @@ int nodesAndControl()
                     lastAddedNodeIndex_g ++;
                     placeNodeInArray();
                     nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lägger in styrbeslut i arrayen
-					newNodeAdded = TRUE;
+		    newNodeAdded = TRUE;
                 }
             }
 
