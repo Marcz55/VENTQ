@@ -19,7 +19,7 @@
 int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
-int closeEnoughToTurn = 0;
+int closeEnoughToTurn_g = 0;
 		
 
 
@@ -38,6 +38,7 @@ int currentRotationInstruction = 0;
 int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
+int sensorOffset_g = 60;// Avstånd ifrån sensorera till mitten av roboten (mm)
 // ------ Globala variabler för "svängar" ------
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
@@ -863,7 +864,7 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	
 
 	int translationRight = 0;
-	int sensorOffset = 60;// Avstånd ifrån sensorera till mitten av roboten (mm)
+	
 
 	// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
 	int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
@@ -882,13 +883,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case east:
 				{
-					translationRegulationError = (distanceValue_g[east] + sensorOffset) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
+					translationRegulationError = (distanceValue_g[east] + sensorOffset_g) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
 					break;
 				}
 
 				case west:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset_g);
 					break;
 				}
 				case noDirection:
@@ -907,13 +908,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case south:
 				{
-					translationRegulationError = (distanceValue_g[south] + sensorOffset) - halfPathWidth_g;
+					translationRegulationError = (distanceValue_g[south] + sensorOffset_g) - halfPathWidth_g;
 					break;
 				}
 
 				case north:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset_g);
 					break;
 				}
 
@@ -933,13 +934,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case west:
 				{
-					translationRegulationError = (distanceValue_g[west] + sensorOffset) - halfPathWidth_g;
+					translationRegulationError = (distanceValue_g[west] + sensorOffset_g) - halfPathWidth_g;
 					break;
 				}
 
 				case east:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset_g);
 					break;
 				}
 
@@ -959,13 +960,13 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 			{
 				case north:
 				{
-					translationRegulationError = (distanceValue_g[north] + sensorOffset) - halfPathWidth_g;
+					translationRegulationError = (distanceValue_g[north] + sensorOffset_g) - halfPathWidth_g;
 					break;
 				}
 
 				case south:
 				{
-					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset);
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset_g);
 					break;
 				}
 
@@ -1139,8 +1140,8 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
-		closeEnoughToTurn = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
-		if (closeEnoughToTurn)
+		closeEnoughToTurn_g = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
+		if (closeEnoughToTurn_g)
 		{
 			currentOrder_g = noOrder;
 			currentDirection_g = nextDirection_g;
@@ -2000,6 +2001,22 @@ void checkForLeak()
 {
 	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
 }
+int tooCloseToFrontWall()
+{
+	if(distanceValue_g[currentDirection_g] + sensorOffset_g < (stepLength_g/2 + halfPathWidth_g))
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+void emergencyStop()
+{
+	currentDirection_g = noDirection;
+	currentGait = standStill;
+}
 int main(void)
 {
 	initUSART();
@@ -2048,10 +2065,17 @@ int main(void)
 	    
     	if (legTimerPeriodEnd())
     	{
-    	    move();
-    	    resetLegTimer(); 
-            gaitController();
-    	}
+			if(tooCloseToFrontWall) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
+			{
+				emergencyStop();
+			}
+			else
+			{
+    			move();
+    			resetLegTimer(); 
+				gaitController();
+			}
+		}
     	if (commTimerPeriodEnd())
     	{
 			updateAllDistanceSensorData();            
