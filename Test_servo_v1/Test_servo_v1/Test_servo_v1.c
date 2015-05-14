@@ -2007,7 +2007,7 @@ int tooCloseToFrontWall()
 	{
 		return 0;
 	}
-	if(distanceValue_g[currentDirection_g] + sensorOffset_g < (stepLength_g/2 + halfPathWidth_g))
+	if(distanceValue_g[currentDirection_g] + sensorOffset_g < 285)//(stepLength_g/2 + halfPathWidth_g))
 	{
 		return 1;
 	}
@@ -2018,8 +2018,10 @@ int tooCloseToFrontWall()
 }
 void emergencyStop()
 {
-	currentDirection_g = noDirection;
-	currentGait = standStill;
+	transitionStartToTrot();
+	cli();
+	_delay_ms(4000);
+	sei();
 }
 int main(void)
 {
@@ -2078,8 +2080,6 @@ int main(void)
 			updateAllDistanceSensorData();
 			if(tooCloseToFrontWall() && currentControlMode_g == exploration) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
 			{
-				cli();
-				_delay_ms(10000);
 				emergencyStop();
 			}
             updateTotalAngle();
