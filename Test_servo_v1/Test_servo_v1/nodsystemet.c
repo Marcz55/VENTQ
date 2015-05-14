@@ -12,8 +12,8 @@ int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection
 // ----------------------------------------------------------------------------------------------------- fixa...
 
 
-#define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
-#define MAX_WALL_DISTANCE 480    // Utanför denna längd är det ingen vägg
+#define CLOSE_ENOUGH_TO_WALL 270  // Roboten går rakt fram tills den här längden
+#define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
@@ -346,20 +346,20 @@ int checkIfNewNode()
     decideChangeFromMajority(); // denna sparar undan tempDir i ringBuffer och ändrar sedan tempDir till majoritetsbeslut. 
     if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
     {
-	if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 40))
-	    return FALSE;
-	else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 40))
-	    return FALSE;
-	else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 40))
-	    return FALSE;
-	else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 40))
-	    return FALSE;
+	    if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+	    else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+	    else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+	    else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
     }
+    
     if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
     }
-	
 	
     else if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL))
     {
@@ -373,8 +373,6 @@ int checkIfNewNode()
 		return TRUE;
 	} //---------------------------------------------------------------------------------------------------------------
 	*/
-	
-	
 	
     else
         return FALSE;
@@ -405,11 +403,6 @@ int whatNodeType()
             }
         }
 		
-		if (nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END) //------------------------------------------------------------------------------------------------------------ test
-		{
-			return END_OF_MAZE;
-		} //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        
 		return DEAD_END;             // Detta måste vara en återvändsgränd
     }
     else // Här är summan lika med 0, dvs väggar på alla sidor, bör betyda Z-sväng
@@ -693,7 +686,7 @@ void initNodeAndSteering()
 
 int nodesAndControl()
 {
-    int newNodeAdded = FALSE;
+    int nodeUpdated = FALSE;
     switch(currentControlMode_g)
     {
         case exploration  :
@@ -706,13 +699,13 @@ int nodesAndControl()
                 updateCurrentNode();
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();
-                
+                nodeUpdated = TRUE;
                 if (canMakeNew() == TRUE)
                 {
                     lastAddedNodeIndex_g ++;
                     placeNodeInArray();
                     nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lägger in styrbeslut i arrayen
-		    newNodeAdded = TRUE;
+		            
                 }
             }
 
@@ -812,5 +805,5 @@ int nodesAndControl()
         default:
 			break;
     }
-	return newNodeAdded;
+	return nodeUpdated;
 }

@@ -1075,6 +1075,7 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 */
 int decideRegulationDirection() 
 {
+    /*
     enum direction tempRegulationDirection = noDirection;
     int northAvailable = currentNode_g.northAvailible;
     int eastAvailable = currentNode_g.eastAvailible;
@@ -1137,6 +1138,24 @@ int decideRegulationDirection()
         }
     }
     return tempRegulationDirection;
+    */
+    int closeEnoughToRegulate = 300;
+    enum direction tempRegulationDirection = noDirection;
+    enum direction directionToRight = ((currentDirection_g + 1) % 4);
+    enum direction directionToLeft = ((currentDirection_g + 3) % 4);
+
+    if(currentDirection_g != noDirection)
+    {
+        if(distanceValue_g[directionToRight] < closeEnoughToRegulate)
+        {
+            tempRegulationDirection = directionToRight;
+        }
+        else if(distanceValue_g[directionToLeft] < closeEnoughToRegulate)
+        {
+            tempRegulationDirection = directionToLeft;
+        }
+    }
+    return tempRegulationDirection;
 }
 
 
@@ -1151,6 +1170,8 @@ enum order currentOrder_g = noOrder;
 // en funktion som utför det currentAction_g anger
 void applyOrder()
 {
+    currentDirection_g = nextDirection_g;
+    /*
 	if(currentOrder_g == turnBlind)
 	{
 		BlindStepsTaken_g = BlindStepsTaken_g + 1;
@@ -1170,6 +1191,7 @@ void applyOrder()
 			currentDirection_g = nextDirection_g;
 		}
 	}
+    */
 	return;
 }
 /*
@@ -1657,8 +1679,8 @@ void gaitController()
 	
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
+    applyOrder();
 	calcRegulation(decideRegulationDirection(), TRUE);
-	applyOrder();
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -2093,7 +2115,7 @@ int main(void)
     optionsHasChanged_g = 0;
     BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
 	
-    int nodeAdded = FALSE;
+    int nodeUpdated_g = FALSE;
 	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
 	initNodeRingBuffer(); // Fyller buffern med 5 st återvändsgränder med öppet åt norr. 
     timer0Init();
@@ -2122,52 +2144,57 @@ int main(void)
 	    
     	if (legTimerPeriodEnd())
     	{
-    	    move();
-    	    resetLegTimer(); 
+    	    resetLegTimer();
+            move();
+            applyOrder(); // detta är endast test
             gaitController();
     	}
     	if (commTimerPeriodEnd())
     	{
-	    updateAllDistanceSensorData();            
-        updateTotalAngle();
-	    checkForLeak();
-        sendChangedRobotParameters();
-        if (sendDataToPC)
-	    {
-			transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-			transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
-			transmitAllDataToCommUnit();
-			sendDataToPC = FALSE;
-	    }
-	    else
-	    {
-			sendDataToPC = TRUE;
-	    }
-          /*
-	    if (sendStuff && i < 120)
-        {
-			node* pNode = nodeArray[0];
-            transmitDataToCommUnit(NODE_INFO, makeNodeData(pNode+i*sizeof(node)));
-            i++;
-                         
-        }
-        else
-	    {
-            transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-	    }*/
             resetCommTimer();
+	        updateAllDistanceSensorData();            
+            updateTotalAngle();
+	    
+            /*
+            nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
+            Kan dessutom ändra på controlMode.
+            */
+            if (currentControlMode_g != manual)
+            {
+                checkForLeak();
+                nodeUpdated_g = nodesAndControl();
+            }
+            sendChangedRobotParameters();
+            if (nodeUpdated_g)
+            {
+                transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+                transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+            }
+            if (sendDataToPC)
+	        {
+                if (sendStuff && i < 120)
+                {
+                    transmitDataToCommUnit(NODE_INFO, makeNodeData(&nodeArray[i])); 
+                    i++;
+                }
+                else
+	            {
+                    transmitAllDataToCommUnit();
+	            }
+			    sendDataToPC = FALSE;
+	        }
+	        else
+	        {
+			    sendDataToPC = TRUE;
+	        }
+            
+	        
+            
+            
     	}
-        /*
-        nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
-        Kan dessutom ändra på controlMode.
-        */
         
-        if (currentControlMode_g != manual)
-        {
-            //if (nodesAndControl()) // Funktionen returnerar TRUE om en ny nod lagts till.
-              //  nodeAdded = TRUE;
-            nodesAndControl();
-        }
+        
+        
     }
 }
 
