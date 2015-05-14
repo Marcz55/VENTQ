@@ -9,7 +9,9 @@
 
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
+
 #define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
+
 #define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
 
 int tempNorthAvailible_g = TRUE;
@@ -58,7 +60,15 @@ void addNode(NodeRingBuffer* buffer, simpleNode newNode)
         buffer->writeIndex = 0;
 }
 
-
+void initNodeRingBuffer()
+{
+	simpleNode dummyDeadEnd = {1,0,0,0};
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+	addNode(&nodeRingBuffer, dummyDeadEnd);
+}
 
 // Ska finnas i bägge modes
 void updateTempDirections()
@@ -164,7 +174,7 @@ int canMakeNew()
 void decideChangeFromMajority()
 {
     // Skapa och lägg in ny simpleNode i ringbuffern.
-    simpleNode newNode = {tempNorthAvalible, tempEastAvailible, tempSouthAvailible, tempWestAvailible};
+    simpleNode newNode = {tempNorthAvailible_g, tempEastAvailible_g, tempSouthAvailible_g, tempWestAvailible_g};
     addNode(&nodeRingBuffer, newNode);
     
     uint8_t votesFor = 0;
@@ -339,23 +349,24 @@ int isDeadEnd()
 // Denna funktion hanterar konstiga fenomen i Z_CROSSING, hanteras dock som två st 2vägskorsningar
 int checkIfNewNode()
 {
-	if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
-	{
-		if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
-			return FALSE;
-		else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 80))
-			return FALSE;
-		else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 80))
-			return FALSE;
-		else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 80))
-			return FALSE;
-	}
-	/*
+    decideChangeFromMajority(); // denna sparar undan tempDir i ringBuffer och ändrar sedan tempDir till majoritetsbeslut. 
+    if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
+    {
+	    if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+	    else if ((currentDirection_g == east) && (distanceValue_g[WEST] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+	    else if ((currentDirection_g == south) && (distanceValue_g[NORTH] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+	    else if ((currentDirection_g == west) && (distanceValue_g[EAST] < MAX_WALL_DISTANCE + 80))
+	        return FALSE;
+    }
+    
+/*
     if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
     }
-	
 	
     else if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL))
     {
@@ -409,7 +420,7 @@ int whatNodeType()
                 return END_OF_MAZE;   // Slutet på labyrinten
             }
         }
-        
+		
 		return DEAD_END;             // Detta måste vara en återvändsgränd
     }
     else // Här är summan lika med 0, dvs väggar på alla sidor, bör betyda Z-sväng
@@ -693,7 +704,7 @@ void initNodeAndSteering()
 
 int nodesAndControl()
 {
-    int newNodeAdded = FALSE;
+    int nodeUpdated = FALSE;
     switch(currentControlMode_g)
     {
         case exploration  :
@@ -712,13 +723,12 @@ int nodesAndControl()
                 updateCurrentNode();
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();
-                
+                nodeUpdated = TRUE;
                 if (canMakeNew() == TRUE)
                 {
                     lastAddedNodeIndex_g ++;
                     placeNodeInArray();
                     nodeArray[lastAddedNodeIndex_g].nextDirection = nextDirection_g;     // lägger in styrbeslut i arrayen
-					newNodeAdded = TRUE;
                 }
             }
 
@@ -818,5 +828,5 @@ int nodesAndControl()
         default:
 			break;
     }
-	return newNodeAdded;
+	return nodeUpdated;
 }
