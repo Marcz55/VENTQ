@@ -37,6 +37,7 @@ SUBDIRS :=
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
+../detection.c \
 ../GccApplication3.c
 
 
@@ -47,15 +48,19 @@ ASM_SRCS +=
 
 
 OBJS +=  \
+detection.o \
 GccApplication3.o
 
 OBJS_AS_ARGS +=  \
+detection.o \
 GccApplication3.o
 
 C_DEPS +=  \
+detection.d \
 GccApplication3.d
 
 C_DEPS_AS_ARGS +=  \
+detection.d \
 GccApplication3.d
 
 OUTPUT_FILE_PATH +=GccApplication3.elf
@@ -72,6 +77,8 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
 
 
 

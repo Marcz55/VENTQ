@@ -13,38 +13,52 @@
 #include "USART.h"
 #include "Timer.h"
 #include "Definitions.h"
+#include "nodsystemet.h"
 #include <stdlib.h>
 
+int halfPathWidth_g = 570/2; // Avståndet mellan väggar
+int regulation_g[3]; // array som regleringen sparas i
 
-/*
-#define TXD0_READY bit_is_set(UCSR0A,5)
-#define TXD0_FINISHED bit_is_set(UCSR0A,6)
-#define RXD0_READY bit_is_set(UCSR0A,7)
-#define TXD0_DATA (UDR0)
-#define RXD0_DATA (UDR0)
-*/
+int closeEnoughToTurn = 0;
+		
 
 
-
-int stepLength_g = 160;
+int stepLength_g = 80;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
-int startPositionZ_g = -120;
-int stepHeight_g =  40;
-int gaitResolution_g = 8; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
+int startPositionZ_g = -80;
+int stepHeight_g =  20;
+int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_200; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
+
+
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
 int currentRotationInstruction = 0;
-int currentVentilatorOptionInstruction_g = 0; // nuvarande instruktion för inställningar av ventilators egenskaper
-int ventilatorOptionsHasChanged_g = 0;
+int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
+// ------ Globala variabler för "svängar" ------
+int BlindStepsTaken_g = 0;
+//int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
+// BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
+int BlindStepsToTake_g = 0;
+
 // ------ Inställningar för robot-datorkommunikation ------
-int newCommUnitUpdatePeriod = INCREMENT_PERIOD_500;
+int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
 
+// regler koefficienter
+float kProportionalTranslation_g = 0.3;
+float kProportionalAngle_g = 0.4;
 
+// hanterar om vi har förkortat steglängden eller ej
+int stepLengthShortened_g = FALSE;
 
+// hanterar fallen då vi går i manuellt läge och går diagonalt, ser till att vi normerar steglängden
+int diagonalMovement_g = FALSE;
+
+// avstånd ifrån sensorera till mitten av roboten (mm)
+int sensorOffset_g = 60;
 /*
 // Joakims coola gångstil,
 int stepLength_g = 40;
@@ -55,26 +69,30 @@ int stepHeight_g = 20;
 int gaitResolution_g = 12;
 int gaitResolutionTime_g = INCREMENT_PERIOD_60;
 */
-enum controlMode{
-    manual,
-    autonomous
+
+int sendLegWidth = FALSE;
+int sendStepHeight = FALSE;
+int sendRobotHeight = FALSE;
+int sendStepLength = FALSE;
+int sendKPAngle = FALSE;
+int sendKPTrans = FALSE;
+int sendGaitResTime = FALSE;
+
+// currentDirection_g-deklaration samt controlMode flyttade till Definitions.h
+
+typedef struct leg leg;
+struct leg {
+    int legNumber,
+    coxaJoint,
+    femurJoint,
+    tibiaJoint;
 };
-enum controlMode currentControlMode = manual;
 
-enum direction{
-    north,
-    east,
-    south,
-    west,
-    none
-    }; 
-enum direction currentDirection = none;
+leg frontLeftLeg = {FRONT_LEFT_LEG, 2, 4, 6};
+leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
+leg rearLeftLeg = {REAR_LEFT_LEG, 1, 3, 18};
+leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
 
-enum gait{
-    standStill,
-    trotGait,
-    creepGait
-    };
 
 enum gait currentGait = standStill;
 
@@ -82,7 +100,16 @@ int standardSpeed_g = 20;
 int statusPackEnabled = 0;
 
 
-
+void sendAllRobotParameters()
+{
+    transmitDataToCommUnit(STEP_INCREMENT_TIME_HEADER, gaitResolutionTime_g);
+    transmitDataToCommUnit(STEP_LENGTH_HEADER, stepLength_g);
+    transmitDataToCommUnit(STEP_HEIGHT_HEADER, stepHeight_g);
+    transmitDataToCommUnit(LEG_DISTANCE_HEADER, startPositionX_g);
+    transmitDataToCommUnit(ROBOT_HEIGHT_HEADER, -startPositionZ_g);
+    transmitDataToCommUnit(K_P_ANGLE_HEADER, 100*kProportionalAngle_g);
+    transmitDataToCommUnit(K_P_TRANS_HEADER, 100*kProportionalTranslation_g);
+}
 
 // calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
 // hastighet som gör att slutpositionen uppnås på periodtiden.
@@ -144,9 +171,9 @@ void MoveFrontLeftLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  theta3 + 1;
     
     
-    MoveDynamixel(2,ActuatorAngle1,speed);
-    MoveDynamixel(4,ActuatorAngle2,speed);
-    MoveDynamixel(6,ActuatorAngle3,speed);
+    MoveDynamixel(frontLeftLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(frontLeftLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(frontLeftLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 
@@ -163,9 +190,9 @@ void MoveFrontRightLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  theta3 + 3;
     
     
-    MoveDynamixel(8,ActuatorAngle1,speed);
-    MoveDynamixel(10,ActuatorAngle2,speed);
-    MoveDynamixel(12,ActuatorAngle3,speed);
+    MoveDynamixel(frontRightLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(frontRightLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(frontRightLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 void MoveRearLeftLeg(float x, float y, float z, int speed)
@@ -181,9 +208,9 @@ void MoveRearLeftLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  300 - theta3 ;
     
     
-    MoveDynamixel(1,ActuatorAngle1,speed);
-    MoveDynamixel(3,ActuatorAngle2,speed);
-    MoveDynamixel(5,ActuatorAngle3,speed);
+    MoveDynamixel(rearLeftLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(rearLeftLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(rearLeftLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 void MoveRearRightLeg(float x, float y, float z, int speed)
@@ -199,9 +226,9 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
     long int ActuatorAngle3 =  300 - theta3;
     
     
-    MoveDynamixel(7,ActuatorAngle1,speed);
-    MoveDynamixel(9,ActuatorAngle2,speed);
-    MoveDynamixel(11,ActuatorAngle3,speed);
+    MoveDynamixel(rearRightLeg.coxaJoint,ActuatorAngle1,speed);
+    MoveDynamixel(rearRightLeg.femurJoint,ActuatorAngle2,speed);
+    MoveDynamixel(rearRightLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
 
@@ -248,18 +275,6 @@ void increasePositionIndexes()
     return;
 }
 
-typedef struct leg leg;
-struct leg {
-    int legNumber,
-        coxaJoint,
-        femurJoint,
-        tibiaJoint;
-};
-
-leg frontLeftLeg = {FRONT_LEFT_LEG, 2, 4, 6};
-leg frontRightLeg = {FRONT_RIGHT_LEG, 8, 10, 12};
-leg rearLeftLeg = {REAR_LEFT_LEG, 1, 3, 5};
-leg rearRightLeg = {REAR_RIGHT_LEG, 7, 9, 11};
 
 
 void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
@@ -619,15 +634,32 @@ void move()
     increasePositionIndexes();
 }
 
-int directionHasChanged = 0;
 
 int isMovementInstruction(int instruction)
 {
-	if ((0b10000000 & instruction) == 0b10000000)
+	if ((0b11000000 & instruction) == 0b00000000)
 	{
-		return FALSE;
+		return TRUE;
 	}
-	return TRUE;
+	return FALSE;
+}
+
+int isOptionInstruction(int instruction)
+{
+	if ((0b11000000 & instruction) == 0b10000000)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int isControlModeInstruction(int instruction)
+{
+	if ((0b11000000 & instruction) == 0b11000000)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 ISR(INT0_vect) // avbrott från kommunikationsenheten
@@ -641,25 +673,70 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 		currentRotationInstruction = (instruction & 0b11110000) >> 4;
 		directionHasChanged = 1;
 	}
-	else
+	else if (isOptionInstruction(instruction))
 	{
-		ventilatorOptionsHasChanged_g = 1;
-		currentVentilatorOptionInstruction_g = instruction;
+		optionsHasChanged_g = 1;
+		currentOptionInstruction_g = instruction;
+	}
+	else if (isControlModeInstruction(instruction))
+	{
+		switch(instruction)
+		{
+			case EXPLORATION_MODE_INSTRUCTION:
+			{
+				currentControlMode_g = exploration;
+				break;
+			}
+			case MANUAL_MODE_INSTRUCTION:
+			{
+				currentControlMode_g = manual;
+				break;
+			}
+			case RETURN_TO_LEAK_1:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_2:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_3:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_4:
+			{
+				break;
+			}
+			case RETURN_TO_LEAK_5:
+			{
+				break;
+			}
+		}
 	}
 }
 
-
-
+int toggleMania = FALSE;
+int sendStuff = FALSE;
 ISR(INT1_vect) 
-{   
-    transmitDataToCommUnit(DISTANCE_NORTH,fetchDataFromSensorUnit(DISTANCE_NORTH));
-    transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
-    transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
-    transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
+{ 
     
-    
+	if (toggleMania)
+    {
+        currentControlMode_g = manual;
+        sendStuff = TRUE;
+        toggleMania = FALSE;
+    }
+    else
+    {
+        currentControlMode_g = exploration;
+        toggleMania = TRUE;
+        
+    }
+	
+	/*
     directionHasChanged = 1;
-    switch(currentDirection)
+    switch(currentDirection_g)
     {
         case north:
         {
@@ -681,56 +758,131 @@ ISR(INT1_vect)
             currentDirectionInstruction = NORTH_HEADER;
             break;
         }
-        case none:
+        case noDirection:
         {
             currentDirectionInstruction = NORTH_HEADER;
             break;
         }
-    }
+    }*/
     
     
     
     
 } 
 
+
+
+
+
+
 void transmitAllDataToCommUnit()
 {
-    transmitDataToCommUnit(DISTANCE_NORTH, fetchDataFromSensorUnit(DISTANCE_NORTH));
-    transmitDataToCommUnit(DISTANCE_EAST, fetchDataFromSensorUnit(DISTANCE_EAST));
-    transmitDataToCommUnit(DISTANCE_SOUTH, fetchDataFromSensorUnit(DISTANCE_SOUTH));
-    transmitDataToCommUnit(DISTANCE_WEST, fetchDataFromSensorUnit(DISTANCE_WEST));
-    transmitDataToCommUnit(ANGLE_NORTH, fetchDataFromSensorUnit(ANGLE_NORTH));
-    transmitDataToCommUnit(ANGLE_EAST, fetchDataFromSensorUnit(ANGLE_EAST));
-    transmitDataToCommUnit(ANGLE_SOUTH, fetchDataFromSensorUnit(ANGLE_SOUTH));
-    transmitDataToCommUnit(ANGLE_WEST, fetchDataFromSensorUnit(ANGLE_WEST));
+    transmitDataToCommUnit(DISTANCE_NORTH, distanceValue_g[NORTH]);
+    transmitDataToCommUnit(DISTANCE_EAST, distanceValue_g[EAST]);
+    transmitDataToCommUnit(DISTANCE_SOUTH, distanceValue_g[SOUTH]);
+    transmitDataToCommUnit(DISTANCE_WEST, distanceValue_g[WEST]);
+    transmitDataToCommUnit(ANGLE_NORTH, distanceValue_g[FRONT_RIGHT]);
+    transmitDataToCommUnit(ANGLE_EAST, distanceValue_g[FRONT_LEFT]);
+    transmitDataToCommUnit(ANGLE_SOUTH, angleValue_g[SOUTH]);
+    transmitDataToCommUnit(ANGLE_WEST, angleValue_g[WEST]);
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
     transmitDataToCommUnit(TOTAL_ANGLE, fetchDataFromSensorUnit(TOTAL_ANGLE));
     return;
 }
 
-void getSensorData()
+void updateAllDistanceSensorData()
 {
-    /*
-    * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g och sensorValue_g
-    * 
-    *
-    *
-    */
-    
+    distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+    distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
+    distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+    distanceValue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
+	
+	if(currentDirection_g == north)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_6);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_5);
+	}
+	
+	else if(currentDirection_g == east)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_8);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_7);
+	}
+	
+	else if(currentDirection_g == south)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_2);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_1);
+	}
+	
+	else if(currentDirection_g == west)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_4);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_3);
+	}
 }
 
-// arrays som värden hämtade ifrån sensorenheten skall ligga i
-int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
-int angleValue_g[4]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
-int halfPathWidth_g = 570/2; // Avståndet mellan väggar
-int regulation_g[3]; // array som regleringen sparas i
+void updateTotalAngle()
+{
+    angleValue_g[TOTAL] = fetchDataFromSensorUnit(TOTAL_ANGLE);
+}
+
+void getSensorData(enum direction regulationDirection)
+{
+    /*
+    * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g
+    */
+    /* Kommenterar ut för att testa om det är fel på datahämtningen eller ej
+    distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+    distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
+    distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+    distanceValue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
+
+    angleValue_g[NORTH] = fetchDataFromSensorUnit(ANGLE_NORTH);
+    angleValue_g[EAST] = fetchDataFromSensorUnit(ANGLE_EAST);
+    angleValue_g[SOUTH] = fetchDataFromSensorUnit(ANGLE_SOUTH);
+    angleValue_g[WEST] = fetchDataFromSensorUnit(ANGLE_WEST);
+	*/
+	
+	
+	// test för att inte hämta så mycket sensordata
+	switch(regulationDirection)
+	{
+		case north:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_NORTH);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_NORTH);
+			break;
+		}
+		
+		case east:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_EAST);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_EAST);
+			break;
+		}
+		
+		case south:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_SOUTH);
+			break;
+		}
+		
+		case west:
+		{
+			distanceValue_g[regulationDirection] = fetchDataFromSensorUnit(DISTANCE_WEST);
+			angleValue_g[regulationDirection] = fetchDataFromSensorUnit(ANGLE_WEST);
+			break;
+		}
+	}
+	return;
+}
 
 
-#define TRUE 1
-#define FALSE 0
 void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 {
-    //static int  regulation[3]; // skapar en array som innehåller hur roboten ska reglera
+    // regulationDirection motsvarar den sida som regleringen ska titta på.
     /*
     * 
     *
@@ -738,199 +890,333 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
     * Andra värdet anger hur mycket längre steg benen på vänstra sidan relativt rörelseriktningen ska ta, de som medför en CW-rotation. 
     * Tredje värdet anger hur mycket längre steg benen på högra sidan relativt rörelseriktningen ska ta, de som medför en CCW-rotation
     */
+	
 
-    int translationRight = 0;
-    int sensorOffset = 370;// Avstånd ifrån sensorera till mitten av roboten (mm)
+	int translationRight = 0;
 
-    // variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
-    int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
-    int angleRegulationError = 0; // avser hur många grader vridna i CCW riktning relativt "den raka riktningen" dvs relativt väggarna.
-
-    //Regleringskoefficienter
-    int kProportionalTranslation = 1;
-    int kProportionalAngle = 1;
-
-
-
-    //Reglering vid gång i kooridor
-    switch (currentDirection)
-    {
-        case north: // går vi åt norr kan vi reglera mot väst eller öster
-        {
-            switch(regulationDirection)
-            {
-                case east:
-                {
-                    translationRegulationError = (distanceValue_g[east] + sensorOffset) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
-                    break;
-                }
-
-                case west:
-                {
-                    translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset);
-                    break;
-                }
-                case none:
-                {
-                    translationRegulationError = 0;
-                    angleRegulationError = 0;
-                    break;
-                }
-            }
-            break;
-        }
-
-        case east:
-        {
-            switch(regulationDirection)
-            {
-                case south:
-                {
-                    translationRegulationError = (distanceValue_g[south] + sensorOffset) - halfPathWidth_g;
-                    break;
-                }
-
-                case north:
-                {
-                    translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset);
-                    break;
-                }
-
-                case none:
-                {
-                    translationRegulationError = 0;
-                    angleRegulationError = 0;
-                    break;
-                }
-            }
-            break;
-        }
-
-        case south:
-        {
-            switch(regulationDirection)
-            {
-                case west:
-                {
-                    translationRegulationError = (distanceValue_g[west] + sensorOffset) - halfPathWidth_g;
-                    break;
-                }
-
-                case east:
-                {
-                    translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset);
-                    break;
-                }
-
-                case none:
-                {
-                    translationRegulationError = 0;
-                    angleRegulationError = 0;
-                    break;
-                }
-            }
-            break;
-        } 
-
-        case west:
-        {
-            switch(regulationDirection)
-            {
-                case north:
-                {
-                    translationRegulationError = (distanceValue_g[north] + sensorOffset) - halfPathWidth_g;
-                    break;
-                }
-
-                case south:
-                {
-                    translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset);
-                    break;
-                }
-
-                case none:
-                {
-                    translationRegulationError = 0;
-                    angleRegulationError = 0;
-                    break;
-                }
-            }
-            break;
-        }
-    }
-
-    if (useRotateRegulation)
-    {
-        angleRegulationError = angleValue_g[regulationDirection];
-    }
-    else
-    {
-        angleRegulationError = 0;
-    }
-
-
-
-    translationRight = kProportionalTranslation * translationRegulationError;
-    int leftSideStepLengthAdjust = (kProportionalAngle * angleRegulationError)/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-    int rightSideStepLengthAdjust = kProportionalAngle * (-angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt vänster om mittlinjen roboten är  
-    regulation_g[0] =  translationRight;
-    regulation_g[1] = leftSideStepLengthAdjust;
-    regulation_g[2] = rightSideStepLengthAdjust;
-   // return;
-
-// vid nuläget har vi inte sensorenheten inkopplad så värdena i distancevalue_g m.m är odefinierade
-    regulation_g[0] =  0;
-    regulation_g[1] = 0;
-    regulation_g[2] = 0;
-    return; 
-
-}
+	// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
+	int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
+	int angleRegulationError = 0; // avser hur många grader vridna i CCW riktning relativt "den raka riktningen" dvs relativt väggarna.
 
 
 
 
-// används som en globalvariabel för att veta vilken typ av "action" vi ska göra.
-enum action{
-	noAction, // inte utföra något
-	turnRight, // svänga höger med möjlighet att reglera mot en vägg framför roboten
-	turnLeft, // svänga vänster -"-
-	turnRightBlind, // svänga höger utan möjlighet att reglera mot någon vägg framför roboten
-	turnLeftBlind, // svänga vänster -"-
-};
-enum action currentAction_g = noAction;
 
-// en funktion som utför det currentAction_g anger
-void applyAction()
-{
-	switch(currentAction_g)
+		//Reglering vid gång i koridor
+	switch (currentDirection_g)
 	{
-		case turnRight:
+		case north: // går vi åt norr kan vi reglera mot väst eller öster
 		{
-			// vi ska svänga åt höger när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection] < stepLength_g/2 + halfPathWidth_g)
+			switch(regulationDirection)
 			{
-				currentDirection = (currentDirection + 1) % 4; // ökar currentDirection med ett vilket medför att vi svänger åt höger
-				currentAction_g = noAction; 
+				case east:
+				{
+					translationRegulationError = (distanceValue_g[east] + sensorOffset_g) - halfPathWidth_g; // translationRegulationError avser hur långt till vänster om mittlinjen vi är 
+					break;
+				}
+
+				case west:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset_g);
+					break;
+				}
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+					break;
+				}
 			}
 			break;
 		}
 
-		case turnLeft:
+		case east:
 		{
-			// vi ska svänga åt vänster när väggen framför oss är ungefär en halv korridorsbredd framför oss
-			if(distanceValue_g[currentDirection] < stepLength_g/2 + halfPathWidth_g)
+			switch(regulationDirection)
 			{
-				currentDirection = (abs(currentDirection - 1)) % 4; // minskar currentDirection med ett vilket medför att vi svänger åt vänster
-				currentAction_g = noAction;
-			}        
+				case south:
+				{
+					translationRegulationError = (distanceValue_g[south] + sensorOffset_g) - halfPathWidth_g;
+					break;
+				}
+
+				case north:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset_g);
+					break;
+				}
+
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+					break;
+				}
+			}
 			break;
 		}
 
-		case turnRightBlind:
+		case south:
 		{
-			
+			switch(regulationDirection)
+			{
+				case west:
+				{
+					translationRegulationError = (distanceValue_g[west] + sensorOffset_g) - halfPathWidth_g;
+					break;
+				}
+
+				case east:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[east] + sensorOffset_g);
+					break;
+				}
+
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+					break;
+				}
+			}
+			break;
+		} 
+
+		case west:
+		{
+			switch(regulationDirection)
+			{
+				case north:
+				{
+					translationRegulationError = (distanceValue_g[north] + sensorOffset_g) - halfPathWidth_g;
+					break;
+				}
+
+				case south:
+				{
+					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset_g);
+					break;
+				}
+
+				case noDirection:
+				{
+					translationRegulationError = 0;
+					angleRegulationError = 0;
+	    			break;
+				}
+			}
+			break;
+		}
+        case noDirection:
+        {
+            translationRegulationError = 0;
+            angleRegulationError = 0;
+            break;
+        }            
+	}
+
+	if (useRotateRegulation)
+	{
+		angleRegulationError = angleValue_g[TOTAL];
+	}
+	else
+	{
+		angleRegulationError = 0;
+	}
+
+	//Regleringskoefficienter
+
+
+	translationRight = kProportionalTranslation_g * translationRegulationError;
+	int leftSideStepLengthAdjust = (kProportionalAngle_g * (-angleRegulationError))/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt höger om mittlinjen roboten är  
+		
+	if (translationRight > 60)
+	{
+		translationRight = 60;
+	}
+		
+		
+	if (translationRight < -60)
+	{
+		translationRight = -60;
+	}
+		
+	if (leftSideStepLengthAdjust > 60)
+	{
+		leftSideStepLengthAdjust = 60;
+	}
+	
+	if (leftSideStepLengthAdjust < -60)
+	{
+		leftSideStepLengthAdjust = -60;
+	}
+	
+	if (rightSideStepLengthAdjust > 60)
+	{
+		rightSideStepLengthAdjust = 60;
+	}
+	
+	if (rightSideStepLengthAdjust < -60)
+	{
+		rightSideStepLengthAdjust = -60;
+	}
+		
+	regulation_g[0] =  translationRight;
+	regulation_g[1] = leftSideStepLengthAdjust;
+	regulation_g[2] = rightSideStepLengthAdjust;
+		
+
+
+
+    // om vi har en vägg framför oss är det bäst att ta mindre steglängder
+    if (!frontAvailable())
+    {
+        if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
+        {
+           stepLength_g = stepLength_g/2;
+           stepLengthShortened_g = TRUE;
+       }
+    }
+    else
+    {
+        if (stepLengthShortened_g == TRUE) // om vi inte har en främre vägg men ändå har förkortad steglängd så låter vi steglängden bli den normala igen
+        {
+            stepLength_g = stepLength_g*2;
+            stepLengthShortened_g = FALSE;
+        }
+    }
+
+
+	needToCalcGait = 1; // när vi har reglerat behöver vi räkna om gångstilen
+	return;
+}
+
+
+ /*
+ / Beslutar utifrån currentNode_g och currentDirection vilken riktning som vi kan 
+ / använda för reglering mot. Returnerar enum direction som kan användas i calcRegulation
+*/
+int decideRegulationDirection() 
+{
+    /*
+    enum direction tempRegulationDirection = noDirection;
+    int northAvailable = currentNode_g.northAvailible;
+    int eastAvailable = currentNode_g.eastAvailible;
+    int southAvailable = currentNode_g.southAvailible;
+    int westAvailable = currentNode_g.westAvailible;
+    switch(currentDirection_g)
+    {
+        case north:
+        {
+            if (!eastAvailable) // det finns en vägg åt öster
+            {
+                tempRegulationDirection = east;
+            }                
+            else if (!westAvailable)
+            {
+                tempRegulationDirection = west;
+            }              
+            break;
+        }
+        case east:
+        {
+            if (!southAvailable)
+            {
+                tempRegulationDirection = south;
+            }
+            else if (!northAvailable)
+            {
+                tempRegulationDirection = north;
+            }
+            break;
+        }
+        case south:
+        {
+            if (!eastAvailable)
+            {
+                tempRegulationDirection = east;
+            }
+            else if (!westAvailable)
+            {
+                tempRegulationDirection = west;
+            }
+            break;
+        }
+        case west:
+        {
+            if (!northAvailable)
+            {
+                tempRegulationDirection = north;
+            }
+            else if (!southAvailable)
+            {
+                tempRegulationDirection = south;
+            }
+            break;
+        }
+        case noDirection:
+        {
+            tempRegulationDirection = noDirection;
+            break;
+        }
+    }
+    return tempRegulationDirection;
+    */
+    int closeEnoughToRegulate = 300;
+    enum direction tempRegulationDirection = noDirection;
+    enum direction directionToRight = ((currentDirection_g + 1) % 4);
+    enum direction directionToLeft = ((currentDirection_g + 3) % 4);
+
+    if(currentDirection_g != noDirection)
+    {
+        if(distanceValue_g[directionToRight] < closeEnoughToRegulate)
+        {
+            tempRegulationDirection = directionToRight;
+        }
+        else if(distanceValue_g[directionToLeft] < closeEnoughToRegulate)
+        {
+            tempRegulationDirection = directionToLeft;
+        }
+    }
+    return tempRegulationDirection;
+}
+
+
+// används som en globalvariabel för att veta vilken typ av "action" vi ska göra.
+enum order{
+	noOrder, // inte utföra något
+	turnBlind,
+	turnSeeing
+};
+enum order currentOrder_g = noOrder;
+
+// en funktion som utför det currentAction_g anger
+void applyOrder()
+{
+    currentDirection_g = nextDirection_g;
+    /*
+	if(currentOrder_g == turnBlind)
+	{
+		BlindStepsTaken_g = BlindStepsTaken_g + 1;
+		if(BlindStepsTaken_g >= BlindStepsToTake_g)
+		{
+			currentDirection_g = nextDirection_g;
+			currentOrder_g = noOrder;
+			BlindStepsTaken_g = 0;
 		}
 	}
+	if(currentOrder_g == turnSeeing)	
+	{
+		closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
+		if (closeEnoughToTurn)
+		{
+			currentOrder_g = noOrder;
+			currentDirection_g = nextDirection_g;
+		}
+	}
+    */
+	return;
 }
 /*
 / 
@@ -1010,7 +1296,7 @@ void makeCreepGait(int cycleResolution)
     posToCalcGait = maxGaitCyclePos_g;
     long int sixth = stepLength_g/6;
     long int half = stepLength_g/2;
-    switch(currentDirection)
+    switch(currentDirection_g)
     {
         case north:
         {
@@ -1098,7 +1384,7 @@ void standStillGait()
 
 }
 
-// gör rörelsemönstret för travet, beror på vilken direction som är satt på currentDirection
+// gör rörelsemönstret för travet, beror på vilken direction som är satt på currentDirection_g
 void MakeTrotGait(int cycleResolution)
 {
     // cycleResolution är antaletpunkter på kurvan som benen följer. Måste vara jämnt tal!
@@ -1115,8 +1401,7 @@ void MakeTrotGait(int cycleResolution)
     int leftSideTotalStepLength = stepLength_g + leftSideStepLengthAdjust; // left hänvisar till den vänstra sidan relativt rörelseriktningen
     int rightSideTotalStepLength = stepLength_g + rightSideStepLengthAdjust; // right hänvisar till den högra sidan relativt rörelseriktningen
 
-    directionHasChanged = 0;
-    switch(currentDirection)
+    switch(currentDirection_g)
     {       
     // rörelsemönstret finns på ett papper (frontleft och rearright börjar alltid med curved)
     
@@ -1186,7 +1471,7 @@ void MakeTrotGait(int cycleResolution)
             break;
         }
 
-        case none:
+        case noDirection:
         {
             CalcCurvedPath(frontLeftLeg,res,0,-startPositionX_g,startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g);
             CalcStraightPath(frontLeftLeg,res,res,-startPositionX_g,startPositionY_g+leftSideStepLengthAdjust/2,startPositionZ_g,-startPositionX_g,startPositionY_g-leftSideStepLengthAdjust/2,startPositionZ_g);
@@ -1212,10 +1497,11 @@ void increaseLegWidth()
 		startPositionX_g = startPositionX_g + 2;
 		startPositionY_g = startPositionY_g + 2;
 	}
+    
 	return;
 }
 
-void decreaseLegWidth()
+void decreaseLegWidth() 
 {
 	if ((startPositionX_g > 0) && (startPositionY_g > 0))
 	{
@@ -1236,7 +1522,7 @@ void decreaseLegHeight()
 
 void increaseLegHeight()
 {
-	if (startPositionZ_g > -160)
+	if (startPositionZ_g > -180)
 	{
 		startPositionZ_g = startPositionZ_g - 2;
 	}
@@ -1310,6 +1596,41 @@ void decreaseStepHeight()
 	return;
 }
 
+void increaseKTranslation()
+{
+	if (kProportionalTranslation_g < 1)
+	{
+		kProportionalTranslation_g = kProportionalTranslation_g + 0.1;
+	}
+	return;
+}
+
+void decreaseKTranslation()
+{
+	if (kProportionalTranslation_g > 0.1)
+	{
+		kProportionalTranslation_g = kProportionalTranslation_g - 0.1;
+	}
+	return;
+}
+
+void increaseKRotation()
+{
+	if (kProportionalAngle_g < 1)
+	{
+		kProportionalAngle_g = kProportionalAngle_g + 0.1;
+	}
+	return;
+}
+
+void decreaseKRotation()
+{
+	if (kProportionalAngle_g > -1)
+	{
+		kProportionalAngle_g = kProportionalAngle_g - 0.1;
+	}
+	return;
+}
 
 
 void makeGaitTransition(enum gait newGait)
@@ -1330,11 +1651,65 @@ void makeGaitTransition(enum gait newGait)
         }
     }
 }
+
+int frontAvailable()
+{
+	int northAvailable = currentNode_g.northAvailible;
+	int eastAvailable = currentNode_g.eastAvailible;
+	int southAvailable = currentNode_g.southAvailible;
+	int westAvailable = currentNode_g.westAvailible;
+	
+	switch (currentDirection_g)
+	{
+		case north:
+		{
+			return northAvailable;
+			break;
+		}
+		
+		case east:
+		{
+			return eastAvailable;
+			break;
+		}
+		
+		case south:
+		{
+			return southAvailable;
+			break;
+		}
+		
+		case west:
+		{
+			return westAvailable;
+			break;
+		}
+		
+		case noDirection:
+		{
+			return 0;
+			break;
+		}
+	}
+}
+
+
 void gaitController()
 {
+
+	
+    // tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
+	
+	
+    if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
+    {
+    applyOrder();
+	calcRegulation(decideRegulationDirection(), TRUE);
+    }
+
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
     {
-        //calcRegulation();
+       
         switch(currentGait)
         {
             case standStill:
@@ -1354,14 +1729,14 @@ void gaitController()
                 break;
             }
         }
-        needToCalcGait = 0;
+        needToCalcGait = FALSE;
     }
-    if (currentControlMode == manual)
+    if (currentControlMode_g == manual)
     {
         if (directionHasChanged)
         {
-            directionHasChanged = 0;
-            needToCalcGait = 1;
+            directionHasChanged = FALSE;
+            needToCalcGait = TRUE;
             switch(currentRotationInstruction) // Ändrar rotation om den finns en instruktion för att rotera.
             {
                 case CW_ROTATION:
@@ -1388,7 +1763,7 @@ void gaitController()
                 }
                 case NO_ROTATION:
                 {
-                    if ((currentDirection == none) && (currentGait == trotGait))
+                    if ((currentDirection_g == noDirection) && (currentGait == trotGait))
                     {
                         returnToStartPosition();
                         currentGait = standStill;
@@ -1398,6 +1773,9 @@ void gaitController()
                     break;
                 }
             }
+
+
+
             switch(currentDirectionInstruction) // Väljer riktning beroende på vad användaren matat in
             {
                 case NORTH_HEADER:
@@ -1407,8 +1785,15 @@ void gaitController()
                         transitionStartToTrot();
                     }
                     currentGait = trotGait;
-                    currentDirection = north;
+                    currentDirection_g = north;
                     regulation_g[0] = 0;
+
+                    // om vi gick diagonalt innan måste vi nu sätta steglängden till rätt längd igen
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                 }
                 case NORTH_EAST_HEADER:
@@ -1419,8 +1804,15 @@ void gaitController()
                     }
                     // Huvudsaklig rörelseriktning norr. Östlig offset hanteres genom en hårdkodad reglering åt höger
                     currentGait = trotGait;
-                    currentDirection = north;
+                    currentDirection_g = north;
                     regulation_g[0] = stepLength_g;
+                    
+                    // om vi gick rakt innan så måste steglängden förminskas så den effektiva steglängden blir lika lång då den går diagonalt
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case EAST_HEADER:
@@ -1430,8 +1822,14 @@ void gaitController()
                         transitionStartToTrot();
                     }
                     currentGait = trotGait;
-                    currentDirection = east;
+                    currentDirection_g = east;
                     regulation_g[0] = 0;
+
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                     }
                 case SOUTH_EAST_HEADER:
@@ -1442,8 +1840,13 @@ void gaitController()
                     }
                     // Huvudsaklig rörelseriktning öster. Sydlig offset hanteres genom en hårdkodad reglering åt höger
                     currentGait = trotGait;
-                    currentDirection = east;
+                    currentDirection_g = east;
                     regulation_g[0] = stepLength_g;
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case SOUTH_HEADER:
@@ -1453,8 +1856,13 @@ void gaitController()
                         transitionStartToTrot();
                     }
                     currentGait = trotGait;
-                    currentDirection = south;
+                    currentDirection_g = south;
                     regulation_g[0] = 0;
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                 }
                 case SOUTH_WEST_HEADER:
@@ -1465,8 +1873,13 @@ void gaitController()
                     }
                     // Huvudsaklig rörelseriktning söder. Västlig offset hanteres genom en hårdkodad reglering åt höger
                     currentGait = trotGait;
-                    currentDirection = south;
+                    currentDirection_g = south;
                     regulation_g[0] = stepLength_g;
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case WEST_HEADER:
@@ -1476,8 +1889,13 @@ void gaitController()
                         transitionStartToTrot();
                     }
                     currentGait = trotGait;
-                    currentDirection = west;
+                    currentDirection_g = west;
                     regulation_g[0] = 0;
+                    if(diagonalMovement_g == TRUE)
+                    {
+                        stepLength_g = stepLength_g*sqrt(2);
+                        diagonalMovement_g = FALSE;
+                    }
                     break;
                 }
                 case NORTH_WEST_HEADER:
@@ -1488,8 +1906,13 @@ void gaitController()
                     }
                     // Huvudsaklig rörelseriktning väster. Nordlig offset hanteres genom en hårdkodad reglering åt höger
                     currentGait = trotGait;
-                    currentDirection = west;
+                    currentDirection_g = west;
                     regulation_g[0] = stepLength_g;
+                    if(diagonalMovement_g == FALSE)
+                    {
+                        stepLength_g = stepLength_g/sqrt(2);
+                        diagonalMovement_g = TRUE;
+                    }
                     break;
                 }
                 case NO_MOVEMENT_DIRECTION_HEADER:
@@ -1499,138 +1922,304 @@ void gaitController()
                         returnToStartPosition();
                         currentGait = standStill;
                     }
-                    currentDirection = none;
+                    currentDirection_g = noDirection;
                     regulation_g[0] = 0;
                     break;
                 }
             }
         }
-		if(ventilatorOptionsHasChanged_g == 1)
-		{
-			ventilatorOptionsHasChanged_g = 0;
-            needToCalcGait = 1;
-			switch (currentVentilatorOptionInstruction_g)
+	}
+    else // Controlmode är något annat än manuellt
+    {
+        if(directionHasChanged) // nodesAndControl har tagit ett styrbeslut
+        {
+            directionHasChanged = FALSE;
+            needToCalcGait = TRUE;
+			if (currentGait == standStill)
 			{
-				case INCREASE_LEG_WIDTH:
+				transitionStartToTrot();
+			}
+			currentGait = trotGait;
+            if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
+		    {
+				if (nextDirection_g == noDirection)
 				{
-					increaseLegWidth();
-					break;
+					returnToStartPosition();
+					currentGait = standStill;
+					currentDirection_g = noDirection;
 				}
-				
-				case DECREASE_LEG_WIDTH:
-				{
-					decreaseLegWidth();
-					break;
-				}
-				
-				case INCREASE_LEG_HEIGHT:
-				{
-					increaseLegHeight();
-					break;
-				}
-				
-				case DECREASE_LEG_HEIGHT:
-				{
-					decreaseLegHeight();
-					break;
-				}
-				
-				case INCREASE_STEP_LENGTH:
-				{
-					increaseStepLength();
-					break;
-				}
-				
-				case DECREASE_STEP_LENGTH:
-				{
-					decreaseStepLength();
-					break;
-				}
-				
-				case INCREASE_STEP_HEIGHT:
-				{
-					increaseStepHeight();
-					break;
-				}
-				
-				case DECREASE_STEP_HEIGHT:
-				{
-					decreaseStepHeight();
-					break;
-				}
-				
-				case INCREASE_GAIT_RESOLUTION_TIME:
-				{
-					increaseGaitResolutionTime();
-					break;
-				}
-				
-				case DECREASE_GAIT_RESOLUTION_TIME:
-				{
-					decreaseGaitResolutionTime();
-					break;
+				else
+				{	
+					if (nextDirection_g == currentDirection_g || (nextDirection_g == ((currentDirection_g + 2) % 4))) // undersöker om nästa riktning är fram eller bak relativt nuvarande riktning
+					{
+						currentDirection_g = nextDirection_g; // om fram eller bak så är det bar att byta
+					}
+					else 
+					{
+						if (frontAvailable()) // om vänster eller höger rel. nuvarande riktning måste vi undersöka om vi ska svänga blint eller med syn
+						{
+							currentOrder_g = turnBlind;
+						}
+						else
+						{
+							currentOrder_g = turnSeeing;
+						}
+					}
 				}
 			}
-		}
-	}
+        }
+    }
+    if(optionsHasChanged_g == 1)
+    {
+        optionsHasChanged_g = FALSE;
+        needToCalcGait = TRUE;
+        switch (currentOptionInstruction_g)
+        {
+            case INCREASE_LEG_WIDTH:
+            {
+                increaseLegWidth();
+                sendLegWidth = TRUE;
+                break;
+            }
+            
+            case DECREASE_LEG_WIDTH:
+            {
+                decreaseLegWidth();
+                sendLegWidth = TRUE;
+                break;
+            }
+            
+            case INCREASE_LEG_HEIGHT:
+            {
+                increaseLegHeight();
+                sendRobotHeight = TRUE;
+                break;
+            }
+            
+            case DECREASE_LEG_HEIGHT:
+            {
+                decreaseLegHeight();
+                sendRobotHeight = TRUE;
+                break;
+            }
+            
+            case INCREASE_STEP_LENGTH:
+            {
+                increaseStepLength();
+                sendStepLength = TRUE;
+                break;
+            }
+            
+            case DECREASE_STEP_LENGTH:
+            {
+                decreaseStepLength();
+                sendStepLength = TRUE;
+                break;
+            }
+            
+            case INCREASE_STEP_HEIGHT:
+            {
+                increaseStepHeight();
+                sendStepHeight = TRUE;
+                break;
+            }
+            
+            case DECREASE_STEP_HEIGHT:
+            {
+                decreaseStepHeight();
+                sendStepHeight = TRUE;
+                break;
+            }
+            
+            case INCREASE_GAIT_RESOLUTION_TIME:
+            {
+                increaseGaitResolutionTime();
+                sendGaitResTime = TRUE;
+                break;
+            }
+            
+            case DECREASE_GAIT_RESOLUTION_TIME:
+            {
+                decreaseGaitResolutionTime();
+                sendGaitResTime = TRUE;
+                break;
+            }
+            
+            case INCREASE_K_TRANSLATION:
+            {
+                increaseKTranslation();
+                sendKPTrans = TRUE;
+                break;
+            }
+            
+            case DECREASE_K_TRANSLATION:
+            {
+                decreaseKTranslation();
+                sendKPTrans = TRUE;
+                break;
+            }
+            
+            case INCREASE_K_ROTATION:
+            {
+                increaseKRotation();
+                sendKPAngle = TRUE;
+                break;
+            }
+            
+            case DECREASE_K_ROTATION:
+            {
+                decreaseKRotation();
+                sendKPAngle = TRUE;
+                break;
+            }
+        }
+    }
 }
 
+void sendChangedRobotParameters()
+{
+    if (sendLegWidth)
+    {
+        transmitDataToCommUnit(LEG_DISTANCE_HEADER, startPositionX_g);
+        sendLegWidth = FALSE;
+    }        
+    if (sendStepHeight)
+    {
+        transmitDataToCommUnit(STEP_HEIGHT_HEADER, stepHeight_g);
+        sendStepHeight = FALSE;
+    }
+    if (sendRobotHeight)
+    {
+        transmitDataToCommUnit(ROBOT_HEIGHT_HEADER, -startPositionZ_g);
+        sendRobotHeight = FALSE;
+    }
+    if (sendStepLength) 
+    {
+        transmitDataToCommUnit(STEP_LENGTH_HEADER, stepLength_g);
+        sendStepLength = FALSE;
+    }
+    if (sendKPAngle) 
+    {
+        transmitDataToCommUnit(K_P_ANGLE_HEADER, 100*kProportionalAngle_g);
+        sendKPAngle = FALSE;
+    }
+    if (sendKPTrans) 
+    {
+        transmitDataToCommUnit(K_P_TRANS_HEADER, 100*kProportionalTranslation_g);
+        sendKPTrans = FALSE;
+    }
+    if (sendGaitResTime) 
+    {
+        transmitDataToCommUnit(STEP_INCREMENT_TIME_HEADER, gaitResolutionTime_g);
+        sendGaitResTime = FALSE;
+    }
+}
 
-
+void checkForLeak()
+{
+	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
+}
 int main(void)
 {
-    
-    initUSART();
+	initUSART();
     spiMasterInit();
     EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     EIMSK = (EIMSK | 3); // Möjliggör externa avbrott på INT1/0
 
+    // initiering av globala variabler
     currentPos_g = 0;
     nextPos_g = 1;
-   
+    currentControlMode_g = manual;
+    currentDirection_g = north;
+	nextDirection_g = north;
+    currentOptionInstruction_g = 0;
+    initNodeAndSteering();
+    directionHasChanged = FALSE;
+    currentGait = standStill;
+    optionsHasChanged_g = 0;
+    BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+	
+    int nodeUpdated_g = FALSE;
+	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
+	initNodeRingBuffer(); // Fyller buffern med 5 st återvändsgränder med öppet åt norr. 
     timer0Init();
     timer2Init();
     sei();
     MoveToStartPosition();
     //moveToCreepStartPosition();
     _delay_ms(1000);
-    //currentDirection = east;
+    //currentDirection_g = east;
     //makeCreepGait(gaitResolution_g);
     standStillGait();
+
     //currentGait = creepGait;
-    
-    
+
     //moveToCreepStartPosition();
     //makeCreepGait(gaitResolution_g);
     setTimerPeriod(TIMER_0, newGaitResolutionTime);
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
-    
-    
+	sendAllRobotParameters();
 
+	int i = 0;
     // ---- Main-Loop ----
     while (1)
     {
-	
+	    
     	if (legTimerPeriodEnd())
     	{
-    	    move();
     	    resetLegTimer();
+            move();
+            applyOrder(); // detta är endast test
+            gaitController();
     	}
     	if (commTimerPeriodEnd())
     	{
-            /*
-            transmitDataToCommUnit(ANGLE_NORTH,readCurrentTemperatureFromActuator(3));
-            transmitDataToCommUnit(ANGLE_EAST, readCurrentTemperatureFromActuator(4));
-            transmitDataToCommUnit(ANGLE_SOUTH, readCurrentTemperatureFromActuator(9));
-            transmitDataToCommUnit(ANGLE_WEST, readCurrentTemperatureFromActuator(10));
-            transmitDataToCommUnit(ANGLE_WEST, ReadTemperatureLimitFromActuator(10));
-            transmitDataToCommUnit(TOTAL_ANGLE, readAlarmShutdownStatus(3));
-            */
-            transmitAllDataToCommUnit();
             resetCommTimer();
+	        updateAllDistanceSensorData();            
+            updateTotalAngle();
+
+	    
+            /*
+            nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
+            Kan dessutom ändra på controlMode.
+            */
+            if (currentControlMode_g != manual)
+            {
+                checkForLeak();
+                nodeUpdated_g = nodesAndControl();
+            }
+            sendChangedRobotParameters();
+            if (nodeUpdated_g)
+            {
+                transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+                transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+            }
+            if (sendDataToPC)
+	        {
+                if (sendStuff && i < 120)
+                {
+                    transmitDataToCommUnit(NODE_INFO, makeNodeData(&nodeArray[i])); 
+                    i++;
+                }
+                else
+	            {
+                    transmitAllDataToCommUnit();
+	            }
+			    sendDataToPC = FALSE;
+	        }
+	        else
+	        {
+			    sendDataToPC = TRUE;
+	        }
+            
+	        
+            
+            
     	}
-        gaitController();
+        
+        
+        
     }
 }
 

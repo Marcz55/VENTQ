@@ -12,6 +12,7 @@
 #define F_CPU 16000000UL
 #include <util/delay.h>
 #include "SPI.h"
+#include "nodsystemet.h"
 
 void spiMasterInit(void)
 {
@@ -49,8 +50,9 @@ void spiTransmitToCommUnit(unsigned char data)
 }
 
 
-void transmitDataToCommUnit(int header_, int data)
+void transmitDataToCommUnit(int header_, int data) // Lagt till "interrupt disabled"
 {
+	cli();
     uint8_t lowDataByte = data;
     uint8_t highDataByte = (data >> 8);
     spiTransmitToCommUnit(header_);
@@ -59,11 +61,15 @@ void transmitDataToCommUnit(int header_, int data)
     _delay_us(5);
     spiTransmitToCommUnit(lowDataByte);
     _delay_us(5);
-    
+	sei();
 }
 
-void transmitDataToSensorUnit(int header_, int data)
+
+
+
+void transmitDataToSensorUnit(int header_, int data) // Lagt till "interrupt disabled"
 {
+	cli();
     uint8_t lowDataByte = data;
     uint8_t highDataByte = (data >> 8);
     spiTransmitToSensorUnit(header_);
@@ -72,7 +78,7 @@ void transmitDataToSensorUnit(int header_, int data)
     _delay_us(5);
     spiTransmitToSensorUnit(lowDataByte);
     _delay_us(5);
-    
+    sei();
 }
 
 

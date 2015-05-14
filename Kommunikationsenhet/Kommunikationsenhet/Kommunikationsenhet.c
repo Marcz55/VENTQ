@@ -22,6 +22,7 @@ struct node_t
 {
 	unsigned char data_;
 	struct node_t* next_;
+    
 };
 
 void bluetoothInit()
@@ -30,7 +31,7 @@ void bluetoothInit()
     UCSRB = (1<<RXEN)|(1<<TXEN)|(1<<RXCIE); //Sätt på sändare och mottagare, samt sätt på interrupts vid recieve complete respektive tom buffer.
     UCSRC = (1<<URSEL)|(3<<UCSZ0)|(0<<UPM1)|(0<<UPM0); //Sätt 8-bit meddelanden samt ingen paritet
     DDRA = (0<<DDA1)|(1<<DDA0)|(1<<DDA2); //Definiera en input och en output
-    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet
+    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 }
 
 void spiInit(void)
@@ -67,7 +68,8 @@ void spiReset()
 
 void removeFirst ()
 {
-    if (first_p_g == NULL)
+    cli();
+	if (first_p_g == NULL)
     {
         return;
     }
@@ -77,6 +79,7 @@ void removeFirst ()
         free (first_p_g);
         first_p_g = temp_p;
     }
+	sei();
 }
 
 void processList()
@@ -91,7 +94,8 @@ void processList()
 void appendList (unsigned char data)
 {
 	// Härifrån skapas en ny nod som sedan initialiseras
-	struct node_t* node = malloc(sizeof(struct node_t));
+	cli();
+    struct node_t* node = malloc(sizeof(struct node_t));
     if (node == NULL)
     {
         return;
@@ -108,6 +112,7 @@ void appendList (unsigned char data)
 		last_p_g->next_ = node;
 	}
 	last_p_g = node;
+    sei();
 }
 
 int main(void)
@@ -122,7 +127,7 @@ int main(void)
 	{
         while(last_p_g != NULL)   //Gå igenom listan tills den blir tom
         {
-          processList();   
+		  processList();   
         }
         MCUCR = (1<<SE); //Sleep enable
 	    sleep_mode(); //Gå in i sleep mode om det inte finns något att göra
@@ -141,6 +146,7 @@ ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
     //bluetoothSend(plutt);
     spiWrite(bluetoothReceive()); //Information som ska skickas överförs direkt till SPDR, där det är redo att föras över till masterenheten.
     PORTA = (1<<PORTA2); //Generera avbrott i styrenhet
+    MCUCR = (1<<SE);
 }
 
 ISR(SPISTC_vect)//SPI-överföring klar
@@ -149,6 +155,7 @@ ISR(SPISTC_vect)//SPI-överföring klar
 	//Send(SPDR); Lägg in i lista istället!
 	appendList(spiReceive());
 	spiReset(); //Återställ SPDR.
+    MCUCR = (1<<SE);
 }
 //Kommer att behöva en lista där indata kan sparas tillfälligt.
 

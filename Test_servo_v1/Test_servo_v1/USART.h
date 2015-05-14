@@ -106,5 +106,6 @@ void enableStatusPacketsFromActuator(int ID);
 int ReadTemperatureLimitFromActuator(int ID);
 int readCurrentTemperatureFromActuator(int ID);
 int readAlarmShutdownStatus(int ID);
+void setNewIDOfActuator (int ID, int newID);
 
 #endif /* USART_H_ */

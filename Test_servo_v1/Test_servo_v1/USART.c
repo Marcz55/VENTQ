@@ -271,3 +271,8 @@ int readAlarmShutdownStatus(int ID)
     USARTSendInstruction2(ID,INST_READ,P_ALARM_SHUTDOWN,0x01);
     return USARTReadStatusPacket();
 }
+
+void setNewIDOfActuator (int ID, int newID)
+{
+    USARTSendInstruction2(ID, INST_WRITE, P_ID, newID);
+}
