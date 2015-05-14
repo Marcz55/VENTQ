@@ -6,6 +6,7 @@ package pkginterface;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.image.Image;
 import jssc.SerialPort;
 import static jssc.SerialPort.PURGE_RXCLEAR;
 import jssc.SerialPortEvent;
@@ -20,7 +21,9 @@ public class Interface implements SerialPortEventListener{
     private int bufferCounter = 0; // Håller koll på var i buffern vi är
     private int combinedData = 0; // De två byten data, översatta till ett tal
     public String currentNode = "Okänt\nOkänt\nID: 0";
+    public String currentNodeType = "";
     public String leak = "Nej";
+    public String decision = "";
     public int acknowledge = 0;
     
     GUI mainGUI;
@@ -109,6 +112,15 @@ public class Interface implements SerialPortEventListener{
             case 144: return true;  // Totalvinkel
             case 152: return true;  // Läcka
             case 160: return true;  // Nod
+            case 252: return true;  // Styrbeslut
+                
+            case 128: return true;  // Stegtid
+            case 80: return true;   // Steglängd
+            case 72: return true;   // Steghöjd
+            case 64: return true;   // Utbredning
+            case 56: return true;   // Höjd
+            case 48: return true;   // Kvinkel
+            case 40: return true;   // Ktranslation
             default: return false;  // Inte en vettig header
         }
     }
@@ -121,18 +133,28 @@ public class Interface implements SerialPortEventListener{
             case 208: return ((recievedData_ > 70) && (recievedData_ <= 800 ));
             case 216: return ((recievedData_ > 70) && (recievedData_ <= 800 ));
             case 224: return ((recievedData_ > 70) && (recievedData_ <= 800 ));
-            case 232: return ((recievedData_ > -410) && (recievedData_ < 410 )); // Vinkel kan bara vara mellan -410 och 410
-            case 240: return ((recievedData_ > -410) && (recievedData_ < 410 ));
+            case 232: return ((recievedData_ > -410) && (recievedData_ <= 800 )); // Vinkel kan bara vara mellan -410 och 410
+            case 240: return ((recievedData_ > -410) && (recievedData_ <= 800 ));
             case 248: return ((recievedData_ > -410) && (recievedData_ < 410 ));
             case 136: return ((recievedData_ > -410) && (recievedData_ < 410 ));
             case 144: return ((recievedData_ > -410) && (recievedData_ < 410 )); 
             case 152: return ((recievedData_ == 0) || (recievedData_ == 1));  // Läcka kan vara 1 eller 0
             case 160: return ((recievedData_ >= 0) && (recievedData_ <= 16400 ));  // Nod
+            case 252: return ((recievedData_ >= 0) && (recievedData_ < 256));
+                
+            case 128: return ((recievedData_ >= 0)&&(recievedData_ <= 600));    
+            case 80: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
+            case 72: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
+            case 64: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
+            case 56: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
+            case 48: return ((recievedData_ >= -10) &&(recievedData_ <= 10));    
+            case 40: return ((recievedData_ >= -10) &&(recievedData_ <= 10));
+            
             default: return false;
         }
     }
     
-    public String getHeaderString(int header_)  // Tar in en header och returnerar vad den motsvarar i text
+    /*public String getHeaderString(int header_)  // Tar in en header och returnerar vad den motsvarar i text
     {
         switch (header_)
         {
@@ -147,9 +169,10 @@ public class Interface implements SerialPortEventListener{
             case 144: return "Vinkel total: ";  // Totalvinkel
             case 152: return "Läcka: ";  // Läcka
             case 160: return "Nod: ";  // Nod
+            case 252: return "Styrbeslut"; // Styrbeslut
             default: return "Fel, okänd data";  // Inte en vettig header
         }   
-    }
+    }*/
     
     public void setNodeInfo(int north_, int east_, int south_, int west_, int direction_, int nodeID_) // Identifierar nod och riktning
     {                                                                                     //north_ - west_ är ett om roboten ser öppning, noll annars
@@ -168,29 +191,85 @@ public class Interface implements SerialPortEventListener{
                 break;
             case 3:
                 directionString_ = "\nVäst";
-                break;             
+                break;
+            case 4:
+                directionString_ = "\nIngen riktning";
             default:
                 directionString_ = "";
                 break;
         }
         if(sumDirections_ == 3) // 3 öppningar innebär T-korsning
         {
-            currentNode = "T-korsning" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
+            currentNode = "T-korsning" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+            if(north_ == 0)
+            {
+                currentNodeType = "T-korsning S";
+            } else if(east_ == 0)
+            {
+                currentNodeType = "T-korsning V";
+            } else if(south_ == 0)
+            {
+                currentNodeType = "T-korsning N";
+            } else if(west_ == 0)
+            {
+                currentNodeType = "T-korsning Ö";
+            }
         }
         if(sumDirections_ == 1) // 1 öppning innebär återvändsgränd
         {
-            currentNode = "Återvändsgränd" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+            currentNode = "Återv.gränd" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+            if (north_ == 1)
+            {
+                currentNodeType = "Återv.gränd N";
+            } else if (east_ == 1)
+            {
+                currentNodeType = "Återv.gränd Ö";
+            } else if (south_ == 1)
+            {
+                currentNodeType = "Återv.gränd S";
+            } else if (west_ == 1)
+            {
+                currentNodeType = "Återv.gränd V";
+            }
         }
         if (sumDirections_ == 2) // Två öppningar betyder korridor eller sväng
         {                        // Undersöker om öppningarna är på motsatt sida av varandra,
             if((north_ * south_ == 1) || (east_ * west_ == 1)) //Isåfall korridor, annars sväng
             {
-                currentNode = "Korridor" + directionString_ + "\nID: " + Integer.toString(nodeID_); 
+                currentNode = "Korridor" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+                if (north_ * south_ == 1)
+                {
+                    currentNodeType = "Korridor NS";
+                } else
+                {
+                    currentNodeType = "Korridor ÖV";
+                }
             }
             else
             {
                 currentNode = "Sväng" + directionString_ + "\nID: " + Integer.toString(nodeID_);
+                if (north_ * east_ == 1)
+                {
+                    currentNodeType = "Sväng NÖ";
+                } else if (east_ * south_ == 1)
+                {
+                    currentNodeType = "Sväng SÖ";
+                } else if (south_ * west_ == 1)
+                {
+                    currentNodeType = "Sväng SV";
+                } else if (west_ * north_ == 1)
+                {
+                    currentNodeType = "Sväng NV";
+                }
             }
+        }
+        if (sumDirections_ == 4)
+        {
+            currentNodeType = "Instängd";
+        }
+        if (sumDirections_ == 0)
+        {
+            currentNodeType = "Fyrv.korsn";
         }
     }
     
@@ -250,11 +329,67 @@ public class Interface implements SerialPortEventListener{
                 int eastBit_ = (recievedData_ & 0b00000100)/4;  // väst, syd, öst respektive norr
                 int southBit_ = (recievedData_ & 0b00000010)/2;
                 int westBit_ = (recievedData_ & 0b00000001);
-                int direction_ = (recievedData_ & 0b00100000)/16 + (recievedData_ & 0b00010000)/16; // Bitarna 4 och 5 är ett tal mellan 0 och 3 som
+                int direction_ = (recievedData_ & 0b0000000100000000)/64 + (recievedData_ & 0b00100000)/16 + (recievedData_ & 0b00010000)/16; // Bitarna 4 och 5 är ett tal mellan 0 och 3 som
                                                                                                     // motsvarar åt vilket håll  roboten gick in i noden
-                int IDbyte_ = (recievedData_ & 0b0011111100000000)/256;                             // Bitarna 8 till 13 är ett tal som motsvarar nodens Id
+                int IDbyte_ = (recievedData_ & 0b0011111100000000)/512;                             // Bitarna 8 till 13 är ett tal som motsvarar nodens Id
                 setNodeInfo(northBit_,eastBit_,southBit_,westBit_,direction_,IDbyte_); // Beräknar vad det är för nod osv.
                 mainGUI.setText("node");
+                mainGUI.nodeImageView.setImage(mainGUI.nodeImageArray[recievedData_ & 0b00001111]);
+                break;
+            case 252:
+                switch(recievedData_)
+                {
+                    case 0:
+                        decision = "Norr";
+                        mainGUI.setText("decision");
+                        break;
+                    case 1:
+                        decision = "Öst";
+                        mainGUI.setText("decision");
+                        break;
+                    case 2:
+                        decision = "Syd";
+                        mainGUI.setText("decision");
+                        break;
+                    case 3:
+                        decision = "Väst";
+                        mainGUI.setText("decision");
+                        break;
+                    case 4:
+                        decision = "No Direction";
+                        mainGUI.setText("decision");
+                        break;
+                    default:
+                        break;      
+                }
+                break;
+            case 128:
+                mainGUI.timeOffset = recievedData_;
+                mainGUI.setText("steptime");
+                break;
+            case 80:
+                mainGUI.stepLengthOffset = recievedData_;
+                mainGUI.setText("steplength");
+                break;
+            case 72:
+                mainGUI.stepHeightOffset = recievedData_;
+                mainGUI.setText("stepheight");
+                break;
+            case 64:
+                mainGUI.xyWidthOffset = recievedData_;
+                mainGUI.setText("xywidth");
+                break;
+            case 56:
+                mainGUI.heightOffset = recievedData_;
+                mainGUI.setText("height");
+                break;
+            case 48:
+                mainGUI.kAngle = recievedData_;
+                mainGUI.setText("kangle");
+                break;
+            case 40:
+                mainGUI.kDistance = recievedData_;
+                mainGUI.setText("kdistance");
                 break;
             default: ;
         }  
@@ -291,7 +426,6 @@ public class Interface implements SerialPortEventListener{
                     for (int arrayIterator = 0; arrayIterator < recievedArray.length; arrayIterator ++)
                     {
                         response = recievedArray[arrayIterator];
-                        //System.out.println(response);
                         if ((response == 184) && (bufferCounter == 0))
                         {
                             // 184 är en skräpheader som skickas ut vid kommunikationsenheten i samband med SPI-kommunkiation,

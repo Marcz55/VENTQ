@@ -18,9 +18,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
@@ -36,31 +39,16 @@ public class GUI extends Application
                                    // Om båda knapparna för motsvarande variabel är nedtryckt tar de ut varandra
                                    // och variabeln blir noll
     
-    int timeOffset = 200;
-    int stepLengthOffset = 160;
-    int stepHeightOffset = 40;
-    int xyWidthOffset = 80;
-    int heightOffset = -120;
-    int kDistance = 10;
-    int kAngle = 10;
-    
-    int timeUpperBound = 500;
-    int stepLengthUpperBound = 160;
-    int stepHeightUpperBound = 80;
-    int xyWidthUpperBound = 150;
-    int heightUpperBound = -60;
-    int kDistanceUpperBound = 100;
-    int kAngleUpperBound = 100;
-    
-    int timeLowerBound = 30;
-    int stepLengthLowerBound = 10;
-    int stepHeightLowerBound = 10;
-    int xyWidthLowerBound = 0;
-    int heightLowerBound = -160;
-    int kDistanceLowerBound = 1;
-    int kAngleLowerBound = 1;
+    int timeOffset = 0;//200;
+    int stepLengthOffset = 0;//160;
+    int stepHeightOffset = 0;//40;
+    int xyWidthOffset = 0;//80;
+    int heightOffset = 0;//120;
+    int kDistance = 0;//30;
+    int kAngle = 0;//80;
     
     public Button connectButton = new Button(); // Skapar knapp som används för att ansluta till/koppla från roboten.
+    public Button findLeakButton = new Button(); //Skapar knapp som används för att välja läcka att gå till.
     
     TextArea angle1Text = new TextArea(""); // Dessa texter skriver ut vinklar
     TextArea angle2Text = new TextArea("");
@@ -80,8 +68,11 @@ public class GUI extends Application
     TextArea stepHeightText = new TextArea("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
     TextArea xyWidthText = new TextArea("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
     TextArea heightText = new TextArea("B/y\nHöjd:\n" + Integer.toString(heightOffset));
-    TextArea kDistanceText = new TextArea("Vänster/g\nkDistance:\n" + Double.toString(kDistance/10));
-    TextArea kAngleText = new TextArea("Höger/h\nkAngle:\n" + Double.toString(kAngle/10));
+    TextArea kDistanceText = new TextArea("Vänster/g\nkDistance:\n" + Double.toString((double)kDistance/100));
+    TextArea kAngleText = new TextArea("Höger/h\nkAngle:\n" + Double.toString((double)kAngle/100));
+    TextArea decisionList = new TextArea("Styrbeslut:");
+    TextArea nodeList = new TextArea("Noder:");
+    TextField findLeak = new TextField("1");
     TextField comXX = new TextField("COM15");
     Label upArrow = new Label("");   // Dessa texter använd för att visa riktning/vridning som nedtryckta
     Label downArrow = new Label(""); // knappar motsvarar
@@ -142,7 +133,32 @@ public class GUI extends Application
     XYChart.Series angleTotalData = new XYChart.Series();
     
     public String portConnected = "Ej ansluten";
+    
+    public Image[] nodeImageArray = 
+    {new Image(getClass().getResourceAsStream("0.png")),
+    new Image(getClass().getResourceAsStream("1.png")),
+    new Image(getClass().getResourceAsStream("2.png")),
+    new Image(getClass().getResourceAsStream("3.png")),
+    new Image(getClass().getResourceAsStream("4.png")),
+    new Image(getClass().getResourceAsStream("5.png")),
+    new Image(getClass().getResourceAsStream("6.png")),
+    new Image(getClass().getResourceAsStream("7.png")),
+    new Image(getClass().getResourceAsStream("8.png")),
+    new Image(getClass().getResourceAsStream("9.png")),
+    new Image(getClass().getResourceAsStream("10.png")),
+    new Image(getClass().getResourceAsStream("11.png")),
+    new Image(getClass().getResourceAsStream("12.png")),
+    new Image(getClass().getResourceAsStream("13.png")),
+    new Image(getClass().getResourceAsStream("14.png")),
+    new Image(getClass().getResourceAsStream("15.png"))};
+    public ImageView nodeImageView = new ImageView();
 
+    void updateNodeText()
+    {
+        nodeText.setText("Nod:\n" +mainInterface.currentNode);
+        nodeList.appendText(mainInterface.currentNodeType + "\n");
+    }
+    
     void setMovement() // Omvandlar nedtryckta knappar till rörelseriktning och vridning. Skickar vidare
     {                  // eventuell rörelse via bluetooth och visar rörelse på GUI
         int movementByte_ = 0b00000000;  // I denna byte sätts olika bitar beroende på hur roboten ska röra sig, bitarna 0-3 motsvarar
@@ -230,119 +246,51 @@ public class GUI extends Application
         {
             if (tPressed)
             {
-                if ((xyWidthOffset < xyWidthUpperBound)&&(parameterChange == 1))
-                {
-                    xyWidthOffset += 2;
-                }
-                else if ((xyWidthOffset > xyWidthLowerBound)&&(parameterChange == -1))
-                {
-                    xyWidthOffset -= 2;
-                }
-                xyWidthText.setText("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
+                //xyWidthText.setText("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
+                System.out.println("Utbredning");
                 mainInterface.sendData(changeParameterByte);
             }
             else if (yPressed)
             {
-                if ((heightOffset < heightUpperBound)&&(parameterChange == 1))
-                {
-                    heightOffset += 2;
-                }
-                else if ((heightOffset > heightLowerBound)&&(parameterChange == -1))
-                {
-                    heightOffset -= 2;
-                }
-                heightText.setText("B/y\nHöjd:\n" + Integer.toString(heightOffset));
+                //heightText.setText("B/y\nHöjd:\n" + Integer.toString(heightOffset));
+                System.out.println("Höjd");
                 changeParameterByte += (byte)0b00000010;
                 mainInterface.sendData(changeParameterByte);
             }
             else if (uPressed)
             {
-                if ((stepLengthOffset < stepLengthUpperBound)&&(parameterChange == 1))
-                {
-                    stepLengthOffset += 2;
-                }
-                else if ((stepLengthOffset > stepLengthLowerBound)&&(parameterChange == -1))
-                {
-                    stepLengthOffset -= 2;
-                }
-                stepLengthText.setText("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
+                //stepLengthText.setText("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
+                System.out.println("Steglängd");
                 changeParameterByte += (byte)0b00000100;
                 mainInterface.sendData(changeParameterByte);
             }
             
             else if (iPressed)
             {
-                if ((stepHeightOffset < stepHeightUpperBound)&&(parameterChange == 1))
-                {
-                    stepHeightOffset += 2;
-                }
-                else if ((stepHeightOffset > stepHeightLowerBound)&&(parameterChange == -1))
-                {
-                    stepHeightOffset -= 2;
-                }
-                stepHeightText.setText("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
+                //stepHeightText.setText("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
+                System.out.println("Steghöjd");
                 changeParameterByte += (byte)0b00000110;
                 mainInterface.sendData(changeParameterByte);
             }
             
             else if (oPressed)
             {
-                if ((timeOffset < timeUpperBound)&&(parameterChange == 1))
-                {
-                    if (timeOffset >= 100)
-                    {
-                        timeOffset += 100;
-                    }
-                    else 
-                    {
-                        timeOffset += 10;
-                    }
-                        
-                }
-                else if ((timeOffset > timeLowerBound)&&(parameterChange == -1))
-                {
-                    if (timeOffset > 100)
-                    {
-                        timeOffset -= 100;
-                    }
-                    else
-                    {
-                        timeOffset -= 10;
-                    }
-                }
-                timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
+                //timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
+                System.out.println("Stegtid");
                 changeParameterByte += (byte)0b00001000;
                 mainInterface.sendData(changeParameterByte);
             }
             else if (gPressed)
             {
-                if ((kDistance < kDistanceUpperBound)&&(parameterChange == 1))
-                {
-                    kDistance += 1;
-                }
-                else if ((kDistance > kDistanceLowerBound)&&(parameterChange == -1))
-                {
-                    kDistance -= 1;
-                }
-                kDistanceText.setText("Vänster/g\nkDistance:\n" + Double.toString(kDistance/10));
+                //kDistanceText.setText("Vänster/g\nkDistance:\n" + Double.toString((double)kDistance/10));
                 changeParameterByte += (byte)0b00001010;
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(kDistance);
             }
             else if (hPressed)
             {
-                if ((kAngle < kAngleUpperBound)&&(parameterChange == 1))
-                {
-                    kAngle += 1;
-                }
-                else if ((kAngle > kAngleLowerBound)&&(parameterChange == -1))
-                {
-                    kAngle -= 1;
-                }
-                kAngleText.setText("Höger/h\nkAngle:\n" + Double.toString(kAngle/10));
+                //kAngleText.setText("Höger/h\nkAngle:\n" + Double.toString((double)kAngle/10));
                 changeParameterByte += (byte)0b00001100;
                 mainInterface.sendData(changeParameterByte);
-                System.out.println(kAngle);
             }
         }
        
@@ -406,7 +354,7 @@ public class GUI extends Application
                 }
                 case "node":
                 {
-                    nodeText.setText("Nod:\n" +mainInterface.currentNode);
+                    updateNodeText();
                     break;
                 }
                 case "connection":
@@ -422,6 +370,50 @@ public class GUI extends Application
                     }*/
                     break;
                 }
+                case "decision":
+                {
+                    decisionList.appendText(mainInterface.decision + "\n");
+                    break;
+                }
+                
+                case "steptime":
+                {
+                    System.out.println("2");
+                    timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
+                    break;
+                }
+                case "steplength":
+                {
+                    stepLengthText.setText("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
+                    break;
+                }
+                case "stepheight":
+                {
+                    stepHeightText.setText("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
+                    break;
+                }
+                case "xywidth":
+                {
+                    xyWidthText.setText("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
+                    break;
+                }
+                case "height":
+                {
+                    heightText.setText("B/y\nHöjd:\n" + Integer.toString(heightOffset));
+                    break;
+                }
+                case "kangle":
+                {
+                    kAngleText.setText("Höger/h\nkAngle:\n" + Double.toString((double)kAngle/100));
+                    System.out.println(kAngle);
+                    break;
+                }
+                case "kdistance":
+                {
+                    kDistanceText.setText("Vänster/g\nkDistance:\n" + Double.toString((double)kDistance/100));
+                    break;
+                }
+                
                 default:
                 {
                     System.err.println("Faulty paramater to setText: " + updatedData_);
@@ -465,6 +457,21 @@ public class GUI extends Application
         }
     }
     
+    public void resetGraphs() //Fungerar, men skapar ett exception. Helt ok för mig, men Axel skulle aldrig acceptera det.
+    {
+      
+        side1Data.getData().clear();
+        side1Data.getData().clear();
+        side2Data.getData().clear();
+        side3Data.getData().clear();
+        side4Data.getData().clear();
+        angle1Data.getData().clear();
+        angle2Data.getData().clear();
+        angle3Data.getData().clear();
+        angle4Data.getData().clear();
+        angleTotalData.getData().clear(); 
+                 
+    }
     
     public void resetButtons() // Nollställer alla knappar
     {
@@ -546,6 +553,8 @@ public class GUI extends Application
             }
         };
         
+        
+        
         Thread connectThread = new Thread(connectTask);
         connectThread.setDaemon(true);
         connectThread.start();
@@ -561,6 +570,8 @@ public class GUI extends Application
         angleTotalText.setEditable(false);
         leakText.setEditable(false);
         nodeText.setEditable(false);
+        decisionList.setEditable(false);
+        nodeList.setEditable(false);
         
         timeIncrementText.setEditable(false);
         stepLengthText.setEditable(false);
@@ -570,14 +581,14 @@ public class GUI extends Application
         kDistanceText.setEditable(false);
         kAngleText.setEditable(false);
         
-        side1Data.setName("Sida 1");
-        side2Data.setName("Sida 2");
-        side3Data.setName("Sida 3");
-        side4Data.setName("Sida 4");
-        angle1Data.setName("Vinkel 1");
-        angle2Data.setName("Vinkel 2");
-        angle3Data.setName("Vinkel 3");
-        angle4Data.setName("Vinkel 4");
+        side1Data.setName("Norr");
+        side2Data.setName("Öst");
+        side3Data.setName("Syd");
+        side4Data.setName("Väst");
+        angle1Data.setName("Höger");
+        angle2Data.setName("Vänster");
+        angle3Data.setName("Vinkel syd");
+        angle4Data.setName("Vinkel väst");
         angleTotalData.setName("Vinkel total");
         
         
@@ -599,11 +610,14 @@ public class GUI extends Application
         angleAllXAxis.setAutoRanging(false);
         angleAllYAxis.setAutoRanging(false);
         angleAllXAxis.setUpperBound(angleGraphUpperBound);
-        angleAllYAxis.setUpperBound(410);
+        angleAllYAxis.setUpperBound(800);
         angleAllYAxis.setLowerBound(-410);
         
-        sideAllGraph.setMinWidth(800);
-        angleAllGraph.setMinWidth(800);
+        sideAllGraph.setMinWidth(450);
+        angleAllGraph.setMinWidth(450);
+        sideAllGraph.setMaxWidth(450);
+        angleAllGraph.setMaxWidth(450);
+        
         
         
         mainInterface = new Interface(this);
@@ -615,6 +629,16 @@ public class GUI extends Application
         Group graphics = new Group();
         //Rectangle rektangel1 = new Rectangle(100,100,);
         
+        GridPane root = new GridPane(); // Skapar en grid
+        Scene mainScene = new Scene(root,1350,700); // Storlek är 1000x500 pixlar
+        root.setAlignment(Pos.TOP_LEFT);
+        root.setHgap(0); // Bestämmer horisontella och vertikala avstånd
+        root.setVgap(0);
+        root.setPadding(new Insets(10,25,25,10));
+        stage.setScene(mainScene);
+        mainScene.getStylesheets().add(GUI.class.getResource("GUI.css").toExternalForm()); // Hämtar CSS där bakgrundsbild och vissa textdefinitioner finns
+        stage.show(); 
+        
         
         connectButton.setText("    Anslut    "); // Om datorn ej ansluten till roboten används knappen för att ansluta,
         connectButton.setOnAction(new EventHandler<ActionEvent>() // annars använd den för att koppla från
@@ -622,10 +646,12 @@ public class GUI extends Application
             @Override
             public void handle(ActionEvent event) // Funktion som sker när knappen trycks.
             {
+                root.requestFocus();
                 if (portConnected == "Ej ansluten") 
                 {
                     setConnect = "Connect";
                     connectButton.setText("Koppla bort");
+ 
                     /*if (comPort != null)  // Notera att COM** är olika på olika datorer
                     {
                         System.out.println();
@@ -647,6 +673,53 @@ public class GUI extends Application
             }
         });
         
+        findLeakButton.setText(" Gå till läcka ");
+        findLeakButton.setOnAction(new EventHandler<ActionEvent>()
+        {
+            @Override
+            public void handle(ActionEvent event)
+            {
+                root.requestFocus();
+                try
+                {
+                    if (autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
+                    {                   // värde till robot och ändra på text och knapp
+                        switch(findLeak.getText())
+                        {
+                            case "1":
+                            mainInterface.sendData((byte)0b11000000);
+                            System.out.println("1");
+                            break;
+                            case "2":
+                            mainInterface.sendData((byte)0b11000001);
+                            System.out.println("2");
+                            break;
+                            case "3":
+                            mainInterface.sendData((byte)0b11000010);
+                            System.out.println("3");
+                            break;
+                            case "4":
+                            mainInterface.sendData((byte)0b11000011);
+                            System.out.println("4");
+                            break;
+                            case "5":
+                            mainInterface.sendData((byte)0b11000100);
+                            System.out.println("5");
+                            break;
+                            default:
+                            System.out.println("1337");
+                            break;
+                        }
+
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.err.println(e.toString());
+                }
+            }
+        });
+        
         Button autonomusButton = new Button(); // Knapp för att byta mellan manuellt och autonomt värde
         autonomusButton.setText(" Aktivera ");
         autonomusButton.setOnAction(new EventHandler<ActionEvent>()
@@ -654,38 +727,78 @@ public class GUI extends Application
             @Override
             public void handle(ActionEvent event)
             {
-                if (!autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
-                {                   // värde till robot och ändra på text och knapp
-                    mainInterface.sendData((byte)0b11000001); 
-                    //System.out.println((byte)0b10000000);
-                    autonomusMode = true;
-                    autonomusButton.setText("Avaktivera");
-                    autonomusText.setText("Autonomt\nläge på");
-                    resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
-                }
-                else  // Om i autonomt läge, växla till manuellt
+                root.requestFocus();
+                try
                 {
-                    mainInterface.sendData((byte)0b11000000);
-                   // System.out.println((byte)0b11000000);
-                    autonomusMode = false;
-                    autonomusButton.setText(" Aktivera ");
-                    autonomusText.setText("Autonomt\nläge av");
+                    if (!autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
+                    {                   // värde till robot och ändra på text och knapp
+                        mainInterface.sendData((byte)0b11010000); 
+                        //System.out.println((byte)0b10000000);
+                        autonomusMode = true;
+                        autonomusButton.setText("Avaktivera");
+                        autonomusText.setText("Autonomt\nläge på");
+                        findLeakButton.setDisable(false);
+                        resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
+                    }
+                    else  // Om i autonomt läge, växla till manuellt
+                    {
+                        mainInterface.sendData((byte)0b11001000);
+                       // System.out.println((byte)0b11000000);
+                        autonomusMode = false;
+                        autonomusButton.setText(" Aktivera ");
+                        autonomusText.setText("Autonomt\nläge av");
+                        findLeakButton.setDisable(true);
+                        resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.err.println(e.toString());
                 }
             }
         });
         
+        Button cleanButton = new Button(); // Knapp för att byta mellan manuellt och autonomt värde
+        cleanButton.setText("Rensa grafer");
+        cleanButton.setOnAction(new EventHandler<ActionEvent>()
+        {
+            @Override
+            public void handle(ActionEvent event)
+            {
+               root.requestFocus();
+               try
+               {
+                   resetGraphs();
+               }
+               catch(Exception e)
+               {
+                   System.err.println(e.toString());
+               }
+            }
+        });
+        
+        Button resetListButton = new Button();
+        resetListButton.setText("Reset");
+        resetListButton.setOnAction(new EventHandler<ActionEvent>()
+        {
+            @Override
+            public void handle(ActionEvent event)
+            {
+               root.requestFocus();
+               try
+               {
+                   nodeList.setText("Noder:\n");
+                   decisionList.setText("Styrbeslut:\n");
+               }
+               catch(Exception e)
+               {
+                   System.err.println(e.toString());
+               }
+            }
+        });
  
         
-        
-        GridPane root = new GridPane(); // Skapar en grid
-        Scene mainScene = new Scene(root,1350,700); // Storlek är 1000x500 pixlar
-        root.setAlignment(Pos.TOP_LEFT);
-        root.setHgap(0); // Bestämmer horisontella och vertikala avstånd
-        root.setVgap(0);
-        root.setPadding(new Insets(10,25,25,10));
-        stage.setScene(mainScene);
-        mainScene.getStylesheets().add(GUI.class.getResource("GUI.css").toExternalForm()); // Hämtar CSS där bakgrundsbild och vissa textdefinitioner finns
-        stage.show(); 
+       
         
         
         root.setOnKeyPressed(new EventHandler<KeyEvent>() // Eventhandler som hanterar när knapp trycks ner
@@ -696,8 +809,8 @@ public class GUI extends Application
                 {                                    // toLowerCase gör att capslock ej påverkar
                     resetButtons();
                 }
-                if (!autonomusMode) // Knapptryck för styrning registreras bara om roboten är i manuellt läge
-                {
+                //if (true) // Knapptryck för styrning registreras bara om roboten är i manuellt läge
+                //{
                     switch (e.getText().toLowerCase()) // Ändra up- och rightMovement samt turnDirection när
                     {                                  // knappar trycks ned
                                                        // w och s ökar respektive minskar upMovement, d och a ökar
@@ -812,7 +925,7 @@ public class GUI extends Application
                         default:
                             break;
                     }
-                }
+                //}
             }
         });
         
@@ -820,7 +933,7 @@ public class GUI extends Application
         {                                                  // Knappuppsläpp fungerar omvänt som knapptryck,
             public void handle(KeyEvent e)                 // se funktion ovan
             {
-                if (!autonomusMode)
+                if (true)
                 {
                     switch (e.getText().toLowerCase())
                     {
@@ -937,7 +1050,13 @@ public class GUI extends Application
             }
         });
         
-        
+        root.setOnMouseClicked(new EventHandler<MouseEvent>()
+        {
+            public void handle(MouseEvent e)
+            {
+                root.requestFocus();
+            }
+        });
         //root.setGridLinesVisible(true);
         root.setBackground(grayBackground);
         
@@ -982,9 +1101,15 @@ public class GUI extends Application
         kDistanceText.setMinWidth(80);
         kAngleText.setMinHeight(60);
         kAngleText.setMinWidth(80);
+        decisionList.setMinWidth(160);
+        decisionList.setMinHeight(680);
+        nodeList.setMinWidth(160);
+        nodeList.setMinHeight(680);
         
         comXX.setMinHeight(30);
         comXX.setMinWidth(80);
+        findLeak.setMinHeight(30);
+        findLeak.setMinWidth(40);
         
         upArrow.setMinHeight(40);
         upArrow.setMinWidth(40);
@@ -1023,6 +1148,11 @@ public class GUI extends Application
         connectedText.setMaxHeight(45);
         autonomusText.setMaxWidth(80);
         autonomusText.setMaxHeight(45);
+        decisionList.setMaxWidth(160);
+        decisionList.setMaxHeight(680);
+        nodeList.setMaxWidth(160);
+        nodeList.setMaxHeight(680);
+        
         
         timeIncrementText.setMaxHeight(60);
         timeIncrementText.setMaxWidth(80);
@@ -1041,6 +1171,8 @@ public class GUI extends Application
         
         comXX.setMaxHeight(30);
         comXX.setMaxWidth(80);
+        findLeak.setMaxHeight(30);
+        findLeak.setMaxWidth(40);
         
         side1Text.setBackground(grayBackground);
         side2Text.setBackground(grayBackground);
@@ -1055,8 +1187,8 @@ public class GUI extends Application
         nodeText.setBackground(grayBackground);
         
         
-        
-
+        nodeImageView.setImage(nodeImageArray[15]);
+        root.add(nodeImageView,4,4,2,2);
         
         root.add(side1Text,2,0,2,2); // Lägger till alla texter som hör till labels
         root.add(side2Text,6,2,2,2);
@@ -1069,14 +1201,27 @@ public class GUI extends Application
         root.add(angleTotalText,2,2,2,2);
         root.add(leakText,4,2,5,2);
         root.add(nodeText,2,4,2,2);
+        root.add(decisionList,12,0,2,16);
+        root.add(nodeList,14,0,2,16);
         
+        root.setMargin(decisionList, new Insets(0,10,0,10));
+        root.setMargin(stepHeightText, new Insets(30,0,0,0));
         
         root.add(connectedText,8,0);
         root.add(connectButton,8,1); // lägger till knappar och deras texter
         root.add(comXX,9,1,2,1);
         
+        
         root.add(autonomusText,8,6);
         root.add(autonomusButton,8,7);
+        
+        //root.add(cleanButton,8,16); // Att använda denna kommer att ge nullpointerexception vid ett senare tillfälle.
+        
+        root.add(resetListButton,11,15);
+        
+        root.add(findLeakButton,8,15);
+        //findLeakButton.setDisable(true);
+        root.add(findLeak,9,15);
         
         //root.add(comXX,7,13); // Lägger till textfält för att välja comport
         
@@ -1089,8 +1234,8 @@ public class GUI extends Application
         turnSymbol.setBackground(blackBackground); // Ändrar utseende på symbolerna
         
         
-        root.add(sideAllGraph,12,0,3,8);
-        root.add(angleAllGraph,12,8,3,8);
+        root.add(sideAllGraph,20,0,3,8);
+        root.add(angleAllGraph,20,8,3,8);
         
         root.add(timeIncrementText,2,10,2,1);
         root.add(kDistanceText,0,11,2,1);
@@ -1099,6 +1244,9 @@ public class GUI extends Application
         root.add(stepHeightText,8,8,1,1);
         root.add(xyWidthText,8,10,1,1);
         root.add(heightText,9,9,2,1);
+        
+        root.requestFocus();
+        side1Text.setFocusTraversable(false);
         
         setText("side1");
         setText("side2");
@@ -1112,11 +1260,13 @@ public class GUI extends Application
         setText("leak");
         setText("node");
         setText("connection");
+        setText("decision");
         
         upArrow.setBackground(blackBackground);
         leftArrow.setBackground(blackBackground);
         rightArrow.setBackground(blackBackground);
         downArrow.setBackground(blackBackground);
+                
     }
     
             
