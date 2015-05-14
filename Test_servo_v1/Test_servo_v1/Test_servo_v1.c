@@ -52,7 +52,7 @@ float kProportionalTranslation_g = 0.3;
 float kProportionalAngle_g = 0.4;
 
 // hanterar om vi har förkortat steglängden eller ej
-int stepLengthShortened_g == FALSE;
+int stepLengthShortened_g = FALSE;
 
 /*
 // Joakims coola gångstil,
@@ -776,8 +776,8 @@ void transmitAllDataToCommUnit()
     transmitDataToCommUnit(DISTANCE_EAST, distanceValue_g[EAST]);
     transmitDataToCommUnit(DISTANCE_SOUTH, distanceValue_g[SOUTH]);
     transmitDataToCommUnit(DISTANCE_WEST, distanceValue_g[WEST]);
-    transmitDataToCommUnit(ANGLE_NORTH, angleValue_g[NORTH]);
-    transmitDataToCommUnit(ANGLE_EAST, angleValue_g[EAST]);
+    transmitDataToCommUnit(ANGLE_NORTH, distanceValue_g[FRONT_RIGHT]);
+    transmitDataToCommUnit(ANGLE_EAST, distanceValue_g[FRONT_LEFT]);
     transmitDataToCommUnit(ANGLE_SOUTH, angleValue_g[SOUTH]);
     transmitDataToCommUnit(ANGLE_WEST, angleValue_g[WEST]);
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
@@ -791,6 +791,30 @@ void updateAllDistanceSensorData()
     distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
     distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
     distanceValue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
+	
+	if(currentDirection_g == north)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_6);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_5);
+	}
+	
+	else if(currentDirection_g == east)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_8);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_7);
+	}
+	
+	else if(currentDirection_g == south)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_2);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_1);
+	}
+	
+	else if(currentDirection_g == west)
+	{
+		distanceValue_g[FRONT_RIGHT] = fetchDataFromSensorUnit(SENSOR_4);
+		distanceValue_g[FRONT_LEFT] = fetchDataFromSensorUnit(SENSOR_3);
+	}
 }
 
 void updateTotalAngle()
@@ -2081,7 +2105,7 @@ int main(void)
             if (sendDataToPC)
 			{
 				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
-				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+				transmitDataToCommUnit(CONTROL_DECISION,currentDirection_g);
 				transmitAllDataToCommUnit();
 				sendDataToPC = FALSE;
 			}

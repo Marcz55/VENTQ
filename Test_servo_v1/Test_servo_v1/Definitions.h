@@ -151,16 +151,19 @@
 
 // ---- Index i sensordatalagringsmatris på styrenhet ---
 
-#define NORTH 0
+#define NORTH 0				// NORTH->WEST används både som index till vinklar och avstånd
 #define EAST 1
 #define SOUTH 2
 #define WEST 3
-#define TOTAL 4
 
+#define FRONT_RIGHT 4		// Dessa två anger avstånd från sensorn längst fram
+#define FRONT_LEFT 5
+
+#define TOTAL 4
 // ----- Sensorvärden ---------
 
 // arrays som värden hämtade ifrån sensorenheten skall ligga i
-int distanceValue_g[4]; // innehåller avstånden från de olika sidorna till väggarna
+int distanceValue_g[6]; // innehåller avstånden från de olika sidorna till väggarna
 int angleValue_g[5]; // innehåller vinkeln relativt de olika väggarna, vinkelvärdet är antalet grader som roboten är vriden i CCW riktning relativt var och en av väggarna.
 int isLeakVisible_g;
 // ---------------------- 

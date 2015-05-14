@@ -26,6 +26,15 @@
 #define NODE_INFO 160
 #define TRASH 184
 
+#define SENSOR_1 200 
+#define SENSOR_2 192 
+#define SENSOR_3 168 
+#define SENSOR_4 120 
+#define SENSOR_5 112 
+#define SENSOR_6 104 
+#define SENSOR_7 96 
+#define SENSOR_8 88 
+
 // --- Headers för meddelanden om gånginställningar -----
 
 #define STEP_INCREMENT_TIME_HEADER 128
