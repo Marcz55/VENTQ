@@ -29,17 +29,36 @@ struct node
     int     leakID;             // Fanns en läcka får den ett unikt id, annars är denna 0
 };
 
+// RingBuffer
+typedef struct {
+    uint8_t northAvailable,
+            eastAvailable,
+            southAvailable,
+            westAvailable;
+} simpleNode;
+
+typedef struct {
+    simpleNode array[5];
+    uint8_t writeIndex;
+} NodeRingBuffer;
+
+NodeRingBuffer nodeRingBuffer;
+
+
 struct node nodeArray[MAX_NODES];
 struct node currentNode_g;
 
 int lastAddedNodeIndex_g;
 
 int makeNodeData(node* nodeToSend);
+simpleNode getNode(NodeRingBuffer* buffer, uint8_t elementID);
+void addNode(NodeRingBuffer* buffer, simpleNode newNode);
 void updateTempDirections();
 int validLeak();
 void updateLeakInfo();
 int canMakeNew();
 int isChangeDetected();
+void decideChangeFromMajority();
 int checkIfNewNode();
 int whatNodeType();
 int TcrossingID(int whatNode_);
