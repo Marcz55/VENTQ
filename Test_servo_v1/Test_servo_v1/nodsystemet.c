@@ -10,7 +10,7 @@
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
 
-#define CLOSE_ENOUGH_TO_WALL 300  // Roboten går rakt fram tills den här längden
+#define CLOSE_ENOUGH_TO_WALL 280  // Roboten går rakt fram tills den här längden
 
 #define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
 
@@ -28,6 +28,7 @@ int TcrossingsFound_g = 0;
 int distanceToFrontWall_g = 0;
 int leaksToPass_g = 0;
 int currentPath = 0;
+int deadEnds = 0;
 
 int wantedLeak = 0;
 
@@ -70,6 +71,15 @@ void initNodeRingBuffer()
 	addNode(&nodeRingBuffer, dummyDeadEnd);
 }
 
+void fillNodeMemoryWithTemp()
+{
+	simpleNode simpleTempNode = {tempNorthAvailible_g, tempEastAvailible_g, tempSouthAvailible_g, tempWestAvailible_g};
+	addNode(&nodeRingBuffer, simpleTempNode);
+	addNode(&nodeRingBuffer, simpleTempNode);
+	addNode(&nodeRingBuffer, simpleTempNode);
+	addNode(&nodeRingBuffer, simpleTempNode);
+	addNode(&nodeRingBuffer, simpleTempNode);
+}
 // Ska finnas i bägge modes
 void updateTempDirections()
 {
@@ -337,9 +347,17 @@ void chooseAndSetFrontSensors()
 	}
 }
 
-int isDeadEnd()
+int tempIsDeadEnd()
 {
 	if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 1)
+		return TRUE;
+	else
+		return FALSE;
+}
+
+int tempIsTCrossing()
+{
+	if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 3)
 		return TRUE;
 	else
 		return FALSE;
@@ -362,36 +380,41 @@ int checkIfNewNode()
 	        return FALSE;
     }
     
-/*
     if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g > MAX_WALL_DISTANCE))
     {
+		if ((currentNode_g.whatNode == T_CROSSING) && tempIsTCrossing())
+			return FALSE;
         return TRUE;    // I detta fall är det en T_CROSSING från sidan, eller ut från en korsning, eller en CORRIDOR
     }
 	
     else if ((isChangeDetected() == TRUE) && (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL))
     {
+		if ((currentNode_g.whatNode == T_CROSSING) && tempIsTCrossing())
+			return FALSE;
         return TRUE;    // Förändringen va en vägg där fram, nu har roboten gått tillräckligt långt
     }
 	
 	
-	else if (isChangeDetected() == TRUE) //----------------------------------------------------------------------------testitesti
+/*	else if (isChangeDetected() == TRUE) //----------------------------------------------------------------------------testitesti
 	{
 		chooseAndSetFrontSensors();
 		return TRUE;
 	} //---------------------------------------------------------------------------------------------------------------
 	*/
-
+/*
 	if (isChangeDetected() == TRUE)
 	{
-		if ((isDeadEnd() == TRUE) && (lastAddedNodeIndex_g > 1) && (currentNode_g.whatNode != DEAD_END) && (currentNode_g.whatNode != END_OF_MAZE))
+		if ((tempIsDeadEnd() == TRUE) && (lastAddedNodeIndex_g > 1) && (currentNode_g.whatNode != DEAD_END) && (currentNode_g.whatNode != END_OF_MAZE))
 		{
 			if (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL)
 				return TRUE;
 			else
 				return FALSE;
 		}
+		if ((currentNode_g.whatNode == T_CROSSING) && tempIsTCrossing())
+			return FALSE;
 		return TRUE;
-	}
+	} */
     else
         return FALSE;
 }
@@ -408,7 +431,7 @@ int whatNodeType()
         if (tempNorthAvailible_g == tempSouthAvailible_g)
             return CORRIDOR;        // Detta måste vara en korridor
         else
-            return TURN; // Detta måste vara en 2vägskorsning
+            return TURN; // Detta måste vara en sväng
     }
     else if (tempNorthAvailible_g + tempEastAvailible_g + tempSouthAvailible_g + tempWestAvailible_g == 1)
     {
@@ -421,6 +444,13 @@ int whatNodeType()
             }
         }
 		
+		if ((currentTcrossing_g == 0) && (deadEnds == 2))
+		{
+			return END_OF_MAZE;
+			deadEnds = 0;
+		}
+			
+		deadEnds ++;
 		return DEAD_END;             // Detta måste vara en återvändsgränd
     }
     else // Här är summan lika med 0, dvs väggar på alla sidor, bör betyda Z-sväng
@@ -711,15 +741,16 @@ int nodesAndControl()
 
             updateTempDirections();
 			
-			if (distanceToFrontWall_g < MAX_WALL_DISTANCE - 40)		//fixa i övriga modes
+			/*if (distanceToFrontWall_g < MAX_WALL_DISTANCE - 80)		//fixa i övriga modes
 			{
 				chooseAndSetFrontSensors();
-			}
+			}*/
 			
             updateLeakInfo();           // Kollar ifall läcka finns, och lägger till i noden om det fanns
 
             if (checkIfNewNode() == TRUE)
             {
+				fillNodeMemoryWithTemp();
                 updateCurrentNode();
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();

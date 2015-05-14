@@ -74,6 +74,7 @@ int southToNext();
 int westToNext();
 int decideDirection();      // Autonoma läget
 void initNodeAndSteering();
+void chooseAndSetFrontSensors();
 int nodesAndControl();
 
 #endif /* NODSYSTEMET_H_ */
