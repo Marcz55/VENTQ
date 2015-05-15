@@ -895,6 +895,10 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	
 
 	int translationRight = 0;
+<<<<<<< HEAD
+=======
+	
+>>>>>>> fa6fea2b5512c2ba7b3fdf4037930c43b206c517
 
 	// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
 	int translationRegulationError = 0; // avser hur långt till vänster ifrån mittpunkten av "vägen" vi är
@@ -1210,7 +1214,10 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
+<<<<<<< HEAD
 
+=======
+>>>>>>> fa6fea2b5512c2ba7b3fdf4037930c43b206c517
 		closeEnoughToTurn_g = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
 		if (closeEnoughToTurn_g)
 		{
@@ -2196,12 +2203,33 @@ int main(void)
 		}
     	if (commTimerPeriodEnd())
     	{
+<<<<<<< HEAD
 
             resetCommTimer();
+=======
+>>>>>>> fa6fea2b5512c2ba7b3fdf4037930c43b206c517
 			updateAllDistanceSensorData();
 			sensortest ++;
 			cli();
 			if(tooCloseToFrontWall() && currentControlMode_g == exploration) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
+<<<<<<< HEAD
+=======
+			{
+				emergencyStop();
+			}
+			sei();
+            updateTotalAngle();
+			checkForLeak();
+            sendChangedRobotParameters();
+            if (sendDataToPC)
+			{
+				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+				transmitAllDataToCommUnit();
+				sendDataToPC = FALSE;
+			}
+			else
+>>>>>>> fa6fea2b5512c2ba7b3fdf4037930c43b206c517
 			{
 				emergencyStop();
 			}
