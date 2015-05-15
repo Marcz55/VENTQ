@@ -19,7 +19,7 @@
 int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
-int closeEnoughToTurn = 0;
+int closeEnoughToTurn_g = 0;
 		
 
 
@@ -38,6 +38,7 @@ int currentRotationInstruction = 0;
 int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
+int sensorOffset_g = 60;// Avstånd ifrån sensorera till mitten av roboten (mm)
 // ------ Globala variabler för "svängar" ------
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
@@ -1208,8 +1209,9 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
-		closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
-		if (closeEnoughToTurn)
+
+		closeEnoughToTurn_g = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
+		if (closeEnoughToTurn_g)
 		{
 			currentOrder_g = noOrder;
 			currentDirection_g = nextDirection_g;
@@ -2119,6 +2121,22 @@ void checkForLeak()
 {
 	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
 }
+int tooCloseToFrontWall()
+{
+	if(distanceValue_g[currentDirection_g] + sensorOffset_g < (stepLength_g/2 + halfPathWidth_g))
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+void emergencyStop()
+{
+	currentDirection_g = noDirection;
+	currentGait = standStill;
+}
 int main(void)
 {
 	initUSART();
@@ -2168,11 +2186,17 @@ int main(void)
 	    
     	if (legTimerPeriodEnd())
     	{
-    	    resetLegTimer();
-            move();
-            applyOrder(); // detta är endast test
-            gaitController();
-    	}
+			if(tooCloseToFrontWall) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
+			{
+				emergencyStop();
+			}
+			else
+			{
+    			move();
+    			resetLegTimer(); 
+				gaitController();
+			}
+		}
     	if (commTimerPeriodEnd())
     	{
             resetCommTimer();
