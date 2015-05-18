@@ -84,14 +84,20 @@ void fillNodeMemoryWithTemp()
 }
 
 
-#define L_DEADEND 350
+/*#define L_DEADEND 400
 #define L_SIDE 450
-#define L_WIDTH 570
+#define L_WIDTH 490 //570
 #define L_TWALL 470
-#define L_TWALL_LONG 600
+#define L_TWALL_LONG 490 //600
+#define L_TURN 500*/
+
+#define L_DEADEND 400
+#define L_SIDE 460
+#define L_WIDTH 430 //570
+#define L_TWALL 470
+#define L_TWALL_LONG 490 //600
 #define L_TURN 500
-
-
+#define MAX_CORRIDOR_DISTANCE 350
 
 void updateTempDirections()
 {
@@ -130,8 +136,262 @@ void updateTempDirections()
 		rightSide_ = distanceValue_g[NORTH];
 		leftSide_ = distanceValue_g[SOUTH];
 	}
+								  //// Ta kanske bort dessa två ////
+	if (frontDistance_ < 350)     //// om väst kort åtgärdas    ////
+	{                             //// söndag                   //// söndag       ///////// lördag
+		if ((rightSide_ > L_WIDTH - 20) && (leftSide_ > L_WIDTH - 20) &&    (backDistance_ > L_SIDE))
+		{
+			// In i T-korsning
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+		
+		
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+		
+		
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+		
+		
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			}	
+					
+			                            ////
+		} else if ((rightSide_ < L_SIDE - 50) && (leftSide_ > L_WIDTH))
+		{
+			// Sväng vänster
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			}
+			
+			                                                     ////
+		} else if ((rightSide_ > L_WIDTH) && (leftSide_ < L_SIDE - 50))
+		{
+			// Sväng höger
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			}
+			
+			
+			
+		} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+		{
+		// Återvändsgränd
+		// Kolla summa av sidoavstånd + robotbredd, kan vara sväng eller
+			if ((rightSide_ + leftSide_ + 140) > 620) // 140 sensorernas avstånd från varandra
+			{
+			
+			} else if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			
+			
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			
+			
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			
+			
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			}
+
+		}
+	} else if ((rightSide_ < L_SIDE) && (leftSide_ > L_SIDE))
+	{                                //// söndag                      //// lördag
+		if ((frontDistance_ > L_SIDE + 20) && (backDistance_ > L_SIDE + 20))
+		{
+			// T-korsning vänster
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+			}
+			
+			
+		}
+	} else if ((rightSide_ > L_SIDE) && (leftSide_ < L_SIDE))
+	{                                //// söndag                      //// lördag
+		if ((frontDistance_ > L_SIDE + 20) && (backDistance_ > L_SIDE + 20))
+		{
+			// T-korsning höger
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			}
+			
+			
+		}
+	} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+	{
+		if (frontDistance_ > L_SIDE)
+		{
+			// Korridor
+			if ((currentDirection_g == north) || (currentDirection_g == SOUTH))
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			} else if ((currentDirection_g == west) || (currentDirection_g == east))
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			}		
+		}
+	}
 	
-	if ((rightDistance_ < L_SIDE) && (leftDistance_ < L_SIDE))
+	
+	
+	
+//-----------------------	
+	/*if ((rightDistance_ < L_SIDE) && (leftDistance_ < L_SIDE))
 	{
 		if (frontDistance_ < L_DEADEND)
 		{
@@ -326,7 +586,7 @@ void updateTempDirections()
 	}
 	else if ((rightDistance_ > L_WIDTH) && (leftDistance_ > L_WIDTH) && (((leftSide_ < L_WIDTH) && (rightSide_ < L_WIDTH)) || ((leftSide_ > L_WIDTH) && (rightSide_ > L_WIDTH)))) // SLäng in något som kollar på sidoavstånd, ej främre sensorer, för att kolla på z-svängar
 	{
-		if (frontDistance_ < L_TWALL) // In i T-korsning åt båda håll
+		if (frontDistance_ < L_TWALL + 50) // In i T-korsning åt båda håll
 		{
 			if (currentDirection_g == north)
 			{
@@ -397,7 +657,7 @@ void updateTempDirections()
 	else
 	{
 		// Skicka ut något för felsökning
-	}
+	}*/
 }
 
 // Ska finnas i bägge modes

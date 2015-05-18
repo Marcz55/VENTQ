@@ -56,7 +56,7 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
-int leakSensitivity_g = 8; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+int leakSensitivity_g = 6; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
 int leakCounter_g = 0;
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
