@@ -38,6 +38,8 @@ int currentRotationInstruction = 0;
 int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
+int emergencyDowntime_g = 0;
+int emergencyLockdown_g = FALSE;
 // ------ Globala variabler för "svängar" ------
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
@@ -1070,7 +1072,8 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 
 
     // om vi har en vägg framför oss är det bäst att ta mindre steglängder
-    if (!frontAvailable())
+    int rangeToShortenStepLength = 300;
+    if (distanceValue_g[currentDirection_g] < rangeToShortenStepLength)
     {
         if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
         {
@@ -1693,7 +1696,39 @@ int frontAvailable()
 	}
 }
 
+int tooCloseToFrontWall()
+{
+    if(currentDirection_g == noDirection)
+    {
+        return FALSE;
+    }
+    if(distanceValue_g[currentDirection_g]  < startPositionX_g + stepLength_g/2 + 80) //(stepLength_g/2 + halfPathWidth_g))
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
 
+void emergencyStop()
+{
+    returnToStartPosition();
+    currentGait = standStill;
+}
+
+void emergencyController()
+{
+    if (emergencyDowntime_g > 0)
+        emergencyDowntime_g--;
+    else
+    {
+        emergencyLockdown_g = FALSE;
+        directionHasChanged = TRUE; // För att roboten ska kunna börja gå igen
+    }
+    return;        
+}
 void gaitController()
 {
 
@@ -1703,8 +1738,8 @@ void gaitController()
 	
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
-    applyOrder();
-	calcRegulation(decideRegulationDirection(), TRUE);
+        applyOrder();
+	    calcRegulation(decideRegulationDirection(), TRUE);
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -2162,6 +2197,7 @@ int main(void)
 	sendAllRobotParameters();
 
 	int i = 0;
+
     // ---- Main-Loop ----
     while (1)
     {
@@ -2169,6 +2205,10 @@ int main(void)
     	if (legTimerPeriodEnd())
     	{
     	    resetLegTimer();
+            /*
+            if (emergencyLockdown_g)
+                emergencyController();
+            */
             move();
             applyOrder(); // detta är endast test
             gaitController();
@@ -2178,8 +2218,14 @@ int main(void)
             resetCommTimer();
 	        updateAllDistanceSensorData();            
             updateTotalAngle();
-
-	    
+            /*
+            if (tooCloseToFrontWall() && currentControlMode_g != manual && !emergencyLockdown_g)
+            {
+                emergencyLockdown_g = TRUE;
+                emergencyDowntime_g = 12; 
+                emergencyStop();
+            }
+            */
             /*
             nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
             Kan dessutom ändra på controlMode.
