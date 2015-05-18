@@ -114,21 +114,24 @@ void updateTempDirections()
 		backDistance_ = distanceValue_g[SOUTH];
 		rightSide_ = distanceValue_g[EAST];
 		leftSide_ = distanceValue_g[WEST];
-	} else if (currentDirection_g == east)
+	} 
+	else if (currentDirection_g == east)
 	{
 		distanceToFrontWall_g = distanceValue_g[EAST];
 		frontDistance_ = distanceValue_g[EAST];
 		backDistance_ = distanceValue_g[WEST];
 		rightSide_ = distanceValue_g[SOUTH];
 		leftSide_ = distanceValue_g[NORTH];
-	} else if (currentDirection_g == south)
+	} 
+	else if (currentDirection_g == south)
 	{
 		distanceToFrontWall_g = distanceValue_g[SOUTH];
 		frontDistance_ = distanceValue_g[SOUTH];
 		backDistance_ = distanceValue_g[NORTH];
 		rightSide_ = distanceValue_g[WEST];
 		leftSide_ = distanceValue_g[EAST];
-	} else if (currentDirection_g == west)
+	} 
+	else if (currentDirection_g == west)
 	{
 		distanceToFrontWall_g = distanceValue_g[WEST];
 		frontDistance_ = distanceValue_g[WEST];
@@ -371,7 +374,7 @@ void updateTempDirections()
 		if (frontDistance_ > L_SIDE)
 		{
 			// Korridor
-			if ((currentDirection_g == north) || (currentDirection_g == SOUTH))
+			if ((currentDirection_g == north) || (currentDirection_g == south))
 			{
 				tempNorthAvailible_g = TRUE;
 				tempEastAvailible_g = FALSE;
@@ -701,7 +704,8 @@ int validLeak()
 {
     if (isLeakVisible_g == TRUE)
     {
-        if (actualLeak_g == 2)      // Når variabeln actualLeak_g 2
+		if (actualLeak_g == 0) // bleh, test -----------------------------------------------------------------
+        //if (actualLeak_g == 2)      // Når variabeln actualLeak_g 2
         {                           // så är det en faktisk läcka
             return TRUE;
         }
@@ -981,22 +985,15 @@ int checkIfNewNode()
 		return TRUE;
 	} //---------------------------------------------------------------------------------------------------------------
 	*/
-/*
+
 	if (isChangeDetected() == TRUE)
 	{
-		if ((tempIsDeadEnd() == TRUE) && (lastAddedNodeIndex_g > 1) && (currentNode_g.whatNode != DEAD_END) && (currentNode_g.whatNode != END_OF_MAZE))
-		{
-			if (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL)
-				return TRUE;
-			else
-				return FALSE;
-		}
 		if ((currentNode_g.whatNode == T_CROSSING) && tempIsTCrossing())
 			return FALSE;
 		return TRUE;
-	} */
-    //else
-        return isChangeDetected();
+	} 
+    else
+        return FALSE;
 }
 
 // MapMode
@@ -1143,7 +1140,7 @@ void placeNodeInArray()
     nodeArray[lastAddedNodeIndex_g].leakID          = currentNode_g.leakID;
 }
 
-void makeLeakPath(char wantedLeak_g)
+void makeLeakPath(int findThisLeak_)
 {
     int index = 0;
     int i = 0;
@@ -1175,7 +1172,7 @@ void makeLeakPath(char wantedLeak_g)
         }
         else if (nodeArray[i].containsLeak == TRUE)
         {
-            if (nodeArray[i].leakID == wantedLeak_g)
+            if (nodeArray[i].leakID == findThisLeak_)
                 break;
             else
                 leaksToPass_g ++;
@@ -1353,36 +1350,52 @@ int nodesAndControl()
 
             switch(currentOptionInstruction_g)
             {
-                case 0b11100000  :
-                    wantedLeak = 1;
+				
+                case 0b11000000  :
+					wantedLeak = 1;
                     makeLeakPath(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100001  :
+                case 0b11000001  :
                     wantedLeak = 2;
                     makeLeakPath(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100010  :
+                case 0b11000010  :
                     wantedLeak = 3;
                     makeLeakPath(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100011  :
+                case 0b11000011  :
                     wantedLeak = 4;
                     makeLeakPath(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100100  :
+                case 0b11000100  :
                     wantedLeak = 5;
                     makeLeakPath(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
                 default  :
                     break;
             }
             
-            if (currentDirection_g != noDirection)
+            if ((currentDirection_g != noDirection) && (currentControlMode_g == waitForInput))
             {
                 directionHasChanged = TRUE;
                 nextDirection_g = noDirection;
@@ -1392,10 +1405,12 @@ int nodesAndControl()
 
         case returnToLeak  :
 			{
+				
 			updateTempDirections();
 
 			if (checkIfNewNode() == TRUE)
 			{
+				fillNodeMemoryWithTemp();
 				updateCurrentNode();
 
 				if (currentNode_g.whatNode == T_CROSSING)
@@ -1411,6 +1426,8 @@ int nodesAndControl()
 					directionHasChanged = TRUE;
 					// Skicka info om detta till datorn
 				}
+				
+				nodeUpdated = TRUE;
 			}
 
 			if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
@@ -1430,7 +1447,7 @@ int nodesAndControl()
 							}
 						}
 						else
-						leaksToPass_g --;
+							leaksToPass_g --;
 					}
 				}
 			}

@@ -56,7 +56,7 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
-int leakSensitivity_g = 6; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+int leakSensitivity_g = 5; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
 int leakCounter_g = 0;
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
@@ -705,8 +705,8 @@ int main(void)
 		waitForConversionComplete();
 		sensor8[iteration] = tempReading;				
 		
-		if (iteration == 4)
-		{
+		/*if (iteration == 4)
+		{*/
 			
 			calculateAvarageDistance();
 			
@@ -733,10 +733,10 @@ int main(void)
 
 
 			_delay_ms(6); // Väntar på att sensorerna uppdateras, väntar bara i 6 ms eftersom delayer för utskrift summeras till 34 ms
-		}
+		/*}
 		else
 		{
 			_delay_ms(40); // Väntar på att sensorerna uppdateras vilket tar ca 40 ms.
-		}
+		}*/
 	}
 }
