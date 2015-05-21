@@ -216,7 +216,8 @@ enum controlMode{
     manual = 0,
     exploration,
     returnToLeak,
-    waitForInput
+    waitForInput,
+	returnHome
 };
 
 enum controlMode currentControlMode_g;

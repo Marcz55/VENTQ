@@ -8,7 +8,7 @@
 #define MAX_T_CROSSINGS 10
 
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
-
+int pathBackHome[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
 #define CLOSE_ENOUGH_TO_WALL 280  // Roboten går rakt fram tills den här längden
 
@@ -29,8 +29,11 @@ int currentTcrossing_g = 0;
 int TcrossingsFound_g = 0;
 int distanceToFrontWall_g = 0;
 int leaksToPass_g = 0;
-int currentPath = 0;
 int deadEnds = 0;
+int currentPath = 0;
+int currentPathHome = 0;
+
+int DONE = FALSE;
 
 int wantedLeak = 0;
 
@@ -1103,10 +1106,24 @@ int calcPathsExplored(int whatNode_, int nodeID_)
     return paths;
 }
 
+int inverseThisDirection(int dir_)
+{
+	if (dir_ == north)
+	return south;
+	else if (dir_ == east)
+	return west;
+	else if (dir_ == south)
+	return north;
+	else if (dir_ == west)
+	return east;
+	else
+	return noDirection;
+}
+
 // Får finnas i bägge, behövs i MapMode
 int whatWayIn()
 {
-    return currentDirection_g;
+	return inverseThisDirection(currentDirection_g);
 }
 
 // MapMode
@@ -1140,7 +1157,7 @@ void placeNodeInArray()
     nodeArray[lastAddedNodeIndex_g].leakID          = currentNode_g.leakID;
 }
 
-void makeLeakPath(int findThisLeak_)
+void makePathToLeakAndHome(int findThisLeak_)
 {
     int index = 0;
     int i = 0;
@@ -1160,7 +1177,9 @@ void makeLeakPath(int findThisLeak_)
             else if (nodeArray[i].pathsExplored == 2)
             {
                 if (nodeArray[i].nodeID == 1)
-                    pathToLeak[0] = noDirection;
+				{
+					pathToLeak[0] = noDirection;
+				}
                 else
                 {
                     pathToLeak[index] = noDirection;
@@ -1263,6 +1282,10 @@ int westToNext()
 
 int decideDirection()      // Autonoma läget
 {
+	if (DONE == TRUE)
+	{
+		return noDirection;
+	}
     enum direction tempDirection = currentDirection_g;
     if (currentNode_g.whatNode == CORRIDOR)
     {
@@ -1307,6 +1330,9 @@ void initNodeAndSteering()
     nodeArray[0].westAvailible = FALSE;
     nodeArray[0].containsLeak = FALSE;
     nodeArray[0].leakID = 0;
+	
+	currentPathHome = 0;
+	currentPath = 0;
 }
 
 int nodesAndControl()
@@ -1353,7 +1379,7 @@ int nodesAndControl()
 				
                 case 0b11000000  :
 					wantedLeak = 1;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
@@ -1361,7 +1387,7 @@ int nodesAndControl()
                     break;
                 case 0b11000001  :
                     wantedLeak = 2;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
@@ -1369,7 +1395,7 @@ int nodesAndControl()
                     break;
                 case 0b11000010  :
                     wantedLeak = 3;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
@@ -1377,7 +1403,7 @@ int nodesAndControl()
                     break;
                 case 0b11000011  :
                     wantedLeak = 4;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
@@ -1385,7 +1411,7 @@ int nodesAndControl()
                     break;
                 case 0b11000100  :
                     wantedLeak = 5;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
@@ -1399,12 +1425,11 @@ int nodesAndControl()
             {
                 directionHasChanged = TRUE;
                 nextDirection_g = noDirection;
-                // skicka info om detta till datorn
             }
             break;
 
         case returnToLeak  :
-			{
+		{
 				
 			updateTempDirections();
 
@@ -1415,16 +1440,15 @@ int nodesAndControl()
 
 				if (currentNode_g.whatNode == T_CROSSING)
 				{
+					pathBackHome[currentPath] = inverseThisDirection(currentDirection_g);
 					directionHasChanged = TRUE;
 					nextDirection_g = pathToLeak[currentPath];
 					currentPath ++;
-					// skicka info om detta till datorn
 				}
 				else
 				{
 					nextDirection_g = decideDirection();
 					directionHasChanged = TRUE;
-					// Skicka info om detta till datorn
 				}
 				
 				nodeUpdated = TRUE;
@@ -1443,7 +1467,10 @@ int nodesAndControl()
 							if (currentDirection_g != noDirection)
 							{
 								directionHasChanged = TRUE;     // Läckan är nu hittad
-								nextDirection_g = noDirection;
+								// delay??
+								nextDirection_g = inverseThisDirection(currentDirection_g);
+								currentPathHome = currentPath - 1;
+								currentControlMode_g = returnHome;
 							}
 						}
 						else
@@ -1452,7 +1479,43 @@ int nodesAndControl()
 				}
 			}
 			break;
+		}
+			
+		case returnHome  :
+		{
+			updateTempDirections();
+			
+			if (checkIfNewNode() == TRUE)
+			{
+				fillNodeMemoryWithTemp();
+				updateCurrentNode();
+
+				if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
+				{
+					DONE = TRUE;
+					directionHasChanged = TRUE;
+					nextDirection_g = noDirection;
+					currentDirection_g = noDirection;
+					currentControlMode_g = waitForInput;
+					
+				}
+				else if (currentNode_g.whatNode == T_CROSSING)
+				{
+					directionHasChanged = TRUE;
+					nextDirection_g = pathBackHome[currentPathHome];
+					currentPathHome --;
+				}
+				else
+				{
+					directionHasChanged = TRUE;
+					nextDirection_g = decideDirection();					
+				}
+				
+				nodeUpdated = TRUE;
 			}
+			
+			break;	
+		}
         default:
 			break;
     }

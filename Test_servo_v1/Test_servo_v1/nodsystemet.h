@@ -67,7 +67,7 @@ int calcPathsExplored(int whatNode_, int nodeID_);
 int whatWayIn();
 void updateCurrentNode();          // Uppdaterar nuvarande nod, eg. skapar en ny nod
 void placeNodeInArray();
-void makeLeakPath(int findThisLeak_);
+void makePathToLeakAndHome(int findThisLeak_);
 int northToNext();
 int eastToNext();
 int southToNext();

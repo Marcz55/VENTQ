@@ -788,8 +788,8 @@ void transmitAllDataToCommUnit()
     transmitDataToCommUnit(DISTANCE_EAST, distanceValue_g[EAST]);
     transmitDataToCommUnit(DISTANCE_SOUTH, distanceValue_g[SOUTH]);
     transmitDataToCommUnit(DISTANCE_WEST, distanceValue_g[WEST]);
-    transmitDataToCommUnit(ANGLE_NORTH, distanceValue_g[FRONT_RIGHT]);
-    transmitDataToCommUnit(ANGLE_EAST, distanceValue_g[FRONT_LEFT]);
+    transmitDataToCommUnit(ANGLE_NORTH, angleValue_g[NORTH]);
+    transmitDataToCommUnit(ANGLE_EAST, angleValue_g[EAST]);
     transmitDataToCommUnit(ANGLE_SOUTH, angleValue_g[SOUTH]);
     transmitDataToCommUnit(ANGLE_WEST, angleValue_g[WEST]);
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));

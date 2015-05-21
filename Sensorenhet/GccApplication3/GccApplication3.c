@@ -58,6 +58,7 @@ int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
 int leakSensitivity_g = 5; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
 int leakCounter_g = 0;
+int noLeakCounter_g = 0;
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
 // Måste skapa en per sensor
@@ -638,6 +639,8 @@ int main(void)
     //MCUCR = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     GICR = (GICR | 32); // Möjliggör externa avbrott på INT2
 	
+	DDRC = (DDRC | 0b01000011);
+	
 	int iteration = 0; // Iterator för vilken avläsning på sensorn som görs
 	
 	makeAngleTable();
@@ -649,19 +652,27 @@ int main(void)
 		if(potentialLeak_g > leakSensitivity_g)
 		{
 			leakCounter_g ++;
+			noLeakCounter_g = 0;
 		} 
 		else 
 		{
 			leakCounter_g = 0;
-			leakFound_g = 0;
+			noLeakCounter_g ++;
 		}
 		
 		if (leakCounter_g >= 3)
 		{
 			leakFound_g = 1;
 			leakCounter_g = 0;
+			PORTC = ((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC6));
+			
+		} 
+		else if(noLeakCounter_g >= 3)
+		{
+			leakFound_g = 0;
+			PORTC = ((0 << PORTC0) | (0 << PORTC1) | (0 << PORTC6));		
 		}
-		//leakFound = !leakBit;
+
 		potentialLeak_g = 0;
 				
 		if (iteration >= 4) // iteration används så att det görs 5 mätningar per sensor
