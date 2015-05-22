@@ -1471,6 +1471,24 @@ int nodesAndControl()
 								nextDirection_g = inverseThisDirection(currentDirection_g);
 								currentPathHome = currentPath - 1;
 								currentControlMode_g = returnHome;
+                                switch(wantedLeak)
+                                {
+                                    case 1:
+                                    {
+                                        fetchDataFromSensorUnit(0b00010001);
+                                        break;
+                                    }
+                                    case 2:
+                                    {
+                                        fetchDataFromSensorUnit(0b00010010);
+                                        break;
+                                    }
+                                    case 3:
+                                    {
+                                        fetchDataFromSensorUnit(0b00010100);
+                                        break;
+                                    }                                     
+                                }                                    
 							}
 						}
 						else

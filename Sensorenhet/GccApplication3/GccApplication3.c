@@ -82,6 +82,7 @@ int noLeakCounter_g = 0;
 //-------------------------------
 //-------------------------------
 // Ställ in rätt sidoavstånd!!!!!
+
 //-------------------------------
 //-------------------------------
 
@@ -495,6 +496,15 @@ void splitDataBytes(int recievedHeader)
 					dataToSplit = averageDistance4;
 					break;
 				}
+                default:
+                {
+                    if((recievedHeader <= 23) && (recievedHeader >= 16))
+                    {
+                        toggleLamps((recievedHeader & 0b00000100)/4,(recievedHeader & 0b00000010)/2,(recievedHeader & 0b00000001));
+                    }
+                    dataToSplit = 0;
+                    break;
+                }                    
 			}
 		}
 		else
@@ -588,7 +598,13 @@ void splitDataBytes(int recievedHeader)
     transmitDataByte2 = (dataToSplit & 0b0000000011111111);
 }
 
-
+void toggleLamps(int lamp1_, int lamp2_, int lamp3_)
+{
+    if((lamp1_ == 1 || lamp1_ == 0) && (lamp2_ == 1 || lamp2_ == 0) && (lamp3_ == 1 || lamp3_ == 0))
+    {
+        PORTC = ((lamp1_ << PORTC0) | (lamp2_ << PORTC1) | (lamp3_ << PORTC6));
+    } 
+}
 
 ISR(SPISTC_vect)//SPI-överföring klar
 {
@@ -664,13 +680,13 @@ int main(void)
 		{
 			leakFound_g = 1;
 			leakCounter_g = 0;
-			PORTC = ((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC6));
+			//PORTC = ((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC6));
 			
 		} 
 		else if(noLeakCounter_g >= 3)
 		{
 			leakFound_g = 0;
-			PORTC = ((0 << PORTC0) | (0 << PORTC1) | (0 << PORTC6));		
+			//PORTC = ((0 << PORTC0) | (0 << PORTC1) | (0 << PORTC6));		
 		}
 
 		potentialLeak_g = 0;
@@ -732,8 +748,8 @@ int main(void)
 			PORTB = (0<<displayE);
 			_delay_ms(1);
 
-			writeSensor(sideAngle1);
-			writeSensor(sideAngle2);
+			writeSensor(averageDistance2);
+			writeSensor(averageDistance5);
 			writeSensor(potentialLeak_g);
 			writeSensor(leakFound_g);
 		

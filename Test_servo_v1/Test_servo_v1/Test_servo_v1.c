@@ -2157,6 +2157,15 @@ void sendChangedRobotParameters()
 void checkForLeak()
 {
 	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
+    if (isLeakVisible_g)
+    {
+        fetchDataFromSensorUnit(0b00010111);
+    }
+    else
+    {
+        fetchDataFromSensorUnit(0b00010000);
+    }
+    
 }
 int main(void)
 {
