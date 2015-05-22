@@ -117,7 +117,7 @@ public class GUI extends Application
     Background greenBackground = new Background(new BackgroundFill(Paint.valueOf("00F000"),CornerRadii.EMPTY,Insets.EMPTY));
     Background blackBackground = new Background(new BackgroundFill(Paint.valueOf("00000F"),CornerRadii.EMPTY,Insets.EMPTY));
     
-   
+    boolean leakAdded = false;
     
     int allSides[] = {0,0,0,0};
     int allAngles[] = {0,0,0,0,0};
@@ -247,20 +247,17 @@ public class GUI extends Application
             if (tPressed)
             {
                 //xyWidthText.setText("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
-                System.out.println("Utbredning");
                 mainInterface.sendData(changeParameterByte);
             }
             else if (yPressed)
             {
                 //heightText.setText("B/y\nHöjd:\n" + Integer.toString(heightOffset));
-                System.out.println("Höjd");
                 changeParameterByte += (byte)0b00000010;
                 mainInterface.sendData(changeParameterByte);
             }
             else if (uPressed)
             {
                 //stepLengthText.setText("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
-                System.out.println("Steglängd");
                 changeParameterByte += (byte)0b00000100;
                 mainInterface.sendData(changeParameterByte);
             }
@@ -268,7 +265,6 @@ public class GUI extends Application
             else if (iPressed)
             {
                 //stepHeightText.setText("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
-                System.out.println("Steghöjd");
                 changeParameterByte += (byte)0b00000110;
                 mainInterface.sendData(changeParameterByte);
             }
@@ -276,7 +272,6 @@ public class GUI extends Application
             else if (oPressed)
             {
                 //timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
-                System.out.println("Stegtid");
                 changeParameterByte += (byte)0b00001000;
                 mainInterface.sendData(changeParameterByte);
             }
@@ -350,6 +345,18 @@ public class GUI extends Application
                 case "leak":
                 {
                     leakText.setText("Läcka:\n" + mainInterface.leak);
+                    if (mainInterface.leak == "Nej")
+                    {
+                        leakAdded = false;
+                    }
+                    else if (mainInterface.leak == "Ja")
+                    {
+                        if (!leakAdded)
+                        {
+                            nodeList.appendText("Läcka hittad!\n");
+                            leakAdded = true;
+                        }
+                    }
                     break;
                 }
                 case "node":
@@ -378,7 +385,6 @@ public class GUI extends Application
                 
                 case "steptime":
                 {
-                    System.out.println("2");
                     timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
                     break;
                 }
@@ -405,7 +411,6 @@ public class GUI extends Application
                 case "kangle":
                 {
                     kAngleText.setText("Höger/h\nkAngle:\n" + Double.toString((double)kAngle/100));
-                    System.out.println(kAngle);
                     break;
                 }
                 case "kdistance":
@@ -585,8 +590,8 @@ public class GUI extends Application
         side2Data.setName("Öst");
         side3Data.setName("Syd");
         side4Data.setName("Väst");
-        angle1Data.setName("Höger");
-        angle2Data.setName("Vänster");
+        angle1Data.setName("Vinkel norr");
+        angle2Data.setName("Vinkel öst");
         angle3Data.setName("Vinkel syd");
         angle4Data.setName("Vinkel väst");
         angleTotalData.setName("Vinkel total");
@@ -688,26 +693,20 @@ public class GUI extends Application
                         {
                             case "1":
                             mainInterface.sendData((byte)0b11000000);
-                            System.out.println("1");
                             break;
                             case "2":
                             mainInterface.sendData((byte)0b11000001);
-                            System.out.println("2");
                             break;
                             case "3":
                             mainInterface.sendData((byte)0b11000010);
-                            System.out.println("3");
                             break;
                             case "4":
                             mainInterface.sendData((byte)0b11000011);
-                            System.out.println("4");
                             break;
                             case "5":
                             mainInterface.sendData((byte)0b11000100);
-                            System.out.println("5");
                             break;
                             default:
-                            System.out.println("1337");
                             break;
                         }
 
