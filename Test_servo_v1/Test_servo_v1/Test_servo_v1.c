@@ -20,7 +20,7 @@ int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
 int closeEnoughToTurn_g = 0;
-int sensortest = 0;
+int allowedToMove_g = 0;
 
 
 int stepLength_g = 80;
@@ -724,16 +724,16 @@ ISR(INT1_vect)
     
 	if (toggleMania)
     {
+		allowedToMove_g = 0;
         currentControlMode_g = manual;
         sendStuff = TRUE;
         toggleMania = FALSE;
     }
     else
     {
+		allowedToMove_g = 1;
         currentControlMode_g = exploration;
-        toggleMania = TRUE;
-		sensortest = 0;
-        
+        toggleMania = TRUE;        
     }
 	
 	/*
@@ -2199,13 +2199,10 @@ int main(void)
 
             resetCommTimer();
 			updateAllDistanceSensorData();
-			sensortest ++;
-			cli();
-			if(tooCloseToFrontWall() && currentControlMode_g == exploration) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
+			if(tooCloseToFrontWall() && currentControlMode_g == exploration && allowedToMove_g) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
 			{
 				emergencyStop();
 			}
-			sei();
             updateTotalAngle();
 
 	    
