@@ -576,7 +576,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000     0xb2ce
+.text           0x00000000     0xb2ea
  *(.vectors)
  .vectors       0x00000000       0x8c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51/crtm1284p.o
                 0x00000000                __vector_default
@@ -690,384 +690,384 @@ END GROUP
                 0x000002be      0x5da nodsystemet.o
                 0x000002be                updateTempDirections
  .text.validLeak
-                0x00000898       0x3c nodsystemet.o
+                0x00000898       0x4e nodsystemet.o
                 0x00000898                validLeak
  .text.updateLeakInfo
-                0x000008d4       0x76 nodsystemet.o
-                0x000008d4                updateLeakInfo
+                0x000008e6       0x76 nodsystemet.o
+                0x000008e6                updateLeakInfo
  .text.canMakeNew
-                0x0000094a      0x104 nodsystemet.o
-                0x0000094a                canMakeNew
+                0x0000095c      0x104 nodsystemet.o
+                0x0000095c                canMakeNew
  .text.decideChangeFromMajority
-                0x00000a4e      0x12a nodsystemet.o
-                0x00000a4e                decideChangeFromMajority
+                0x00000a60      0x12a nodsystemet.o
+                0x00000a60                decideChangeFromMajority
  .text.isChangeDetected
-                0x00000b78       0x72 nodsystemet.o
-                0x00000b78                isChangeDetected
+                0x00000b8a       0x72 nodsystemet.o
+                0x00000b8a                isChangeDetected
  .text.tempIsTCrossing
-                0x00000bea       0x3c nodsystemet.o
-                0x00000bea                tempIsTCrossing
+                0x00000bfc       0x3c nodsystemet.o
+                0x00000bfc                tempIsTCrossing
  .text.checkIfNewNode
-                0x00000c26       0x30 nodsystemet.o
-                0x00000c26                checkIfNewNode
+                0x00000c38       0x30 nodsystemet.o
+                0x00000c38                checkIfNewNode
  .text.whatNodeType
-                0x00000c56       0xcc nodsystemet.o
-                0x00000c56                whatNodeType
+                0x00000c68       0xcc nodsystemet.o
+                0x00000c68                whatNodeType
  .text.TcrossingID
-                0x00000d22      0x144 nodsystemet.o
-                0x00000d22                TcrossingID
+                0x00000d34      0x144 nodsystemet.o
+                0x00000d34                TcrossingID
  .text.calcPathsExplored
-                0x00000e66       0x4c nodsystemet.o
-                0x00000e66                calcPathsExplored
+                0x00000e78       0x4c nodsystemet.o
+                0x00000e78                calcPathsExplored
  .text.inverseThisDirection
-                0x00000eb2       0x32 nodsystemet.o
-                0x00000eb2                inverseThisDirection
+                0x00000ec4       0x32 nodsystemet.o
+                0x00000ec4                inverseThisDirection
  .text.whatWayIn
-                0x00000ee4        0xa nodsystemet.o
-                0x00000ee4                whatWayIn
+                0x00000ef6        0xa nodsystemet.o
+                0x00000ef6                whatWayIn
  .text.updateCurrentNode
-                0x00000eee       0x94 nodsystemet.o
-                0x00000eee                updateCurrentNode
+                0x00000f00       0x94 nodsystemet.o
+                0x00000f00                updateCurrentNode
  .text.placeNodeInArray
-                0x00000f82       0x9e nodsystemet.o
-                0x00000f82                placeNodeInArray
+                0x00000f94       0x9e nodsystemet.o
+                0x00000f94                placeNodeInArray
  .text.makePathToLeakAndHome
-                0x00001020       0xf4 nodsystemet.o
-                0x00001020                makePathToLeakAndHome
+                0x00001032       0xf4 nodsystemet.o
+                0x00001032                makePathToLeakAndHome
  .text.northToNext
-                0x00001114       0x38 nodsystemet.o
-                0x00001114                northToNext
+                0x00001126       0x38 nodsystemet.o
+                0x00001126                northToNext
  .text.eastToNext
-                0x0000114c       0x38 nodsystemet.o
-                0x0000114c                eastToNext
+                0x0000115e       0x38 nodsystemet.o
+                0x0000115e                eastToNext
  .text.southToNext
-                0x00001184       0x3a nodsystemet.o
-                0x00001184                southToNext
+                0x00001196       0x3a nodsystemet.o
+                0x00001196                southToNext
  .text.westToNext
-                0x000011be       0x3c nodsystemet.o
-                0x000011be                westToNext
+                0x000011d0       0x3c nodsystemet.o
+                0x000011d0                westToNext
  .text.decideDirection
-                0x000011fa       0x60 nodsystemet.o
-                0x000011fa                decideDirection
+                0x0000120c       0x60 nodsystemet.o
+                0x0000120c                decideDirection
  .text.initNodeAndSteering
-                0x0000125a       0x72 nodsystemet.o
-                0x0000125a                initNodeAndSteering
+                0x0000126c       0x72 nodsystemet.o
+                0x0000126c                initNodeAndSteering
  .text.nodesAndControl
-                0x000012cc      0x3e4 nodsystemet.o
-                0x000012cc                nodesAndControl
+                0x000012de      0x3e4 nodsystemet.o
+                0x000012de                nodesAndControl
  .text.timer0Init
-                0x000016b0       0x18 Timer.o
-                0x000016b0                timer0Init
+                0x000016c2       0x18 Timer.o
+                0x000016c2                timer0Init
  .text.timer2Init
-                0x000016c8       0x1e Timer.o
-                0x000016c8                timer2Init
+                0x000016da       0x1e Timer.o
+                0x000016da                timer2Init
  .text.setTimerPeriod
-                0x000016e6      0x144 Timer.o
-                0x000016e6                setTimerPeriod
+                0x000016f8      0x144 Timer.o
+                0x000016f8                setTimerPeriod
  .text.legTimerPeriodEnd
-                0x0000182a       0x34 Timer.o
-                0x0000182a                legTimerPeriodEnd
+                0x0000183c       0x34 Timer.o
+                0x0000183c                legTimerPeriodEnd
  .text.commTimerPeriodEnd
-                0x0000185e       0x36 Timer.o
-                0x0000185e                commTimerPeriodEnd
+                0x00001870       0x36 Timer.o
+                0x00001870                commTimerPeriodEnd
  .text.resetLegTimer
-                0x00001894        0x8 Timer.o
-                0x00001894                resetLegTimer
+                0x000018a6        0x8 Timer.o
+                0x000018a6                resetLegTimer
  .text.resetCommTimer
-                0x0000189c        0xa Timer.o
-                0x0000189c                resetCommTimer
+                0x000018ae        0xa Timer.o
+                0x000018ae                resetCommTimer
  .text.__vector_18
-                0x000018a6       0x22 Timer.o
-                0x000018a6                __vector_18
+                0x000018b8       0x22 Timer.o
+                0x000018b8                __vector_18
  .text.__vector_11
-                0x000018c8       0x22 Timer.o
-                0x000018c8                __vector_11
+                0x000018da       0x22 Timer.o
+                0x000018da                __vector_11
  .text.spiMasterInit
-                0x000018ea       0x12 SPI.o
-                0x000018ea                spiMasterInit
+                0x000018fc       0x12 SPI.o
+                0x000018fc                spiMasterInit
  .text.spiTransmitToSensorUnit
-                0x000018fc       0x1c SPI.o
-                0x000018fc                spiTransmitToSensorUnit
+                0x0000190e       0x1c SPI.o
+                0x0000190e                spiTransmitToSensorUnit
  .text.spiTransmitToCommUnit
-                0x00001918       0x1c SPI.o
-                0x00001918                spiTransmitToCommUnit
+                0x0000192a       0x1c SPI.o
+                0x0000192a                spiTransmitToCommUnit
  .text.transmitDataToCommUnit
-                0x00001934       0x34 SPI.o
-                0x00001934                transmitDataToCommUnit
+                0x00001946       0x34 SPI.o
+                0x00001946                transmitDataToCommUnit
  .text.fetchDataFromSensorUnit
-                0x00001968       0x34 SPI.o
-                0x00001968                fetchDataFromSensorUnit
+                0x0000197a       0x34 SPI.o
+                0x0000197a                fetchDataFromSensorUnit
  .text.initUSART
-                0x0000199c       0x1c USART.o
-                0x0000199c                initUSART
+                0x000019ae       0x1c USART.o
+                0x000019ae                initUSART
  .text.USARTWriteChar
-                0x000019b8       0x10 USART.o
-                0x000019b8                USARTWriteChar
+                0x000019ca       0x10 USART.o
+                0x000019ca                USARTWriteChar
  .text.USARTSendInstruction5
-                0x000019c8       0x80 USART.o
-                0x000019c8                USARTSendInstruction5
+                0x000019da       0x80 USART.o
+                0x000019da                USARTSendInstruction5
  .text.sendAllRobotParameters
-                0x00001a48       0x9a Test_servo_v1.o
-                0x00001a48                sendAllRobotParameters
+                0x00001a5a       0x9a Test_servo_v1.o
+                0x00001a5a                sendAllRobotParameters
  .text.calcDynamixelSpeed
-                0x00001ae2       0x4c Test_servo_v1.o
-                0x00001ae2                calcDynamixelSpeed
+                0x00001af4       0x4c Test_servo_v1.o
+                0x00001af4                calcDynamixelSpeed
  .text.MoveDynamixel
-                0x00001b2e       0xcc Test_servo_v1.o
-                0x00001b2e                MoveDynamixel
+                0x00001b40       0xcc Test_servo_v1.o
+                0x00001b40                MoveDynamixel
  .text.MoveFrontLeftLeg
-                0x00001bfa      0x288 Test_servo_v1.o
-                0x00001bfa                MoveFrontLeftLeg
+                0x00001c0c      0x288 Test_servo_v1.o
+                0x00001c0c                MoveFrontLeftLeg
  .text.MoveFrontRightLeg
-                0x00001e82      0x288 Test_servo_v1.o
-                0x00001e82                MoveFrontRightLeg
+                0x00001e94      0x288 Test_servo_v1.o
+                0x00001e94                MoveFrontRightLeg
  .text.MoveRearLeftLeg
-                0x0000210a      0x2ae Test_servo_v1.o
-                0x0000210a                MoveRearLeftLeg
+                0x0000211c      0x2ae Test_servo_v1.o
+                0x0000211c                MoveRearLeftLeg
  .text.MoveRearRightLeg
-                0x000023b8      0x2ae Test_servo_v1.o
-                0x000023b8                MoveRearRightLeg
+                0x000023ca      0x2ae Test_servo_v1.o
+                0x000023ca                MoveRearRightLeg
  .text.MoveToStartPosition
-                0x00002666      0x1aa Test_servo_v1.o
-                0x00002666                MoveToStartPosition
+                0x00002678      0x1aa Test_servo_v1.o
+                0x00002678                MoveToStartPosition
  .text.increasePositionIndexes
-                0x00002810       0x56 Test_servo_v1.o
-                0x00002810                increasePositionIndexes
+                0x00002822       0x56 Test_servo_v1.o
+                0x00002822                increasePositionIndexes
  .text.CalcStraightPath
-                0x00002866      0x70a Test_servo_v1.o
-                0x00002866                CalcStraightPath
+                0x00002878      0x70a Test_servo_v1.o
+                0x00002878                CalcStraightPath
  .text.CalcCurvedPath
-                0x00002f70      0xdc0 Test_servo_v1.o
-                0x00002f70                CalcCurvedPath
+                0x00002f82      0xdc0 Test_servo_v1.o
+                0x00002f82                CalcCurvedPath
  .text.MoveLegToNextPosition
-                0x00003d30      0x1d2 Test_servo_v1.o
-                0x00003d30                MoveLegToNextPosition
- .text.move     0x00003f02       0x8e Test_servo_v1.o
-                0x00003f02                move
+                0x00003d42      0x1d2 Test_servo_v1.o
+                0x00003d42                MoveLegToNextPosition
+ .text.move     0x00003f14       0x8e Test_servo_v1.o
+                0x00003f14                move
  .text.__vector_1
-                0x00003f90      0x11c Test_servo_v1.o
-                0x00003f90                __vector_1
+                0x00003fa2      0x11c Test_servo_v1.o
+                0x00003fa2                __vector_1
  .text.__vector_2
-                0x000040ac       0x54 Test_servo_v1.o
-                0x000040ac                __vector_2
+                0x000040be       0x54 Test_servo_v1.o
+                0x000040be                __vector_2
  .text.transmitAllDataToCommUnit
-                0x00004100       0xa6 Test_servo_v1.o
-                0x00004100                transmitAllDataToCommUnit
+                0x00004112       0xa6 Test_servo_v1.o
+                0x00004112                transmitAllDataToCommUnit
  .text.updateAllDistanceSensorData
-                0x000041a6       0xdc Test_servo_v1.o
-                0x000041a6                updateAllDistanceSensorData
+                0x000041b8       0xdc Test_servo_v1.o
+                0x000041b8                updateAllDistanceSensorData
  .text.updateTotalAngle
-                0x00004282       0x12 Test_servo_v1.o
-                0x00004282                updateTotalAngle
+                0x00004294       0x12 Test_servo_v1.o
+                0x00004294                updateTotalAngle
  .text.calcRegulation
-                0x00004294      0x338 Test_servo_v1.o
-                0x00004294                calcRegulation
+                0x000042a6      0x338 Test_servo_v1.o
+                0x000042a6                calcRegulation
  .text.decideRegulationDirection
-                0x000045cc       0x5a Test_servo_v1.o
-                0x000045cc                decideRegulationDirection
+                0x000045de       0x5a Test_servo_v1.o
+                0x000045de                decideRegulationDirection
  .text.applyOrder
-                0x00004626        0xa Test_servo_v1.o
-                0x00004626                applyOrder
+                0x00004638        0xa Test_servo_v1.o
+                0x00004638                applyOrder
  .text.returnToStartPosition
-                0x00004630      0x982 Test_servo_v1.o
-                0x00004630                returnToStartPosition
+                0x00004642      0x982 Test_servo_v1.o
+                0x00004642                returnToStartPosition
  .text.transitionStartToTrot
-                0x00004fb2      0x380 Test_servo_v1.o
-                0x00004fb2                transitionStartToTrot
+                0x00004fc4      0x380 Test_servo_v1.o
+                0x00004fc4                transitionStartToTrot
  .text.makeCreepGait
-                0x00005332     0x24ac Test_servo_v1.o
-                0x00005332                makeCreepGait
+                0x00005344     0x24ac Test_servo_v1.o
+                0x00005344                makeCreepGait
  .text.standStillGait
-                0x000077de      0x326 Test_servo_v1.o
-                0x000077de                standStillGait
+                0x000077f0      0x326 Test_servo_v1.o
+                0x000077f0                standStillGait
  .text.MakeTrotGait
-                0x00007b04     0x23ee Test_servo_v1.o
-                0x00007b04                MakeTrotGait
+                0x00007b16     0x23f0 Test_servo_v1.o
+                0x00007b16                MakeTrotGait
  .text.increaseLegWidth
-                0x00009ef2       0x34 Test_servo_v1.o
-                0x00009ef2                increaseLegWidth
+                0x00009f06       0x34 Test_servo_v1.o
+                0x00009f06                increaseLegWidth
  .text.decreaseLegWidth
-                0x00009f26       0x34 Test_servo_v1.o
-                0x00009f26                decreaseLegWidth
+                0x00009f3a       0x34 Test_servo_v1.o
+                0x00009f3a                decreaseLegWidth
  .text.decreaseLegHeight
-                0x00009f5a       0x1c Test_servo_v1.o
-                0x00009f5a                decreaseLegHeight
+                0x00009f6e       0x1c Test_servo_v1.o
+                0x00009f6e                decreaseLegHeight
  .text.increaseLegHeight
-                0x00009f76       0x1c Test_servo_v1.o
-                0x00009f76                increaseLegHeight
+                0x00009f8a       0x1c Test_servo_v1.o
+                0x00009f8a                increaseLegHeight
  .text.increaseStepLength
-                0x00009f92       0x1a Test_servo_v1.o
-                0x00009f92                increaseStepLength
+                0x00009fa6       0x1a Test_servo_v1.o
+                0x00009fa6                increaseStepLength
  .text.decreaseStepLength
-                0x00009fac       0x1a Test_servo_v1.o
-                0x00009fac                decreaseStepLength
+                0x00009fc0       0x1a Test_servo_v1.o
+                0x00009fc0                decreaseStepLength
  .text.increaseGaitResolutionTime
-                0x00009fc6       0x4a Test_servo_v1.o
-                0x00009fc6                increaseGaitResolutionTime
+                0x00009fda       0x4a Test_servo_v1.o
+                0x00009fda                increaseGaitResolutionTime
  .text.decreaseGaitResolutionTime
-                0x0000a010       0x4a Test_servo_v1.o
-                0x0000a010                decreaseGaitResolutionTime
+                0x0000a024       0x4a Test_servo_v1.o
+                0x0000a024                decreaseGaitResolutionTime
  .text.increaseStepHeight
-                0x0000a05a       0x1a Test_servo_v1.o
-                0x0000a05a                increaseStepHeight
+                0x0000a06e       0x1a Test_servo_v1.o
+                0x0000a06e                increaseStepHeight
  .text.decreaseStepHeight
-                0x0000a074       0x1a Test_servo_v1.o
-                0x0000a074                decreaseStepHeight
+                0x0000a088       0x1a Test_servo_v1.o
+                0x0000a088                decreaseStepHeight
  .text.increaseKTranslation
-                0x0000a08e       0x52 Test_servo_v1.o
-                0x0000a08e                increaseKTranslation
+                0x0000a0a2       0x52 Test_servo_v1.o
+                0x0000a0a2                increaseKTranslation
  .text.decreaseKTranslation
-                0x0000a0e0       0x52 Test_servo_v1.o
-                0x0000a0e0                decreaseKTranslation
+                0x0000a0f4       0x52 Test_servo_v1.o
+                0x0000a0f4                decreaseKTranslation
  .text.increaseKRotation
-                0x0000a132       0x52 Test_servo_v1.o
-                0x0000a132                increaseKRotation
+                0x0000a146       0x52 Test_servo_v1.o
+                0x0000a146                increaseKRotation
  .text.decreaseKRotation
-                0x0000a184       0x52 Test_servo_v1.o
-                0x0000a184                decreaseKRotation
+                0x0000a198       0x52 Test_servo_v1.o
+                0x0000a198                decreaseKRotation
  .text.frontAvailable
-                0x0000a1d6       0x58 Test_servo_v1.o
-                0x0000a1d6                frontAvailable
+                0x0000a1ea       0x58 Test_servo_v1.o
+                0x0000a1ea                frontAvailable
  .text.gaitController
-                0x0000a22e      0x632 Test_servo_v1.o
-                0x0000a22e                gaitController
+                0x0000a242      0x632 Test_servo_v1.o
+                0x0000a242                gaitController
  .text.sendChangedRobotParameters
-                0x0000a860      0x12c Test_servo_v1.o
-                0x0000a860                sendChangedRobotParameters
+                0x0000a874      0x12c Test_servo_v1.o
+                0x0000a874                sendChangedRobotParameters
  .text.checkForLeak
-                0x0000a98c       0x28 Test_servo_v1.o
-                0x0000a98c                checkForLeak
- .text.main     0x0000a9b4      0x1b6 Test_servo_v1.o
-                0x0000a9b4                main
+                0x0000a9a0       0x30 Test_servo_v1.o
+                0x0000a9a0                checkForLeak
+ .text.main     0x0000a9d0      0x1b6 Test_servo_v1.o
+                0x0000a9d0                main
  .text.avr-libc.fplib
-                0x0000ab6a       0x1c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(acos.o)
-                0x0000ab6a                acos
+                0x0000ab86       0x1c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(acos.o)
+                0x0000ab86                acos
  .text.avr-libc.fplib
-                0x0000ab86        0xa c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(addsf3.o)
-                0x0000ab86                __subsf3
-                0x0000ab88                __addsf3
+                0x0000aba2        0xa c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(addsf3.o)
+                0x0000aba2                __subsf3
+                0x0000aba4                __addsf3
  .text.avr-libc.fplib
-                0x0000ab90       0xc0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(addsf3x.o)
-                0x0000abaa                __addsf3x
+                0x0000abac       0xc0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(addsf3x.o)
+                0x0000abc6                __addsf3x
  .text.avr-libc.fplib
-                0x0000ac50       0x74 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(atan2.o)
-                0x0000ac6e                atan2
+                0x0000ac6c       0x74 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(atan2.o)
+                0x0000ac8a                atan2
  .text.avr-libc.fplib
-                0x0000acc4       0x50 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(atan.o)
-                0x0000acc4                atan
+                0x0000ace0       0x50 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(atan.o)
+                0x0000ace0                atan
  .text.avr-libc.fplib
-                0x0000ad14        0x8 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(cmpsf2.o)
-                0x0000ad14                __nesf2
-                0x0000ad14                __eqsf2
-                0x0000ad14                __cmpsf2
-                0x0000ad14                __ltsf2
-                0x0000ad14                __lesf2
+                0x0000ad30        0x8 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(cmpsf2.o)
+                0x0000ad30                __nesf2
+                0x0000ad30                __eqsf2
+                0x0000ad30                __cmpsf2
+                0x0000ad30                __ltsf2
+                0x0000ad30                __lesf2
  .text.avr-libc.fplib
-                0x0000ad1c        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(divsf3.o)
-                0x0000ad1c                __divsf3
+                0x0000ad38        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(divsf3.o)
+                0x0000ad38                __divsf3
  .text.avr-libc.fplib
-                0x0000ad20       0xcc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(divsf3x.o)
-                0x0000ad36                __divsf3x
-                0x0000ad3a                __divsf3_pse
+                0x0000ad3c       0xcc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(divsf3x.o)
+                0x0000ad52                __divsf3x
+                0x0000ad56                __divsf3_pse
  .text.avr-libc.fplib
-                0x0000adec        0xa c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fixsfsi.o)
-                0x0000adec                __fixsfsi
+                0x0000ae08        0xa c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fixsfsi.o)
+                0x0000ae08                __fixsfsi
  .text.avr-libc.fplib
-                0x0000adf6       0x58 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fixunssfsi.o)
-                0x0000adf6                __fixunssfsi
+                0x0000ae12       0x58 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fixunssfsi.o)
+                0x0000ae12                __fixunssfsi
  .text.avr-libc.fplib
-                0x0000ae4e       0x7a c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(floatsisf.o)
-                0x0000ae4e                __floatunsisf
-                0x0000ae52                __floatsisf
+                0x0000ae6a       0x7a c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(floatsisf.o)
+                0x0000ae6a                __floatunsisf
+                0x0000ae6e                __floatsisf
  .text.avr-libc.fplib
-                0x0000aec8       0x36 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_arccos.o)
-                0x0000aec8                __fp_arccos
+                0x0000aee4       0x36 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_arccos.o)
+                0x0000aee4                __fp_arccos
  .text.avr-libc.fplib
-                0x0000aefe       0x48 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_cmp.o)
-                0x0000aefe                __fp_cmp
+                0x0000af1a       0x48 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_cmp.o)
+                0x0000af1a                __fp_cmp
  .text.avr-libc.fplib
-                0x0000af46        0xc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_inf.o)
-                0x0000af46                __fp_inf
+                0x0000af62        0xc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_inf.o)
+                0x0000af62                __fp_inf
  .text.avr-libc.fplib
-                0x0000af52        0x6 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_nan.o)
-                0x0000af52                __fp_nan
+                0x0000af6e        0x6 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_nan.o)
+                0x0000af6e                __fp_nan
  .text.avr-libc.fplib
-                0x0000af58       0x4a c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_powser.o)
-                0x0000af58                __fp_powser
+                0x0000af74       0x4a c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_powser.o)
+                0x0000af74                __fp_powser
  .text.avr-libc.fplib
-                0x0000afa2        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_pscA.o)
-                0x0000afa2                __fp_pscA
+                0x0000afbe        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_pscA.o)
+                0x0000afbe                __fp_pscA
  .text.avr-libc.fplib
-                0x0000afb0        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_pscB.o)
-                0x0000afb0                __fp_pscB
+                0x0000afcc        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_pscB.o)
+                0x0000afcc                __fp_pscB
  .text.avr-libc.fplib
-                0x0000afbe       0x22 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_round.o)
-                0x0000afbe                __fp_round
+                0x0000afda       0x22 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_round.o)
+                0x0000afda                __fp_round
  .text.avr-libc.fplib
-                0x0000afe0       0x44 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_split3.o)
-                0x0000afe0                __fp_split3
-                0x0000aff0                __fp_splitA
+                0x0000affc       0x44 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_split3.o)
+                0x0000affc                __fp_split3
+                0x0000b00c                __fp_splitA
  .text.avr-libc.fplib
-                0x0000b024        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_zero.o)
-                0x0000b024                __fp_zero
-                0x0000b026                __fp_szero
+                0x0000b040        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_zero.o)
+                0x0000b040                __fp_zero
+                0x0000b042                __fp_szero
  .text.avr-libc.fplib
-                0x0000b032        0x8 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(gesf2.o)
-                0x0000b032                __gesf2
-                0x0000b032                __gtsf2
+                0x0000b04e        0x8 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(gesf2.o)
+                0x0000b04e                __gesf2
+                0x0000b04e                __gtsf2
  .text.avr-libc.fplib
-                0x0000b03a        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(inverse.o)
-                0x0000b03a                inverse
+                0x0000b056        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(inverse.o)
+                0x0000b056                inverse
  .text.avr-libc.fplib
-                0x0000b048        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(mulsf3.o)
-                0x0000b048                __mulsf3
+                0x0000b064        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(mulsf3.o)
+                0x0000b064                __mulsf3
  .text.avr-libc.fplib
-                0x0000b04c       0xc2 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(mulsf3x.o)
-                0x0000b060                __mulsf3x
-                0x0000b064                __mulsf3_pse
+                0x0000b068       0xc2 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(mulsf3x.o)
+                0x0000b07c                __mulsf3x
+                0x0000b080                __mulsf3_pse
  .text.avr-libc.fplib
-                0x0000b10e       0x84 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(sqrt.o)
-                0x0000b116                sqrt
+                0x0000b12a       0x84 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(sqrt.o)
+                0x0000b132                sqrt
  .text.avr-libc.fplib
-                0x0000b192        0x6 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(square.o)
-                0x0000b192                square
+                0x0000b1ae        0x6 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(square.o)
+                0x0000b1ae                square
  .text.avr-libc.fplib
-                0x0000b198       0x1c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_mpack.o)
-                0x0000b198                __fp_mpack
-                0x0000b19c                __fp_mpack_finite
+                0x0000b1b4       0x1c c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_mpack.o)
+                0x0000b1b4                __fp_mpack
+                0x0000b1b8                __fp_mpack_finite
  .text.avr-libc.fplib
-                0x0000b1b4        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_norm2.o)
-                0x0000b1b4                __fp_norm2
+                0x0000b1d0        0xe c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/../../../../avr/lib/avr51\libm.a(fp_norm2.o)
+                0x0000b1d0                __fp_norm2
  .text.libgcc.div
-                0x0000b1c2       0x26 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_divmodhi4.o)
-                0x0000b1c2                _div
-                0x0000b1c2                __divmodhi4
+                0x0000b1de       0x26 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_divmodhi4.o)
+                0x0000b1de                _div
+                0x0000b1de                __divmodhi4
  .text.libgcc.div
-                0x0000b1e8       0x28 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_divmodsi4.o)
-                0x0000b1e8                __divmodsi4
+                0x0000b204       0x28 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_divmodsi4.o)
+                0x0000b204                __divmodsi4
  .text.libgcc.div
-                0x0000b210       0x10 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_negsi2.o)
-                0x0000b210                __negsi2
- .text.libgcc   0x0000b220        0xc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_tablejump.o)
-                0x0000b220                __tablejump2__
-                0x0000b224                __tablejump__
+                0x0000b22c       0x10 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_negsi2.o)
+                0x0000b22c                __negsi2
+ .text.libgcc   0x0000b23c        0xc c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_tablejump.o)
+                0x0000b23c                __tablejump2__
+                0x0000b240                __tablejump__
  .text.libgcc.mul
-                0x0000b22c       0x14 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_muluhisi3.o)
-                0x0000b22c                __muluhisi3
+                0x0000b248       0x14 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_muluhisi3.o)
+                0x0000b248                __muluhisi3
  .text.libgcc.div
-                0x0000b240       0x28 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_udivmodhi4.o)
-                0x0000b240                __udivmodhi4
+                0x0000b25c       0x28 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_udivmodhi4.o)
+                0x0000b25c                __udivmodhi4
  .text.libgcc.div
-                0x0000b268       0x44 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_udivmodsi4.o)
-                0x0000b268                __udivmodsi4
+                0x0000b284       0x44 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_udivmodsi4.o)
+                0x0000b284                __udivmodsi4
  .text.libgcc.mul
-                0x0000b2ac       0x1e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_umulhisi3.o)
-                0x0000b2ac                __umulhisi3
-                0x0000b2ca                . = ALIGN (0x2)
+                0x0000b2c8       0x1e c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_umulhisi3.o)
+                0x0000b2c8                __umulhisi3
+                0x0000b2e6                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000b2ca        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_exit.o)
-                0x0000b2ca                _exit
-                0x0000b2ca                exit
+ .fini9         0x0000b2e6        0x0 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_exit.o)
+                0x0000b2e6                _exit
+                0x0000b2e6                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -1086,11 +1086,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000b2ca        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_exit.o)
+ .fini0         0x0000b2e6        0x4 c:/program files (x86)/atmel/atmel toolchain/avr8 gcc/native/3.4.1061/avr8-gnu-toolchain/bin/../lib/gcc/avr/4.8.1/avr51\libgcc.a(_exit.o)
  *(.fini0)
-                0x0000b2ce                _etext = .
+                0x0000b2ea                _etext = .
 
-.data           0x00800100       0x78 load address 0x0000b2ce
+.data           0x00800100       0x78 load address 0x0000b2ea
                 0x00800100                PROVIDE (__data_start, .)
  *(.data)
  *(.data*)
@@ -1185,145 +1185,148 @@ END GROUP
                 0x00800178                _edata = .
                 0x00800178                PROVIDE (__data_end, .)
 
-.bss            0x00800178     0x1321
+.bss            0x00800178     0x1323
                 0x00800178                PROVIDE (__bss_start, .)
  *(.bss)
  *(.bss*)
- .bss.wantedLeak
+ .bss.newLeak_g
                 0x00800178        0x2 nodsystemet.o
-                0x00800178                wantedLeak
- .bss.DONE      0x0080017a        0x2 nodsystemet.o
-                0x0080017a                DONE
+                0x00800178                newLeak_g
+ .bss.wantedLeak
+                0x0080017a        0x2 nodsystemet.o
+                0x0080017a                wantedLeak
+ .bss.DONE      0x0080017c        0x2 nodsystemet.o
+                0x0080017c                DONE
  .bss.currentPathHome
-                0x0080017c        0x2 nodsystemet.o
-                0x0080017c                currentPathHome
- .bss.currentPath
                 0x0080017e        0x2 nodsystemet.o
-                0x0080017e                currentPath
- .bss.deadEnds  0x00800180        0x2 nodsystemet.o
-                0x00800180                deadEnds
+                0x0080017e                currentPathHome
+ .bss.currentPath
+                0x00800180        0x2 nodsystemet.o
+                0x00800180                currentPath
+ .bss.deadEnds  0x00800182        0x2 nodsystemet.o
+                0x00800182                deadEnds
  .bss.leaksToPass_g
-                0x00800182        0x2 nodsystemet.o
-                0x00800182                leaksToPass_g
- .bss.distanceToFrontWall_g
                 0x00800184        0x2 nodsystemet.o
-                0x00800184                distanceToFrontWall_g
- .bss.TcrossingsFound_g
+                0x00800184                leaksToPass_g
+ .bss.distanceToFrontWall_g
                 0x00800186        0x2 nodsystemet.o
-                0x00800186                TcrossingsFound_g
- .bss.currentTcrossing_g
+                0x00800186                distanceToFrontWall_g
+ .bss.TcrossingsFound_g
                 0x00800188        0x2 nodsystemet.o
-                0x00800188                currentTcrossing_g
- .bss.leaksFound_g
+                0x00800188                TcrossingsFound_g
+ .bss.currentTcrossing_g
                 0x0080018a        0x2 nodsystemet.o
-                0x0080018a                leaksFound_g
- .bss.actualLeak_g
+                0x0080018a                currentTcrossing_g
+ .bss.leaksFound_g
                 0x0080018c        0x2 nodsystemet.o
-                0x0080018c                actualLeak_g
- .bss.tempWestAvailible_g
+                0x0080018c                leaksFound_g
+ .bss.actualLeak_g
                 0x0080018e        0x2 nodsystemet.o
-                0x0080018e                tempWestAvailible_g
- .bss.tempSouthAvailible_g
+                0x0080018e                actualLeak_g
+ .bss.tempWestAvailible_g
                 0x00800190        0x2 nodsystemet.o
-                0x00800190                tempSouthAvailible_g
- .bss.tempEastAvailible_g
+                0x00800190                tempWestAvailible_g
+ .bss.tempSouthAvailible_g
                 0x00800192        0x2 nodsystemet.o
-                0x00800192                tempEastAvailible_g
- .bss.lastAddedNodeIndex_g
+                0x00800192                tempSouthAvailible_g
+ .bss.tempEastAvailible_g
                 0x00800194        0x2 nodsystemet.o
-                0x00800194                lastAddedNodeIndex_g
+                0x00800194                tempEastAvailible_g
+ .bss.lastAddedNodeIndex_g
+                0x00800196        0x2 nodsystemet.o
+                0x00800196                lastAddedNodeIndex_g
  .bss.currentOrder_g
-                0x00800196        0x1 Test_servo_v1.o
-                0x00800196                currentOrder_g
+                0x00800198        0x1 Test_servo_v1.o
+                0x00800198                currentOrder_g
  .bss.sendStuff
-                0x00800197        0x2 Test_servo_v1.o
-                0x00800197                sendStuff
- .bss.toggleMania
                 0x00800199        0x2 Test_servo_v1.o
-                0x00800199                toggleMania
- .bss.currentPos_g
+                0x00800199                sendStuff
+ .bss.toggleMania
                 0x0080019b        0x2 Test_servo_v1.o
-                0x0080019b                currentPos_g
+                0x0080019b                toggleMania
+ .bss.currentPos_g
+                0x0080019d        0x2 Test_servo_v1.o
+                0x0080019d                currentPos_g
  .bss.currentGait
-                0x0080019d        0x1 Test_servo_v1.o
-                0x0080019d                currentGait
+                0x0080019f        0x1 Test_servo_v1.o
+                0x0080019f                currentGait
  .bss.sendGaitResTime
-                0x0080019e        0x2 Test_servo_v1.o
-                0x0080019e                sendGaitResTime
- .bss.sendKPTrans
                 0x008001a0        0x2 Test_servo_v1.o
-                0x008001a0                sendKPTrans
- .bss.sendKPAngle
+                0x008001a0                sendGaitResTime
+ .bss.sendKPTrans
                 0x008001a2        0x2 Test_servo_v1.o
-                0x008001a2                sendKPAngle
- .bss.sendStepLength
+                0x008001a2                sendKPTrans
+ .bss.sendKPAngle
                 0x008001a4        0x2 Test_servo_v1.o
-                0x008001a4                sendStepLength
- .bss.sendRobotHeight
+                0x008001a4                sendKPAngle
+ .bss.sendStepLength
                 0x008001a6        0x2 Test_servo_v1.o
-                0x008001a6                sendRobotHeight
- .bss.sendStepHeight
+                0x008001a6                sendStepLength
+ .bss.sendRobotHeight
                 0x008001a8        0x2 Test_servo_v1.o
-                0x008001a8                sendStepHeight
- .bss.sendLegWidth
+                0x008001a8                sendRobotHeight
+ .bss.sendStepHeight
                 0x008001aa        0x2 Test_servo_v1.o
-                0x008001aa                sendLegWidth
- .bss.diagonalMovement_g
+                0x008001aa                sendStepHeight
+ .bss.sendLegWidth
                 0x008001ac        0x2 Test_servo_v1.o
-                0x008001ac                diagonalMovement_g
- .bss.stepLengthShortened_g
+                0x008001ac                sendLegWidth
+ .bss.diagonalMovement_g
                 0x008001ae        0x2 Test_servo_v1.o
-                0x008001ae                stepLengthShortened_g
- .bss.BlindStepsToTake_g
+                0x008001ae                diagonalMovement_g
+ .bss.stepLengthShortened_g
                 0x008001b0        0x2 Test_servo_v1.o
-                0x008001b0                BlindStepsToTake_g
- .bss.optionsHasChanged_g
+                0x008001b0                stepLengthShortened_g
+ .bss.BlindStepsToTake_g
                 0x008001b2        0x2 Test_servo_v1.o
-                0x008001b2                optionsHasChanged_g
- .bss.currentRotationInstruction
+                0x008001b2                BlindStepsToTake_g
+ .bss.optionsHasChanged_g
                 0x008001b4        0x2 Test_servo_v1.o
-                0x008001b4                currentRotationInstruction
- .bss.currentDirectionInstruction
+                0x008001b4                optionsHasChanged_g
+ .bss.currentRotationInstruction
                 0x008001b6        0x2 Test_servo_v1.o
-                0x008001b6                currentDirectionInstruction
- .bss.rangeToShortenStepLength_g
+                0x008001b6                currentRotationInstruction
+ .bss.currentDirectionInstruction
                 0x008001b8        0x2 Test_servo_v1.o
-                0x008001b8                rangeToShortenStepLength_g
+                0x008001b8                currentDirectionInstruction
+ .bss.rangeToShortenStepLength_g
+                0x008001ba        0x2 Test_servo_v1.o
+                0x008001ba                rangeToShortenStepLength_g
  *(COMMON)
- COMMON         0x008001ba      0xab0 nodsystemet.o
-                0x008001ba                nodeRingBuffer
-                0x008001cf                currentControlMode_g
-                0x008001d0                currentDirection_g
-                0x008001d1                currentNode_g
-                0x008001e7                currentOptionInstruction_g
-                0x008001e9                nodeArray
-                0x00800c4f                angleValue_g
-                0x00800c59                isLeakVisible_g
-                0x00800c5b                distanceValue_g
-                0x00800c67                directionHasChanged
-                0x00800c69                nextDirection_g
- COMMON         0x00800c6a        0x6 Timer.o
-                0x00800c6a                commUnitUpdatePeriod_g
-                0x00800c6c                timer2TotOverflow_g
-                0x00800c6d                timer0TotOverflow_g
-                0x00800c6e                gaitResolutionTime_g
- COMMON         0x00800c70        0x1 SPI.o
-                0x00800c70                inbuffer
- COMMON         0x00800c71      0x828 Test_servo_v1.o
-                0x00800c71                legPositions_g
-                0x00801081                regulation_g
-                0x00801087                actuatorPositions_g
-                0x00801497                posToCalcGait
-                0x00801499                PROVIDE (__bss_end, .)
-                0x0000b2ce                __data_load_start = LOADADDR (.data)
-                0x0000b346                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x008001bc      0xab0 nodsystemet.o
+                0x008001bc                nodeRingBuffer
+                0x008001d1                currentControlMode_g
+                0x008001d2                currentDirection_g
+                0x008001d3                currentNode_g
+                0x008001e9                currentOptionInstruction_g
+                0x008001eb                nodeArray
+                0x00800c51                angleValue_g
+                0x00800c5b                isLeakVisible_g
+                0x00800c5d                distanceValue_g
+                0x00800c69                directionHasChanged
+                0x00800c6b                nextDirection_g
+ COMMON         0x00800c6c        0x6 Timer.o
+                0x00800c6c                commUnitUpdatePeriod_g
+                0x00800c6e                timer2TotOverflow_g
+                0x00800c6f                timer0TotOverflow_g
+                0x00800c70                gaitResolutionTime_g
+ COMMON         0x00800c72        0x1 SPI.o
+                0x00800c72                inbuffer
+ COMMON         0x00800c73      0x828 Test_servo_v1.o
+                0x00800c73                legPositions_g
+                0x00801083                regulation_g
+                0x00801089                actuatorPositions_g
+                0x00801499                posToCalcGait
+                0x0080149b                PROVIDE (__bss_end, .)
+                0x0000b2ea                __data_load_start = LOADADDR (.data)
+                0x0000b362                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x00801499        0x0
-                0x00801499                PROVIDE (__noinit_start, .)
+.noinit         0x0080149b        0x0
+                0x0080149b                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x00801499                PROVIDE (__noinit_end, .)
-                0x00801499                _end = .
-                0x00801499                PROVIDE (__heap_start, .)
+                0x0080149b                PROVIDE (__noinit_end, .)
+                0x0080149b                _end = .
+                0x0080149b                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
  *(.eeprom*)
@@ -1402,13 +1405,13 @@ END GROUP
 .debug_pubnames
  *(.debug_pubnames)
 
-.debug_info     0x00000000     0x6124
+.debug_info     0x00000000     0x6136
  *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x00000000      0xf02 nodsystemet.o
- .debug_info    0x00000f02      0x31e Timer.o
- .debug_info    0x00001220      0x625 SPI.o
- .debug_info    0x00001845      0xb90 USART.o
- .debug_info    0x000023d5     0x3d4f Test_servo_v1.o
+ .debug_info    0x00000000      0xf14 nodsystemet.o
+ .debug_info    0x00000f14      0x31e Timer.o
+ .debug_info    0x00001232      0x625 SPI.o
+ .debug_info    0x00001857      0xb90 USART.o
+ .debug_info    0x000023e7     0x3d4f Test_servo_v1.o
 
 .debug_abbrev   0x00000000      0xcc7
  *(.debug_abbrev)
@@ -1418,13 +1421,13 @@ END GROUP
  .debug_abbrev  0x0000062f      0x1f2 USART.o
  .debug_abbrev  0x00000821      0x4a6 Test_servo_v1.o
 
-.debug_line     0x00000000     0x3786
+.debug_line     0x00000000     0x3792
  *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x00000000     0x1199 nodsystemet.o
- .debug_line    0x00001199      0x318 Timer.o
- .debug_line    0x000014b1      0x2e6 SPI.o
- .debug_line    0x00001797      0x569 USART.o
- .debug_line    0x00001d00     0x1a86 Test_servo_v1.o
+ .debug_line    0x00000000     0x119f nodsystemet.o
+ .debug_line    0x0000119f      0x318 Timer.o
+ .debug_line    0x000014b7      0x2e6 SPI.o
+ .debug_line    0x0000179d      0x569 USART.o
+ .debug_line    0x00001d06     0x1a8c Test_servo_v1.o
 
 .debug_frame    0x00000000     0x11dc
  *(.debug_frame)
@@ -1434,17 +1437,17 @@ END GROUP
  .debug_frame   0x00000424      0x1f0 USART.o
  .debug_frame   0x00000614      0xbc8 Test_servo_v1.o
 
-.debug_str      0x00000000     0x1714
+.debug_str      0x00000000     0x171e
  *(.debug_str)
- .debug_str     0x00000000      0x7ac nodsystemet.o
-                                0x7fb (size before relaxing)
- .debug_str     0x000007ac      0x171 Timer.o
+ .debug_str     0x00000000      0x7b6 nodsystemet.o
+                                0x805 (size before relaxing)
+ .debug_str     0x000007b6      0x171 Timer.o
                                 0x3c7 (size before relaxing)
- .debug_str     0x0000091d       0xf9 SPI.o
+ .debug_str     0x00000927       0xf9 SPI.o
                                 0x393 (size before relaxing)
- .debug_str     0x00000a16      0x283 USART.o
+ .debug_str     0x00000a20      0x283 USART.o
                                 0x3a7 (size before relaxing)
- .debug_str     0x00000c99      0xa7b Test_servo_v1.o
+ .debug_str     0x00000ca3      0xa7b Test_servo_v1.o
                                 0xf9d (size before relaxing)
 
 .debug_loc      0x00000000     0x6364
