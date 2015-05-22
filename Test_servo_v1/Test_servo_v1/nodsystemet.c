@@ -8,11 +8,13 @@
 #define MAX_T_CROSSINGS 10
 
 int pathToLeak[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
-
+int pathBackHome[MAX_T_CROSSINGS] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4}; // noDirection = 4
 
 #define CLOSE_ENOUGH_TO_WALL 280  // Roboten går rakt fram tills den här längden
 
 #define MAX_WALL_DISTANCE 440    // Utanför denna längd är det ingen vägg
+
+
 
 int tempNorthAvailible_g = TRUE;
 int tempEastAvailible_g = FALSE;
@@ -27,10 +29,14 @@ int currentTcrossing_g = 0;
 int TcrossingsFound_g = 0;
 int distanceToFrontWall_g = 0;
 int leaksToPass_g = 0;
-int currentPath = 0;
 int deadEnds = 0;
+int currentPath = 0;
+int currentPathHome = 0;
+
+int DONE = FALSE;
 
 int wantedLeak = 0;
+
 
 int makeNodeData(node* nodeToSend)
 {
@@ -80,8 +86,589 @@ void fillNodeMemoryWithTemp()
 	addNode(&nodeRingBuffer, simpleTempNode);
 	addNode(&nodeRingBuffer, simpleTempNode);
 }
-// Ska finnas i bägge modes
+
+
+/*#define L_DEADEND 400
+#define L_SIDE 450
+#define L_WIDTH 490 //570
+#define L_TWALL 470
+#define L_TWALL_LONG 490 //600
+#define L_TURN 500*/
+
+#define L_DEADEND 400
+#define L_SIDE 460
+#define L_WIDTH 430 //570
+#define L_TWALL 470
+#define L_TWALL_LONG 490 //600
+#define L_TURN 500
+#define MAX_CORRIDOR_DISTANCE 350
+
 void updateTempDirections()
+{
+	int frontDistance_;
+	int backDistance_;
+	int rightSide_;
+	int leftSide_;
+	int rightDistance_ = distanceValue_g[FRONT_RIGHT];
+	int leftDistance_ = distanceValue_g[FRONT_LEFT];
+	if (currentDirection_g == north)
+	{
+		distanceToFrontWall_g = distanceValue_g[NORTH];
+		frontDistance_ = distanceValue_g[NORTH];
+		backDistance_ = distanceValue_g[SOUTH];
+		rightSide_ = distanceValue_g[EAST];
+		leftSide_ = distanceValue_g[WEST];
+	} 
+	else if (currentDirection_g == east)
+	{
+		distanceToFrontWall_g = distanceValue_g[EAST];
+		frontDistance_ = distanceValue_g[EAST];
+		backDistance_ = distanceValue_g[WEST];
+		rightSide_ = distanceValue_g[SOUTH];
+		leftSide_ = distanceValue_g[NORTH];
+	} 
+	else if (currentDirection_g == south)
+	{
+		distanceToFrontWall_g = distanceValue_g[SOUTH];
+		frontDistance_ = distanceValue_g[SOUTH];
+		backDistance_ = distanceValue_g[NORTH];
+		rightSide_ = distanceValue_g[WEST];
+		leftSide_ = distanceValue_g[EAST];
+	} 
+	else if (currentDirection_g == west)
+	{
+		distanceToFrontWall_g = distanceValue_g[WEST];
+		frontDistance_ = distanceValue_g[WEST];
+		backDistance_ = distanceValue_g[EAST];
+		rightSide_ = distanceValue_g[NORTH];
+		leftSide_ = distanceValue_g[SOUTH];
+	}
+								  //// Ta kanske bort dessa två ////
+	if (frontDistance_ < 350)     //// om väst kort åtgärdas    ////
+	{                             //// söndag                   //// söndag       ///////// lördag
+		if ((rightSide_ > L_WIDTH - 20) && (leftSide_ > L_WIDTH - 20) &&    (backDistance_ > L_SIDE))
+		{
+			// In i T-korsning
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+		
+		
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+		
+		
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+		
+		
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			}	
+					
+			                            ////
+		} else if ((rightSide_ < L_SIDE - 50) && (leftSide_ > L_WIDTH))
+		{
+			// Sväng vänster
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			}
+			
+			                                                     ////
+		} else if ((rightSide_ > L_WIDTH) && (leftSide_ < L_SIDE - 50))
+		{
+			// Sväng höger
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			}
+			
+			
+			
+		} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+		{
+		// Återvändsgränd
+		// Kolla summa av sidoavstånd + robotbredd, kan vara sväng eller
+			if ((rightSide_ + leftSide_ + 140) > 620) // 140 sensorernas avstånd från varandra
+			{
+			
+			} else if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			
+			
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			
+			
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			
+			
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			}
+
+		}
+	} else if ((rightSide_ < L_SIDE) && (leftSide_ > L_SIDE))
+	{                                //// söndag                      //// lördag
+		if ((frontDistance_ > L_SIDE + 20) && (backDistance_ > L_SIDE + 20))
+		{
+			// T-korsning vänster
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+			}
+			
+			
+		}
+	} else if ((rightSide_ > L_SIDE) && (leftSide_ < L_SIDE))
+	{                                //// söndag                      //// lördag
+		if ((frontDistance_ > L_SIDE + 20) && (backDistance_ > L_SIDE + 20))
+		{
+			// T-korsning höger
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			}
+			
+			
+		}
+	} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+	{
+		if (frontDistance_ > L_SIDE)
+		{
+			// Korridor
+			if ((currentDirection_g == north) || (currentDirection_g == south))
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			} else if ((currentDirection_g == west) || (currentDirection_g == east))
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			}		
+		}
+	}
+	
+	
+	
+	
+//-----------------------	
+	/*if ((rightDistance_ < L_SIDE) && (leftDistance_ < L_SIDE))
+	{
+		if (frontDistance_ < L_DEADEND)
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			}
+		}
+		else
+		{
+			if ((currentDirection_g == north) || (currentDirection_g == SOUTH))
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			} else if ((currentDirection_g == west) || (currentDirection_g == east))
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			}
+		}
+	} else if ((rightDistance_ < L_SIDE) && (leftDistance_ > L_WIDTH))
+	{
+		if (frontDistance_ < L_TURN) // Sväng åt vänster
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			}			
+		}
+		else if ((backDistance_ > L_TWALL) && (frontDistance_ > L_TWALL_LONG))// T-korsning åt vänster
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+			}			
+		}
+	}else if ((rightDistance_ > L_WIDTH) && (leftDistance_ < L_SIDE))
+	{
+		if (frontDistance_ < L_TURN) // Sväng åt höger
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = FALSE;
+			}			
+		}
+		else if ((backDistance_ > L_TWALL)  && (frontDistance_ > L_TWALL_LONG))// T-korsning åt höger
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+			}			
+		}
+	}
+	else if ((rightDistance_ > L_WIDTH) && (leftDistance_ > L_WIDTH) && (((leftSide_ < L_WIDTH) && (rightSide_ < L_WIDTH)) || ((leftSide_ > L_WIDTH) && (rightSide_ > L_WIDTH)))) // SLäng in något som kollar på sidoavstånd, ej främre sensorer, för att kolla på z-svängar
+	{
+		if (frontDistance_ < L_TWALL + 50) // In i T-korsning åt båda håll
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+			}			
+		} else if ( backDistance_ < L_TWALL) // Ut ur T-korsning åt båda håll
+		{
+			if (currentDirection_g == north)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = FALSE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == EAST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = FALSE;
+				
+				
+			} else if (currentDirection_g == SOUTH)
+			{
+				tempNorthAvailible_g = FALSE;
+				tempEastAvailible_g = TRUE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+				
+				
+			} else if (currentDirection_g == WEST)
+			{
+				tempNorthAvailible_g = TRUE;
+				tempEastAvailible_g = FALSE;
+				tempSouthAvailible_g = TRUE;
+				tempWestAvailible_g = TRUE;
+			}			
+		}
+	}
+	else
+	{
+		// Skicka ut något för felsökning
+	}*/
+}
+
+// Ska finnas i bägge modes
+void updateTempDirectionsOld()
 {
     if (currentDirection_g == north)
         distanceToFrontWall_g = distanceValue_g[NORTH];
@@ -121,7 +708,8 @@ int validLeak()
 {
     if (isLeakVisible_g == TRUE)
     {
-        if (actualLeak_g == 2)      // Når variabeln actualLeak_g 2
+		if (actualLeak_g == 0) // bleh, test -----------------------------------------------------------------
+        //if (actualLeak_g == 2)      // Når variabeln actualLeak_g 2
         {                           // så är det en faktisk läcka
             return TRUE;
         }
@@ -135,9 +723,9 @@ int validLeak()
     {
         actualLeak_g = 0;
     }
-
+    
     return FALSE;
-}
+}    
 
 // Ska finnas i bägge modes
 void updateLeakInfo()
@@ -145,9 +733,11 @@ void updateLeakInfo()
     if ((validLeak() == TRUE) &&
     (nodeArray[lastAddedNodeIndex_g].containsLeak == FALSE) &&     // Innehåller noden redan en läcka?
     !(nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING) &&    // Läckor får ej finnas i T-korsningar
-    !(nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END))        // Läckor hamnar innanför en DEAD_END, och detta gör att läckor
-    {                                                       // inte läggs till på tillbakavägen
+    !(nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END) && // Läckor hamnar innanför en DEAD_END, och detta gör att läckor inte läggs till på tillbakavägen
+    (newLeak_g == TRUE))                                           // Kollar så vi inte redan lagt till denna läcka
+    {                                                       
         leaksFound_g ++;
+        newLeak_g = FALSE;                                          // Vi har lagt till läckan
 
         nodeArray[lastAddedNodeIndex_g].containsLeak = TRUE;       // Uppdaterar att noden har en läcka i sig
         nodeArray[lastAddedNodeIndex_g].leakID = leaksFound_g;     // Läckans id får det nummer som den aktuella läckan har
@@ -368,7 +958,7 @@ int tempIsTCrossing()
 int checkIfNewNode()
 {
     decideChangeFromMajority(); // denna sparar undan tempDir i ringBuffer och ändrar sedan tempDir till majoritetsbeslut. 
-    if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
+    /*if ((nodeArray[lastAddedNodeIndex_g].whatNode == TURN) || (nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING))
     {
 	    if ((currentDirection_g == north) && (distanceValue_g[SOUTH] < MAX_WALL_DISTANCE + 80))
 	        return FALSE;
@@ -392,7 +982,7 @@ int checkIfNewNode()
 		if ((currentNode_g.whatNode == T_CROSSING) && tempIsTCrossing())
 			return FALSE;
         return TRUE;    // Förändringen va en vägg där fram, nu har roboten gått tillräckligt långt
-    }
+    }*/
 	
 	
 /*	else if (isChangeDetected() == TRUE) //----------------------------------------------------------------------------testitesti
@@ -401,20 +991,13 @@ int checkIfNewNode()
 		return TRUE;
 	} //---------------------------------------------------------------------------------------------------------------
 	*/
-/*
+
 	if (isChangeDetected() == TRUE)
 	{
-		if ((tempIsDeadEnd() == TRUE) && (lastAddedNodeIndex_g > 1) && (currentNode_g.whatNode != DEAD_END) && (currentNode_g.whatNode != END_OF_MAZE))
-		{
-			if (distanceToFrontWall_g < CLOSE_ENOUGH_TO_WALL)
-				return TRUE;
-			else
-				return FALSE;
-		}
 		if ((currentNode_g.whatNode == T_CROSSING) && tempIsTCrossing())
 			return FALSE;
 		return TRUE;
-	} */
+	} 
     else
         return FALSE;
 }
@@ -526,10 +1109,24 @@ int calcPathsExplored(int whatNode_, int nodeID_)
     return paths;
 }
 
+int inverseThisDirection(int dir_)
+{
+	if (dir_ == north)
+	return south;
+	else if (dir_ == east)
+	return west;
+	else if (dir_ == south)
+	return north;
+	else if (dir_ == west)
+	return east;
+	else
+	return noDirection;
+}
+
 // Får finnas i bägge, behövs i MapMode
 int whatWayIn()
 {
-    return currentDirection_g;
+	return inverseThisDirection(currentDirection_g);
 }
 
 // MapMode
@@ -563,7 +1160,7 @@ void placeNodeInArray()
     nodeArray[lastAddedNodeIndex_g].leakID          = currentNode_g.leakID;
 }
 
-void makeLeakPath(char wantedLeak_g)
+void makePathToLeakAndHome(int findThisLeak_)
 {
     int index = 0;
     int i = 0;
@@ -583,7 +1180,9 @@ void makeLeakPath(char wantedLeak_g)
             else if (nodeArray[i].pathsExplored == 2)
             {
                 if (nodeArray[i].nodeID == 1)
-                    pathToLeak[0] = noDirection;
+				{
+					pathToLeak[0] = noDirection;
+				}
                 else
                 {
                     pathToLeak[index] = noDirection;
@@ -595,7 +1194,7 @@ void makeLeakPath(char wantedLeak_g)
         }
         else if (nodeArray[i].containsLeak == TRUE)
         {
-            if (nodeArray[i].leakID == wantedLeak_g)
+            if (nodeArray[i].leakID == findThisLeak_)
                 break;
             else
                 leaksToPass_g ++;
@@ -686,6 +1285,10 @@ int westToNext()
 
 int decideDirection()      // Autonoma läget
 {
+	if (DONE == TRUE)
+	{
+		return noDirection;
+	}
     enum direction tempDirection = currentDirection_g;
     if (currentNode_g.whatNode == CORRIDOR)
     {
@@ -730,6 +1333,9 @@ void initNodeAndSteering()
     nodeArray[0].westAvailible = FALSE;
     nodeArray[0].containsLeak = FALSE;
     nodeArray[0].leakID = 0;
+	
+	currentPathHome = 0;
+	currentPath = 0;
 }
 
 int nodesAndControl()
@@ -773,64 +1379,82 @@ int nodesAndControl()
 
             switch(currentOptionInstruction_g)
             {
-                case 0b11100000  :
-                    wantedLeak = 1;
-                    makeLeakPath(wantedLeak);
+				
+                case 0b11000000  :
+					wantedLeak = 1;
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100001  :
+                case 0b11000001  :
                     wantedLeak = 2;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100010  :
+                case 0b11000010  :
                     wantedLeak = 3;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100011  :
+                case 0b11000011  :
                     wantedLeak = 4;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
-                case 0b11100100  :
+                case 0b11000100  :
                     wantedLeak = 5;
-                    makeLeakPath(wantedLeak);
+                    makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+					directionHasChanged = TRUE;
+					currentDirection_g = north;
+					nextDirection_g = north;
                     break;
                 default  :
                     break;
             }
             
-            if (currentDirection_g != noDirection)
+            if ((currentDirection_g != noDirection) && (currentControlMode_g == waitForInput))
             {
                 directionHasChanged = TRUE;
                 nextDirection_g = noDirection;
-                // skicka info om detta till datorn
             }
             break;
 
         case returnToLeak  :
-			{
+		{
+				
 			updateTempDirections();
 
 			if (checkIfNewNode() == TRUE)
 			{
+				fillNodeMemoryWithTemp();
 				updateCurrentNode();
 
 				if (currentNode_g.whatNode == T_CROSSING)
 				{
+					pathBackHome[currentPath] = inverseThisDirection(currentDirection_g);
 					directionHasChanged = TRUE;
 					nextDirection_g = pathToLeak[currentPath];
 					currentPath ++;
-					// skicka info om detta till datorn
 				}
 				else
 				{
 					nextDirection_g = decideDirection();
 					directionHasChanged = TRUE;
-					// Skicka info om detta till datorn
 				}
+				
+				nodeUpdated = TRUE;
 			}
 
 			if (pathToLeak[currentPath] == noDirection)     // Roboten har nu passerat det sista vägvalet
@@ -846,16 +1470,73 @@ int nodesAndControl()
 							if (currentDirection_g != noDirection)
 							{
 								directionHasChanged = TRUE;     // Läckan är nu hittad
-								nextDirection_g = noDirection;
+								// delay??
+								nextDirection_g = inverseThisDirection(currentDirection_g);
+								currentPathHome = currentPath - 1;
+								currentControlMode_g = returnHome;
+                                switch(wantedLeak) // Tänd lampor på roboten
+                                {
+                                    case 1:
+                                    {
+                                        fetchDataFromSensorUnit(0b00010001);
+                                        break;
+                                    }
+                                    case 2:
+                                    {
+                                        fetchDataFromSensorUnit(0b00010010);
+                                        break;
+                                    }
+                                    case 3:
+                                    {
+                                        fetchDataFromSensorUnit(0b00010100);
+                                        break;
+                                    }                                     
+                                }                                    
 							}
 						}
 						else
-						leaksToPass_g --;
+							leaksToPass_g --;
 					}
 				}
 			}
 			break;
+		}
+			
+		case returnHome  :
+		{
+			updateTempDirections();
+			
+			if (checkIfNewNode() == TRUE)
+			{
+				fillNodeMemoryWithTemp();
+				updateCurrentNode();
+
+				if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
+				{
+					DONE = TRUE;
+					directionHasChanged = TRUE;
+					nextDirection_g = noDirection;
+					currentDirection_g = noDirection;
+					currentControlMode_g = waitForInput;
+					
+				}
+				else if (currentNode_g.whatNode == T_CROSSING)
+				{
+					directionHasChanged = TRUE;
+					nextDirection_g = pathBackHome[currentPathHome];
+					currentPathHome --;
+				}
+				else
+				{
+					directionHasChanged = TRUE;
+					nextDirection_g = decideDirection();					
+				}
+				
+				nodeUpdated = TRUE;
 			}
+			
+			break;	
+		}
         default:
 			break;
     }

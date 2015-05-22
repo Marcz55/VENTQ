@@ -67,7 +67,7 @@ int calcPathsExplored(int whatNode_, int nodeID_);
 int whatWayIn();
 void updateCurrentNode();          // Uppdaterar nuvarande nod, eg. skapar en ny nod
 void placeNodeInArray();
-void makeLeakPath(char wantedLeak_g);
+void makePathToLeakAndHome(int findThisLeak_);
 int northToNext();
 int eastToNext();
 int southToNext();
@@ -76,5 +76,5 @@ int decideDirection();      // Autonoma läget
 void initNodeAndSteering();
 void chooseAndSetFrontSensors();
 int nodesAndControl();
-
+int newLeak_g;
 #endif /* NODSYSTEMET_H_ */

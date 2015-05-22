@@ -20,7 +20,7 @@ int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
 int closeEnoughToTurn = 0;
-		
+int rangeToShortenStepLength_g = 0;	
 
 
 int stepLength_g = 80;
@@ -38,6 +38,8 @@ int currentRotationInstruction = 0;
 int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
+int emergencyDowntime_g = 0;
+int emergencyLockdown_g = FALSE;
 // ------ Globala variabler för "svängar" ------
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
@@ -45,7 +47,7 @@ int BlindStepsTaken_g = 0;
 int BlindStepsToTake_g = 0;
 
 // ------ Inställningar för robot-datorkommunikation ------
-int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
+int newCommUnitUpdatePeriod = INCREMENT_PERIOD_40;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
@@ -694,22 +696,27 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 			}
 			case RETURN_TO_LEAK_1:
 			{
+				currentOptionInstruction_g = RETURN_TO_LEAK_1;
 				break;
 			}
 			case RETURN_TO_LEAK_2:
 			{
+				currentOptionInstruction_g = RETURN_TO_LEAK_2;
 				break;
 			}
 			case RETURN_TO_LEAK_3:
 			{
+				currentOptionInstruction_g = RETURN_TO_LEAK_3;
 				break;
 			}
 			case RETURN_TO_LEAK_4:
 			{
+				currentOptionInstruction_g = RETURN_TO_LEAK_4;
 				break;
 			}
 			case RETURN_TO_LEAK_5:
 			{
+				currentOptionInstruction_g = RETURN_TO_LEAK_5;
 				break;
 			}
 		}
@@ -781,8 +788,8 @@ void transmitAllDataToCommUnit()
     transmitDataToCommUnit(DISTANCE_EAST, distanceValue_g[EAST]);
     transmitDataToCommUnit(DISTANCE_SOUTH, distanceValue_g[SOUTH]);
     transmitDataToCommUnit(DISTANCE_WEST, distanceValue_g[WEST]);
-    transmitDataToCommUnit(ANGLE_NORTH, distanceValue_g[FRONT_RIGHT]);
-    transmitDataToCommUnit(ANGLE_EAST, distanceValue_g[FRONT_LEFT]);
+    transmitDataToCommUnit(ANGLE_NORTH, angleValue_g[NORTH]);
+    transmitDataToCommUnit(ANGLE_EAST, angleValue_g[EAST]);
     transmitDataToCommUnit(ANGLE_SOUTH, angleValue_g[SOUTH]);
     transmitDataToCommUnit(ANGLE_WEST, angleValue_g[WEST]);
     transmitDataToCommUnit(LEAK_HEADER, fetchDataFromSensorUnit(LEAK_HEADER));
@@ -1070,8 +1077,8 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 
 
     // om vi har en vägg framför oss är det bäst att ta mindre steglängder
-    if (!frontAvailable())
-    {
+    if(distanceValue_g[currentDirection_g] < rangeToShortenStepLength_g)
+	{
         if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
         {
            stepLength_g = stepLength_g/2;
@@ -1693,7 +1700,39 @@ int frontAvailable()
 	}
 }
 
+int tooCloseToFrontWall()
+{
+    if(currentDirection_g == noDirection)
+    {
+        return FALSE;
+    }
+    if(distanceValue_g[currentDirection_g]  < startPositionX_g + stepLength_g/2 + 80) //(stepLength_g/2 + halfPathWidth_g))
+    {
+        return TRUE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
 
+void emergencyStop()
+{
+    returnToStartPosition();
+    currentGait = standStill;
+}
+
+void emergencyController()
+{
+    if (emergencyDowntime_g > 0)
+        emergencyDowntime_g--;
+    else
+    {
+        emergencyLockdown_g = FALSE;
+        directionHasChanged = TRUE; // För att roboten ska kunna börja gå igen
+    }
+    return;        
+}
 void gaitController()
 {
 
@@ -1703,8 +1742,8 @@ void gaitController()
 	
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
-    applyOrder();
-	calcRegulation(decideRegulationDirection(), TRUE);
+        applyOrder();
+	    calcRegulation(decideRegulationDirection(), TRUE);
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -2118,9 +2157,24 @@ void sendChangedRobotParameters()
 void checkForLeak()
 {
 	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
+    
+    if(currentControlMode_g == exploration)
+    {
+        if (isLeakVisible_g)
+        {
+          fetchDataFromSensorUnit(0b00010111);
+        }
+        else
+        {
+          fetchDataFromSensorUnit(0b00010000);
+          newLeak_g = TRUE;
+        }
+    }      
+    
 }
 int main(void)
 {
+    newLeak_g = TRUE;
 	initUSART();
     spiMasterInit();
     EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
@@ -2138,9 +2192,10 @@ int main(void)
     currentGait = standStill;
     optionsHasChanged_g = 0;
     BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+	rangeToShortenStepLength_g = startPositionX_g + 2*stepLength_g + 50;
 	
     int nodeUpdated_g = FALSE;
-	int sendDataToPC = FALSE; // Används för att bara skicka varannan gång i commPeriodTimerEnd
+	int sendDataToPC = 1; // Används för att bara skicka varannan gång i commPeriodTimerEnd
 	initNodeRingBuffer(); // Fyller buffern med 5 st återvändsgränder med öppet åt norr. 
     timer0Init();
     timer2Init();
@@ -2162,6 +2217,7 @@ int main(void)
 	sendAllRobotParameters();
 
 	int i = 0;
+
     // ---- Main-Loop ----
     while (1)
     {
@@ -2169,8 +2225,12 @@ int main(void)
     	if (legTimerPeriodEnd())
     	{
     	    resetLegTimer();
+            /*
+            if (emergencyLockdown_g)
+                emergencyController();
+            */
             move();
-            applyOrder(); // detta är endast test
+            //applyOrder(); // detta är endast test
             gaitController();
     	}
     	if (commTimerPeriodEnd())
@@ -2178,8 +2238,14 @@ int main(void)
             resetCommTimer();
 	        updateAllDistanceSensorData();            
             updateTotalAngle();
-
-	    
+            /*
+            if (tooCloseToFrontWall() && currentControlMode_g != manual && !emergencyLockdown_g)
+            {
+                emergencyLockdown_g = TRUE;
+                emergencyDowntime_g = 12; 
+                emergencyStop();
+            }
+            */
             /*
             nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
             Kan dessutom ändra på controlMode.
@@ -2195,7 +2261,7 @@ int main(void)
                 transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
                 transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
             }
-            if (sendDataToPC)
+            if (sendDataToPC >= 10)
 	        {
                 if (sendStuff && i < 120)
                 {
@@ -2206,11 +2272,11 @@ int main(void)
 	            {
                     transmitAllDataToCommUnit();
 	            }
-			    sendDataToPC = FALSE;
+			    sendDataToPC = 1;
 	        }
 	        else
 	        {
-			    sendDataToPC = TRUE;
+			    sendDataToPC++;
 	        }
             
 	        

@@ -56,8 +56,9 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
-int leakSensitivity_g = 8; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+int leakSensitivity_g = 5; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
 int leakCounter_g = 0;
+int noLeakCounter_g = 0;
 
 //Tabell för att omvandla A/d-omvandlat värde till avstånd
 // Måste skapa en per sensor
@@ -81,6 +82,7 @@ int leakCounter_g = 0;
 //-------------------------------
 //-------------------------------
 // Ställ in rätt sidoavstånd!!!!!
+
 //-------------------------------
 //-------------------------------
 
@@ -494,6 +496,15 @@ void splitDataBytes(int recievedHeader)
 					dataToSplit = averageDistance4;
 					break;
 				}
+                default:
+                {
+                    if((recievedHeader <= 23) && (recievedHeader >= 16))
+                    {
+                        toggleLamps((recievedHeader & 0b00000100)/4,(recievedHeader & 0b00000010)/2,(recievedHeader & 0b00000001));
+                    }
+                    dataToSplit = 0;
+                    break;
+                }                    
 			}
 		}
 		else
@@ -587,7 +598,13 @@ void splitDataBytes(int recievedHeader)
     transmitDataByte2 = (dataToSplit & 0b0000000011111111);
 }
 
-
+void toggleLamps(int lamp1_, int lamp2_, int lamp3_)
+{
+    if((lamp1_ == 1 || lamp1_ == 0) && (lamp2_ == 1 || lamp2_ == 0) && (lamp3_ == 1 || lamp3_ == 0))
+    {
+        PORTC = ((lamp1_ << PORTC0) | (lamp2_ << PORTC1) | (lamp3_ << PORTC6));
+    } 
+}
 
 ISR(SPISTC_vect)//SPI-överföring klar
 {
@@ -638,6 +655,8 @@ int main(void)
     //MCUCR = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     GICR = (GICR | 32); // Möjliggör externa avbrott på INT2
 	
+	DDRC = (DDRC | 0b01000011);
+	
 	int iteration = 0; // Iterator för vilken avläsning på sensorn som görs
 	
 	makeAngleTable();
@@ -649,19 +668,27 @@ int main(void)
 		if(potentialLeak_g > leakSensitivity_g)
 		{
 			leakCounter_g ++;
+			noLeakCounter_g = 0;
 		} 
 		else 
 		{
 			leakCounter_g = 0;
-			leakFound_g = 0;
+			noLeakCounter_g ++;
 		}
 		
 		if (leakCounter_g >= 3)
 		{
 			leakFound_g = 1;
 			leakCounter_g = 0;
+			//PORTC = ((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC6));
+			
+		} 
+		else if(noLeakCounter_g >= 3)
+		{
+			leakFound_g = 0;
+			//PORTC = ((0 << PORTC0) | (0 << PORTC1) | (0 << PORTC6));		
 		}
-		//leakFound = !leakBit;
+
 		potentialLeak_g = 0;
 				
 		if (iteration >= 4) // iteration används så att det görs 5 mätningar per sensor
@@ -705,8 +732,8 @@ int main(void)
 		waitForConversionComplete();
 		sensor8[iteration] = tempReading;				
 		
-		if (iteration == 4)
-		{
+		/*if (iteration == 4)
+		{*/
 			
 			calculateAvarageDistance();
 			
@@ -721,8 +748,8 @@ int main(void)
 			PORTB = (0<<displayE);
 			_delay_ms(1);
 
-			writeSensor(sideAngle1);
-			writeSensor(sideAngle2);
+			writeSensor(averageDistance2);
+			writeSensor(averageDistance5);
 			writeSensor(potentialLeak_g);
 			writeSensor(leakFound_g);
 		
@@ -733,10 +760,10 @@ int main(void)
 
 
 			_delay_ms(6); // Väntar på att sensorerna uppdateras, väntar bara i 6 ms eftersom delayer för utskrift summeras till 34 ms
-		}
+		/*}
 		else
 		{
 			_delay_ms(40); // Väntar på att sensorerna uppdateras vilket tar ca 40 ms.
-		}
+		}*/
 	}
 }
