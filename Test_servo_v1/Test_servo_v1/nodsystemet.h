@@ -76,5 +76,5 @@ int decideDirection();      // Autonoma läget
 void initNodeAndSteering();
 void chooseAndSetFrontSensors();
 int nodesAndControl();
-
+int newLeak_g;
 #endif /* NODSYSTEMET_H_ */

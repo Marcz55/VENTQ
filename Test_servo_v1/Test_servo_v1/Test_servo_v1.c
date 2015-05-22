@@ -1734,11 +1734,16 @@ void emergencyController()
     return;        
 }
 void gaitController()
-{	
+{
+
+	
+    // tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
+	
+	
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
         applyOrder();
-        calcRegulation(decideRegulationDirection(), TRUE);
+	    calcRegulation(decideRegulationDirection(), TRUE);
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -1972,9 +1977,9 @@ void gaitController()
 			if (currentGait == standStill)
 			{
 				transitionStartToTrot();
-                currentGait = trotGait;
 			}
-            if(TRUE) // kan bara få en ny order om vi inte redan har någon
+			currentGait = trotGait;
+            if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
 		    {
 				if (nextDirection_g == noDirection)
 				{
@@ -2169,6 +2174,7 @@ void checkForLeak()
 }
 int main(void)
 {
+    newLeak_g = TRUE;
 	initUSART();
     spiMasterInit();
     EICRA = 0b1111; // Stigande flank på INT1/0 genererar avbrott
@@ -2186,7 +2192,7 @@ int main(void)
     currentGait = standStill;
     optionsHasChanged_g = 0;
     BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
-	rangeToShortenStepLength_g = startPositionX_g + 2*stepLength_g + 180;
+	rangeToShortenStepLength_g = startPositionX_g + 2*stepLength_g + 50;
 	
     int nodeUpdated_g = FALSE;
 	int sendDataToPC = 1; // Används för att bara skicka varannan gång i commPeriodTimerEnd

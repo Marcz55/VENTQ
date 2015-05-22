@@ -37,7 +37,6 @@ int DONE = FALSE;
 
 int wantedLeak = 0;
 
-int newLeak_g = TRUE;
 
 int makeNodeData(node* nodeToSend)
 {

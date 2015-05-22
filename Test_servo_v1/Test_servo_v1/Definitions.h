@@ -220,6 +220,7 @@ enum controlMode{
 	returnHome
 };
 
+
 enum controlMode currentControlMode_g;
 
 // ----- Kommunikation -------
