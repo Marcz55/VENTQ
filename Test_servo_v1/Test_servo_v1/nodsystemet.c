@@ -37,6 +37,8 @@ int DONE = FALSE;
 
 int wantedLeak = 0;
 
+int newLeak_g = TRUE;
+
 int makeNodeData(node* nodeToSend)
 {
     int data = 0;
@@ -722,9 +724,9 @@ int validLeak()
     {
         actualLeak_g = 0;
     }
-
+    
     return FALSE;
-}
+}    
 
 // Ska finnas i bägge modes
 void updateLeakInfo()
@@ -732,9 +734,11 @@ void updateLeakInfo()
     if ((validLeak() == TRUE) &&
     (nodeArray[lastAddedNodeIndex_g].containsLeak == FALSE) &&     // Innehåller noden redan en läcka?
     !(nodeArray[lastAddedNodeIndex_g].whatNode == T_CROSSING) &&    // Läckor får ej finnas i T-korsningar
-    !(nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END))        // Läckor hamnar innanför en DEAD_END, och detta gör att läckor
-    {                                                       // inte läggs till på tillbakavägen
+    !(nodeArray[lastAddedNodeIndex_g].whatNode == DEAD_END) && // Läckor hamnar innanför en DEAD_END, och detta gör att läckor inte läggs till på tillbakavägen
+    (newLeak_g == TRUE))                                           // Kollar så vi inte redan lagt till denna läcka
+    {                                                       
         leaksFound_g ++;
+        newLeak_g = FALSE;                                          // Vi har lagt till läckan
 
         nodeArray[lastAddedNodeIndex_g].containsLeak = TRUE;       // Uppdaterar att noden har en läcka i sig
         nodeArray[lastAddedNodeIndex_g].leakID = leaksFound_g;     // Läckans id får det nummer som den aktuella läckan har
@@ -1471,7 +1475,7 @@ int nodesAndControl()
 								nextDirection_g = inverseThisDirection(currentDirection_g);
 								currentPathHome = currentPath - 1;
 								currentControlMode_g = returnHome;
-                                switch(wantedLeak)
+                                switch(wantedLeak) // Tänd lampor på roboten
                                 {
                                     case 1:
                                     {
