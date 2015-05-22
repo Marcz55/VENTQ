@@ -30,7 +30,7 @@ int startPositionZ_g = -80;
 int stepHeight_g =  20;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_40; // tid i timerloopen för benstyrningen i ms
 
 
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
@@ -1977,9 +1977,10 @@ void gaitController()
 			if (currentGait == standStill)
 			{
 				transitionStartToTrot();
+                currentGait = trotGait;
 			}
-			currentGait = trotGait;
-            if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
+			
+            if(TRUE) // kan bara få en ny order om vi inte redan har någon
 		    {
 				if (nextDirection_g == noDirection)
 				{
