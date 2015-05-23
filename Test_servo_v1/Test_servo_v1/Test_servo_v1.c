@@ -22,6 +22,11 @@ int regulation_g[3]; // array som regleringen sparas i
 int closeEnoughToTurn = 0;
 int rangeToShortenStepLength_g = 0;	
 
+// Emergency lockdown
+#define EMERGENCY_LOCKDOWN_DISTANCE 240
+int tooCloseLastTime_g = FALSE;
+int emergencyDowntime_g = 0;
+int emergencyLockdown_g = FALSE;
 
 int stepLength_g = 70;
 int startPositionX_g = 80;
@@ -38,21 +43,23 @@ int currentRotationInstruction = 0;
 int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
-int emergencyDowntime_g = 0;
-int emergencyLockdown_g = FALSE;
+
 // ------ Globala variabler för "svängar" ------
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
-int BlindStepsToTake_g = 0;
+int BlindStepsToTake_g = 2;
 int allowedToMove_g = 0;
+int savedSteplength_g;
+int hasSavedSteplength_g = FALSE;
+#define BLIND_STEP_LENGTH 100
 
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_40;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
-float kProportionalAngle_g = 1;
+float kProportionalAngle_g = 1.5;
 
 // hanterar om vi har förkortat steglängden eller ej
 int stepLengthShortened_g = FALSE;
@@ -732,7 +739,12 @@ ISR(INT1_vect)
 	if (toggleMania)
     {
         allowedToMove_g = FALSE;
-        currentControlMode_g = manual;
+        
+        emergencyLockdown_g = TRUE;
+        emergencyDowntime_g = 12;
+        emergencyStop();
+        
+        //currentControlMode_g = manual;
         sendStuff = TRUE;
         toggleMania = FALSE;
     }
@@ -1201,15 +1213,22 @@ enum order{
 };
 enum order currentOrder_g = noOrder;
 
-// en funktion som utför det currentAction_g anger
+// en funktion som utför det currentOrder_g anger
 void applyOrder()
 {
-    // currentDirection_g = nextDirection_g;
 	if(currentOrder_g == turnBlind)
 	{
+        if (!hasSavedSteplength_g)
+        {
+            hasSavedSteplength_g = TRUE;
+            savedSteplength_g = stepLength_g;
+            stepLength_g = BLIND_STEP_LENGTH;
+        }            
 		BlindStepsTaken_g = BlindStepsTaken_g + 1;
 		if(BlindStepsTaken_g > BlindStepsToTake_g)
 		{
+            hasSavedSteplength_g = FALSE;
+            stepLength_g = savedSteplength_g;
 			currentDirection_g = nextDirection_g;
 			currentOrder_g = noOrder;
 			BlindStepsTaken_g = 0;
@@ -1224,7 +1243,7 @@ void applyOrder()
 			currentDirection_g = nextDirection_g;
 		}
 	}
-    
+ 
 	return;
 }
 /*
@@ -1708,7 +1727,7 @@ int tooCloseToFrontWall()
     {
         return FALSE;
     }
-    if(distanceValue_g[currentDirection_g]  < 285)//startPositionX_g + stepLength_g/2 + 80) //(stepLength_g/2 + halfPathWidth_g))
+    if(distanceValue_g[currentDirection_g]  < EMERGENCY_LOCKDOWN_DISTANCE)
     {
         return TRUE;
     }
@@ -1720,12 +1739,10 @@ int tooCloseToFrontWall()
 
 void emergencyStop()
 {
-    transitionStartToTrot();
-    /*
+    emergencyLockdown_g = TRUE;
+    emergencyDowntime_g = 12;
     returnToStartPosition();
     currentGait = standStill;
-    */
-
 }
 
 void emergencyController()
@@ -1736,6 +1753,14 @@ void emergencyController()
     {
         emergencyLockdown_g = FALSE;
         directionHasChanged = TRUE; // För att roboten ska kunna börja gå igen
+        if (stopInTCrossing) // Roboten ska låta applyOrder ta extra steg innan den svänger
+        {
+            stopInTCrossing = FALSE;
+        }        
+        else // Roboten ska nu direkt gå i nästa riktning
+        {
+            currentDirection_g = nextDirection_g;            
+        }
     }
     return;        
 }
@@ -1744,12 +1769,16 @@ void gaitController()
 
 	
     // tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
-	
-	
+    
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
+        /*
+        if (!emergencyLockdown_g)
+        {
+            applyOrder();
+	    }*/
         applyOrder();
-	    calcRegulation(decideRegulationDirection(), TRUE);
+        calcRegulation(decideRegulationDirection(), TRUE);
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -1980,7 +2009,7 @@ void gaitController()
         {
             directionHasChanged = FALSE;
             needToCalcGait = TRUE;
-			if (currentGait == standStill)
+			if (currentGait == standStill && !emergencyLockdown_g)
 			{
 				transitionStartToTrot();
                 currentGait = trotGait;
@@ -2198,7 +2227,8 @@ int main(void)
     directionHasChanged = FALSE;
     currentGait = standStill;
     optionsHasChanged_g = 0;
-    BlindStepsToTake_g = 1 ;//(int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+    savedSteplength_g = stepLength_g;
+    BlindStepsToTake_g = 0 ;//(int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
 	rangeToShortenStepLength_g = 0; //startPositionX_g + 2*stepLength_g + 50;
 	
     int nodeUpdated_g = FALSE;
@@ -2229,13 +2259,28 @@ int main(void)
     while (1)
     {
 	    
+        
+                   
     	if (legTimerPeriodEnd())
     	{
+            /* Test för att undersöka robotens order
+            switch (currentOrder_g) 
+            {
+                case noOrder:
+                {
+                    fetchDataFromSensorUnit(0b00010000);
+                    break;
+                }
+                case turnBlind:
+                {
+                    fetchDataFromSensorUnit(0b00010101);
+                    break;
+                }       
+            }
+            */
     	    resetLegTimer();
-            /*
             if (emergencyLockdown_g)
                 emergencyController();
-            */
             move();
             gaitController();
     	}
@@ -2245,14 +2290,22 @@ int main(void)
 	        updateAllDistanceSensorData();            
             updateTotalAngle();
             
-            if (tooCloseToFrontWall() && currentControlMode_g != manual && allowedToMove_g) //!emergencyLockdown_g)
+            if (tooCloseToFrontWall() && currentControlMode_g != manual && !emergencyLockdown_g)
             {
-                /*
-                emergencyLockdown_g = TRUE;
-                emergencyDowntime_g = 12; 
-                */
-                // emergencyStop();
+                if (tooCloseLastTime_g)
+                {
+                    emergencyStop();
+                }
+                else
+                {
+                    tooCloseLastTime_g = TRUE;
+                }
             }
+            else
+            {
+                tooCloseLastTime_g = FALSE;
+            }
+            
             
             /*
             nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.

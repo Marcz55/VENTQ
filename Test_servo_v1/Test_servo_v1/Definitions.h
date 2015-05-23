@@ -227,6 +227,7 @@ enum controlMode currentControlMode_g;
 
 int currentOptionInstruction_g; // nuvarande instruktion för inställningar av gångstilens egenskaper
                                     // används dessutom för att ge kommando om vilken läcka vi skall återvända till i autonomt läge
-
+void emergencyStop();
+int stopInTCrossing;
 
 #endif /* DEFINITIONS_H_ */

@@ -95,7 +95,8 @@ void fillNodeMemoryWithTemp()
 #define L_TWALL_LONG 490 //600
 #define L_TURN 500*/
 
-#define L_DEADEND 400
+#define L_FRONTWALL 350
+#define L_DEADEND 280
 #define L_SIDE 460
 #define L_WIDTH 430 //570
 #define L_TWALL 470
@@ -143,8 +144,8 @@ void updateTempDirections()
 		rightSide_ = distanceValue_g[NORTH];
 		leftSide_ = distanceValue_g[SOUTH];
 	}
-								  //// Ta kanske bort dessa två ////
-	if (frontDistance_ < 350)     //// om väst kort åtgärdas    ////
+								           //// Ta kanske bort dessa två ////
+	if (frontDistance_ < L_FRONTWALL)     //// om väst kort åtgärdas    ////
 	{                             //// söndag                   //// söndag       ///////// lördag
 		if ((rightSide_ > L_WIDTH - 20) && (leftSide_ > L_WIDTH - 20) &&    (backDistance_ > L_SIDE))
 		{
@@ -255,7 +256,7 @@ void updateTempDirections()
 			
 			
 			
-		} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+		} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE) && (frontDistance_ < L_DEADEND))
 		{
 		// Återvändsgränd
 		// Kolla summa av sidoavstånd + robotbredd, kan vara sväng eller
@@ -372,8 +373,8 @@ void updateTempDirections()
 			}
 			
 			
-		}
-	} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+		}                           //// 23/5                    //// 23/5
+	} else if ((rightSide_ < L_SIDE - 60) && (leftSide_ < L_SIDE - 60))
 	{
 		if (frontDistance_ > L_SIDE)
 		{
@@ -1338,6 +1339,33 @@ void initNodeAndSteering()
 	currentPath = 0;
 }
 
+int currentNodeOpenInDirection(enum direction dir_)
+{
+    switch (dir_)
+    {
+        case north:
+        {
+            return currentNode_g.northAvailible;
+        }
+        case east:
+        {
+            return currentNode_g.eastAvailible;
+        }
+        case south:
+        {
+            return currentNode_g.southAvailible;
+        }
+        case west:
+        {
+            return currentNode_g.westAvailible;
+        }
+        case noDirection:
+        {
+            return FALSE;
+        }
+    }
+}
+
 int nodesAndControl()
 {
     int nodeUpdated = FALSE;
@@ -1360,6 +1388,14 @@ int nodesAndControl()
                 updateCurrentNode();
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();
+                // Detta gör så att roboten stannar så fort den ser en T-korsning där en turnblind ska göras. 
+                /*
+                if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
+                {
+                    stopInTCrossing = TRUE;
+                    emergencyStop();
+                }
+                */
                 nodeUpdated = TRUE;
                 if (canMakeNew() == TRUE)
                 {
