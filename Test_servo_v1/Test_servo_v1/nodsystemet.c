@@ -1528,7 +1528,7 @@ int nodesAndControl()
 					directionHasChanged = TRUE;
 					nextDirection_g = pathBackHome[currentPathHome];
 					currentPathHome --;
-					currentPath --;		// Fungerar här som en koll för att roboten veta vilken deadEnd som är home
+					currentPath --;			// Fungerar här som en koll för att roboten veta vilken deadEnd som är home
 				}
 				else
 				{
