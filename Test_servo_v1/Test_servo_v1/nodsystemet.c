@@ -1526,7 +1526,7 @@ int nodesAndControl()
                                     {
                                         fetchDataFromSensorUnit(0b00010100);
                                         break;
-                                    }                                     
+                                    }
                                 }                                    
 							}
 						}
@@ -1547,20 +1547,24 @@ int nodesAndControl()
 				fillNodeMemoryWithTemp();
 				updateCurrentNode();
 
-				if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
+				if (currentPath == 0)
 				{
-					DONE = TRUE;
-					directionHasChanged = TRUE;
-					nextDirection_g = noDirection;
-					currentDirection_g = noDirection;
-					currentControlMode_g = waitForInput;
-					
+					if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
+					{
+						DONE = TRUE;
+						directionHasChanged = TRUE;
+						nextDirection_g = noDirection;
+						currentDirection_g = noDirection;
+						currentControlMode_g = waitForInput;
+					}
 				}
-				else if (currentNode_g.whatNode == T_CROSSING)
+				
+				if (currentNode_g.whatNode == T_CROSSING)
 				{
 					directionHasChanged = TRUE;
 					nextDirection_g = pathBackHome[currentPathHome];
 					currentPathHome --;
+					currentPath --;			// Fungerar här som en koll för att roboten veta vilken deadEnd som är home
 				}
 				else
 				{
