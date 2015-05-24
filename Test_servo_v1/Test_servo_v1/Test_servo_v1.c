@@ -913,7 +913,7 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
     * Tredje värdet anger hur mycket längre steg benen på högra sidan relativt rörelseriktningen ska ta, de som medför en CCW-rotation
     */
 	
-
+    stepLengthRegulation();//Reglerar steglängden på önskat sätt 
 	int translationRight = 0;
 
 	// variablerna vi baserar regleringen på, skillnaden mellan aktuellt värde och önskat värde
@@ -1088,27 +1088,6 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	regulation_g[1] = leftSideStepLengthAdjust;
 	regulation_g[2] = rightSideStepLengthAdjust;
 		
-
-
-
-    // om vi har en vägg framför oss är det bäst att ta mindre steglängder
-    if(distanceValue_g[currentDirection_g] < rangeToShortenStepLength_g)
-	{
-        if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
-        {
-           stepLength_g = stepLength_g/2;
-           stepLengthShortened_g = TRUE;
-       }
-    }
-    else
-    {
-        if (stepLengthShortened_g == TRUE) // om vi inte har en främre vägg men ändå har förkortad steglängd så låter vi steglängden bli den normala igen
-        {
-            stepLength_g = stepLength_g*2;
-            stepLengthShortened_g = FALSE;
-        }
-    }
-
 
 	needToCalcGait = 1; // när vi har reglerat behöver vi räkna om gångstilen
 	return;
@@ -1759,8 +1738,9 @@ void emergencyController()
         }        
         else // Roboten ska nu direkt gå i nästa riktning
         {
-            currentDirection_g = nextDirection_g; 
-			currentOrder_g = noOrder;           
+
+            currentDirection_g = nextDirection_g;     
+            currentOrder_g = noOrder;       
         }
     }
     return;        
@@ -2209,6 +2189,61 @@ void checkForLeak()
     }      
     
 }
+
+int steplengthShortenedForTCross_g = FALSE;
+int normalStepLength1_g = 0;
+int normalStepLength2_g = 0;
+int openDistance_g = 400; 
+rangeToShortenStepLength_g = 400; //startPositionX_g + 2*stepLength_g + 50;
+//Funktion som har i uppgift att reglera steglängden så att roboten ska få en smidigare gång
+void stepLengthRegulation()
+{
+	enum direction directionToRight = ((currentDirection_g + 1) % 4);
+    enum direction directionToLeft = ((currentDirection_g + 3) % 4);
+    //Kollar om vi har en öpning fram och åt vänster eller höger, ifall om detta stämmer så befinner vi oss i en T-korsning och ska sänka steglängden till en anpassad längd
+    if((distanceValue_g[FRONT_LEFT] < openDistance || distanceValue_g[FRONT_RIGHT] < openDistance) && distanceValue_g[currentDirection_g] < openDistance)
+    {
+    	if(steplengthShortenedForTCross_g == FALSE)
+    	{
+    		steplengthShortenedForTCross_g = TRUE;
+    		normalStepLength1_g = stepLength_g;
+    		stepLength_g = 700;
+    	}
+    }
+    else
+    {
+    	if(steplengthShortenedForTCross_g == TRUE)
+    	{
+    		steplengthShortenedForTCross_g = FALSE;
+    		stepLength_g = normalStepLength1_g;
+    		stepLength_g = 700; 
+    	}
+    }
+
+
+    // om vi har en vägg framför oss är det bäst att ta mindre steglängder
+    if(distanceValue_g[currentDirection_g] < rangeToShortenStepLength_g)
+	{
+        if(stepLengthShortened_g == FALSE) // om vi inte redan har kortat steglängden så gör vi steglängden till hälften av den vanliga
+        {
+           //stepLength_g = stepLength_g/2; 
+           normalStepLength2_g = stepLength_g;
+           stepLength_g = 700;
+           stepLengthShortened_g = TRUE;
+       }
+    }
+    else
+    {
+        if (stepLengthShortened_g == TRUE) // om vi inte har en främre vägg men ändå har förkortad steglängd så låter vi steglängden bli den normala igen
+        {
+            stepLength_g = normalStepLength2_g;
+            stepLengthShortened_g = FALSE;
+        }
+    }
+    needToCalcGait = TRUE;
+    return;
+}
+
 int main(void)
 {
     newLeak_g = TRUE;
@@ -2230,7 +2265,6 @@ int main(void)
     optionsHasChanged_g = 0;
     savedSteplength_g = stepLength_g;
     BlindStepsToTake_g = 2;//(int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
-	rangeToShortenStepLength_g = 0; //startPositionX_g + 2*stepLength_g + 50;
 	
     int nodeUpdated_g = FALSE;
 	int sendDataToPC = 1; // Används för att bara skicka varannan gång i commPeriodTimerEnd
