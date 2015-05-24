@@ -56,7 +56,7 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
-int leakSensitivity_g = 5; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+#define LEAK_SENSITIVITY 5 // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
 int leakCounter_g = 0;
 int noLeakCounter_g = 0;
 
@@ -665,7 +665,7 @@ int main(void)
 
     while(1)
     {
-		if(potentialLeak_g > leakSensitivity_g)
+		if(potentialLeak_g > LEAK_SENSITIVITY)
 		{
 			leakCounter_g ++;
 			noLeakCounter_g = 0;

@@ -1389,13 +1389,13 @@ int nodesAndControl()
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();
                 // Detta gör så att roboten stannar så fort den ser en T-korsning där en turnblind ska göras. 
-                /*
+                
                 if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
                 {
                     stopInTCrossing = TRUE;
                     emergencyStop();
                 }
-                */
+                
                 nodeUpdated = TRUE;
                 if (canMakeNew() == TRUE)
                 {

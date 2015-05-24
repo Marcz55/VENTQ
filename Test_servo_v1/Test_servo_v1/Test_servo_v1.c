@@ -34,7 +34,7 @@ int startPositionY_g = 80;
 int startPositionZ_g = -90;
 int stepHeight_g =  16;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
-int stepLengthRotationAdjust = 30;
+int stepLengthRotationAdjust = 60;
 int newGaitResolutionTime = INCREMENT_PERIOD_50; // tid i timerloopen för benstyrningen i ms
 
 
@@ -52,7 +52,7 @@ int BlindStepsToTake_g = 2;
 int allowedToMove_g = 0;
 int savedSteplength_g;
 int hasSavedSteplength_g = FALSE;
-#define BLIND_STEP_LENGTH 100
+#define BLIND_STEP_LENGTH 80
 
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_40;
@@ -1759,7 +1759,8 @@ void emergencyController()
         }        
         else // Roboten ska nu direkt gå i nästa riktning
         {
-            currentDirection_g = nextDirection_g;            
+            currentDirection_g = nextDirection_g; 
+			currentOrder_g = noOrder;           
         }
     }
     return;        
@@ -1772,12 +1773,12 @@ void gaitController()
     
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
-        /*
+        
         if (!emergencyLockdown_g)
         {
             applyOrder();
-	    }*/
-        applyOrder();
+	    }
+        //applyOrder();
         calcRegulation(decideRegulationDirection(), TRUE);
     }
 
@@ -2198,12 +2199,12 @@ void checkForLeak()
     {
         if (isLeakVisible_g)
         {
-          fetchDataFromSensorUnit(0b00010111);
+			fetchDataFromSensorUnit(0b00010111);
         }
         else
         {
-          fetchDataFromSensorUnit(0b00010000);
-          newLeak_g = TRUE;
+			fetchDataFromSensorUnit(0b00010000);
+			newLeak_g = TRUE;
         }
     }      
     
@@ -2228,7 +2229,7 @@ int main(void)
     currentGait = standStill;
     optionsHasChanged_g = 0;
     savedSteplength_g = stepLength_g;
-    BlindStepsToTake_g = 0 ;//(int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+    BlindStepsToTake_g = 2;//(int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
 	rangeToShortenStepLength_g = 0; //startPositionX_g + 2*stepLength_g + 50;
 	
     int nodeUpdated_g = FALSE;
@@ -2263,8 +2264,8 @@ int main(void)
                    
     	if (legTimerPeriodEnd())
     	{
-            /* Test för att undersöka robotens order
-            switch (currentOrder_g) 
+            //Test för att undersöka robotens order
+            /*switch (currentOrder_g) 
             {
                 case noOrder:
                 {
@@ -2275,9 +2276,14 @@ int main(void)
                 {
                     fetchDataFromSensorUnit(0b00010101);
                     break;
-                }       
-            }
-            */
+                }
+				case turnSeeing:
+                {
+                    fetchDataFromSensorUnit(0b00010010);
+                    break;
+                }    
+            }*/
+            
     	    resetLegTimer();
             if (emergencyLockdown_g)
                 emergencyController();
