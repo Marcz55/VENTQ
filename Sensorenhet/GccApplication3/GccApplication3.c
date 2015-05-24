@@ -686,6 +686,7 @@ int main(void)
 				if (noLeakCounter_g >= 3)
 				{
 					leakFound_g = 0;
+					noLeakCounter_g = 0;
 				}
 				else
 				{

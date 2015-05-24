@@ -231,7 +231,7 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
     
     long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
 
-    long int ActuatorAngle1 =  theta1 + 105;
+    long int ActuatorAngle1 =  theta1 + 86;
     long int ActuatorAngle2 =  225 - theta2;
     long int ActuatorAngle3 =  300 - theta3;
     
@@ -361,7 +361,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -450,7 +450,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -540,7 +540,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -599,7 +599,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
            }
            case REAR_RIGHT_LEG:
            {
-               actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+               actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                legPositions_g[REAR_RIGHT_LEG_X][i] = x;

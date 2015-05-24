@@ -1490,6 +1490,12 @@ int nodesAndControl()
 					directionHasChanged = TRUE;
 				}
 				
+				if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
+				{
+					stopInTCrossing = TRUE;
+					emergencyStop();
+				}
+				
 				nodeUpdated = TRUE;
 			}
 
@@ -1570,6 +1576,12 @@ int nodesAndControl()
 				{
 					directionHasChanged = TRUE;
 					nextDirection_g = decideDirection();					
+				}
+				
+				if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
+				{
+					stopInTCrossing = TRUE;
+					emergencyStop();
 				}
 				
 				nodeUpdated = TRUE;
