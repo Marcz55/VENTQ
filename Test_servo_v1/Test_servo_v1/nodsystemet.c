@@ -33,7 +33,7 @@ int deadEnds = 0;
 int currentPath = 0;
 int currentPathHome = 0;
 
-int DONE = FALSE;
+int done_g = FALSE;
 
 int wantedLeak = 0;
 
@@ -1286,7 +1286,7 @@ int westToNext()
 
 int decideDirection()      // Autonoma läget
 {
-	if (DONE == TRUE)
+	if (done_g == TRUE)
 	{
 		return noDirection;
 	}
@@ -1366,6 +1366,26 @@ int currentNodeOpenInDirection(enum direction dir_)
     }
 }
 
+simulateCorridor(enum direction dirBack_)   // Detta gör att i returnHome kan den upptäcka ny nod när den vänder
+{
+    if ((dirBack_ == north) || (dirBack_ == south))
+        {
+            tempNorthAvailible_g = TRUE;
+            tempSouthAvailible_g = TRUE;
+            tempWestAvailible_g = FALSE;
+            tempEastAvailible_g = FALSE;
+            updateCurrentNode();
+        }
+    else
+    {
+            tempNorthAvailible_g = FALSE;
+            tempSouthAvailible_g = FALSE;
+            tempWestAvailible_g = TRUE;
+            tempEastAvailible_g = TRUE;
+            updateCurrentNode();
+    }
+}
+
 int nodesAndControl()
 {
     int nodeUpdated = FALSE;
@@ -1420,6 +1440,7 @@ int nodesAndControl()
 					wantedLeak = 1;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+                    //done_g = FALSE;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
@@ -1428,7 +1449,8 @@ int nodesAndControl()
                     wantedLeak = 2;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1436,7 +1458,8 @@ int nodesAndControl()
                     wantedLeak = 3;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1444,7 +1467,8 @@ int nodesAndControl()
                     wantedLeak = 4;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1452,7 +1476,8 @@ int nodesAndControl()
                     wantedLeak = 5;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1512,8 +1537,9 @@ int nodesAndControl()
 							if (currentDirection_g != noDirection)
 							{
 								directionHasChanged = TRUE;     // Läckan är nu hittad
-								// delay??
 								nextDirection_g = inverseThisDirection(currentDirection_g);
+                                simulateCorridor(nextDirection_g);
+                                nodeUpdated = TRUE;
 								currentPathHome = currentPath - 1;
 								currentControlMode_g = returnHome;
                                 switch(wantedLeak) // Tänd lampor på roboten
@@ -1557,10 +1583,20 @@ int nodesAndControl()
 				{
 					if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
 					{
-						DONE = TRUE;
+						done_g = TRUE;
 						directionHasChanged = TRUE;
 						nextDirection_g = noDirection;
 						currentDirection_g = noDirection;
+                        
+               /*         currentPathHome = 0;                     // Dessa saker resettar, så roboten kan gå till en annan läcka
+                        for (int j = 0; j < 10; j++)
+                        {
+                            pathBackHome[j] = noDirection; 
+                            pathToLeak[j] = noDirection;
+                        }
+                        
+                        leaksToPass_g = 0; */
+                        
 						currentControlMode_g = waitForInput;
 					}
 				}

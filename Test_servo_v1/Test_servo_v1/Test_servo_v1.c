@@ -59,7 +59,7 @@ int newCommUnitUpdatePeriod = INCREMENT_PERIOD_40;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
-float kProportionalAngle_g = 1.5;
+float kProportionalAngle_g = 2.0;
 
 // hanterar om vi har förkortat steglängden eller ej
 int stepLengthShortened_g = FALSE;
@@ -2253,8 +2253,11 @@ int main(void)
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
 	sendAllRobotParameters();
-
-	int i = 0;
+    
+    // Släck lamporna på sensorenheten
+    fetchDataFromSensorUnit(0b00010000);
+    
+    int i = 0;
 
     // ---- Main-Loop ----
     while (1)
