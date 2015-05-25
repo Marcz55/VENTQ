@@ -1539,6 +1539,9 @@ int nodesAndControl()
 								directionHasChanged = TRUE;     // Läckan är nu hittad
 								nextDirection_g = inverseThisDirection(currentDirection_g);
                                 simulateCorridor(nextDirection_g);
+                                // OBS!!! Här ändras currentDir!!! ----------------------------
+                                currentDirection_g = nextDirection_g; 
+                                // ------------------------------------------------------------
                                 nodeUpdated = TRUE;
 								currentPathHome = currentPath - 1;
 								currentControlMode_g = returnHome;
