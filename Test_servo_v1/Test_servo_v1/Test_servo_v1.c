@@ -22,15 +22,20 @@ int regulation_g[3]; // array som regleringen sparas i
 int closeEnoughToTurn = 0;
 int rangeToShortenStepLength_g = 0;	
 
+// Emergency lockdown
+#define EMERGENCY_LOCKDOWN_DISTANCE 240
+int tooCloseLastTime_g = FALSE;
+int emergencyDowntime_g = 0;
+int emergencyLockdown_g = FALSE;
 
-int stepLength_g = 80;
+int stepLength_g = 70;
 int startPositionX_g = 80;
 int startPositionY_g = 80;
-int startPositionZ_g = -80;
-int stepHeight_g =  20;
+int startPositionZ_g = -90;
+int stepHeight_g =  16;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
-int stepLengthRotationAdjust = 30;
-int newGaitResolutionTime = INCREMENT_PERIOD_60; // tid i timerloopen för benstyrningen i ms
+int stepLengthRotationAdjust = 60;
+int newGaitResolutionTime = INCREMENT_PERIOD_50; // tid i timerloopen för benstyrningen i ms
 
 
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
@@ -38,20 +43,23 @@ int currentRotationInstruction = 0;
 int optionsHasChanged_g = 0;
 int posToCalcGait;
 int needToCalcGait = 1;
-int emergencyDowntime_g = 0;
-int emergencyLockdown_g = FALSE;
+
 // ------ Globala variabler för "svängar" ------
 int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
-int BlindStepsToTake_g = 0;
+int BlindStepsToTake_g = 2;
+int allowedToMove_g = 0;
+int savedSteplength_g;
+int hasSavedSteplength_g = FALSE;
+#define BLIND_STEP_LENGTH 80
 
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_40;
 
 // regler koefficienter
 float kProportionalTranslation_g = 0.3;
-float kProportionalAngle_g = 0.4;
+float kProportionalAngle_g = 2.0;
 
 // hanterar om vi har förkortat steglängden eller ej
 int stepLengthShortened_g = FALSE;
@@ -223,7 +231,7 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
     
     long int theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
 
-    long int ActuatorAngle1 =  theta1 + 105;
+    long int ActuatorAngle1 =  theta1 + 86;
     long int ActuatorAngle2 =  225 - theta2;
     long int ActuatorAngle3 =  300 - theta3;
     
@@ -353,7 +361,7 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -442,7 +450,7 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -532,7 +540,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
             }
             case REAR_RIGHT_LEG:
             {
-                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+                actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                 actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                 actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                 legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -591,7 +599,7 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
            }
            case REAR_RIGHT_LEG:
            {
-               actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 105;
+               actuatorPositions_g[currentLeg.coxaJoint][i] = theta1 + 86;
                actuatorPositions_g[currentLeg.femurJoint][i] =  225 - theta2;
                actuatorPositions_g[currentLeg.tibiaJoint][i] =  300 - theta3;
                legPositions_g[REAR_RIGHT_LEG_X][i] = x;
@@ -730,12 +738,19 @@ ISR(INT1_vect)
     
 	if (toggleMania)
     {
-        currentControlMode_g = manual;
+        allowedToMove_g = FALSE;
+        
+        emergencyLockdown_g = TRUE;
+        emergencyDowntime_g = 12;
+        emergencyStop();
+        
+        //currentControlMode_g = manual;
         sendStuff = TRUE;
         toggleMania = FALSE;
     }
     else
     {
+        allowedToMove_g = TRUE;
         currentControlMode_g = exploration;
         toggleMania = TRUE;
         
@@ -1035,8 +1050,8 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 
 
 	translationRight = kProportionalTranslation_g * translationRegulationError;
-	int leftSideStepLengthAdjust = (kProportionalAngle_g * (-angleRegulationError))/2; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
-	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/2; // eftersom angleRegulationError avser hur mycket vridet åt höger om mittlinjen roboten är  
+	int leftSideStepLengthAdjust = (kProportionalAngle_g * (-angleRegulationError))/20; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
+	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/20; // eftersom angleRegulationError avser hur mycket vridet åt höger om mittlinjen roboten är  
 		
 	if (translationRight > 60)
 	{
@@ -1049,24 +1064,24 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 		translationRight = -60;
 	}
 		
-	if (leftSideStepLengthAdjust > 60)
+	if (leftSideStepLengthAdjust > 40)
 	{
-		leftSideStepLengthAdjust = 60;
+		leftSideStepLengthAdjust = 40;
 	}
 	
-	if (leftSideStepLengthAdjust < -60)
+	if (leftSideStepLengthAdjust < -40)
 	{
-		leftSideStepLengthAdjust = -60;
+		leftSideStepLengthAdjust = -40;
 	}
 	
-	if (rightSideStepLengthAdjust > 60)
+	if (rightSideStepLengthAdjust > 40)
 	{
-		rightSideStepLengthAdjust = 60;
+		rightSideStepLengthAdjust = 40;
 	}
 	
-	if (rightSideStepLengthAdjust < -60)
+	if (rightSideStepLengthAdjust < -40)
 	{
-		rightSideStepLengthAdjust = -60;
+		rightSideStepLengthAdjust = -40;
 	}
 		
 	regulation_g[0] =  translationRight;
@@ -1198,16 +1213,22 @@ enum order{
 };
 enum order currentOrder_g = noOrder;
 
-// en funktion som utför det currentAction_g anger
+// en funktion som utför det currentOrder_g anger
 void applyOrder()
 {
-    currentDirection_g = nextDirection_g;
-    /*
 	if(currentOrder_g == turnBlind)
 	{
+        if (!hasSavedSteplength_g)
+        {
+            hasSavedSteplength_g = TRUE;
+            savedSteplength_g = stepLength_g;
+            stepLength_g = BLIND_STEP_LENGTH;
+        }            
 		BlindStepsTaken_g = BlindStepsTaken_g + 1;
-		if(BlindStepsTaken_g >= BlindStepsToTake_g)
+		if(BlindStepsTaken_g > BlindStepsToTake_g)
 		{
+            hasSavedSteplength_g = FALSE;
+            stepLength_g = savedSteplength_g;
 			currentDirection_g = nextDirection_g;
 			currentOrder_g = noOrder;
 			BlindStepsTaken_g = 0;
@@ -1222,7 +1243,7 @@ void applyOrder()
 			currentDirection_g = nextDirection_g;
 		}
 	}
-    */
+ 
 	return;
 }
 /*
@@ -1623,7 +1644,7 @@ void decreaseKTranslation()
 
 void increaseKRotation()
 {
-	if (kProportionalAngle_g < 1)
+	if (kProportionalAngle_g < 10)
 	{
 		kProportionalAngle_g = kProportionalAngle_g + 0.1;
 	}
@@ -1632,7 +1653,7 @@ void increaseKRotation()
 
 void decreaseKRotation()
 {
-	if (kProportionalAngle_g > -1)
+	if (kProportionalAngle_g > -10)
 	{
 		kProportionalAngle_g = kProportionalAngle_g - 0.1;
 	}
@@ -1706,7 +1727,7 @@ int tooCloseToFrontWall()
     {
         return FALSE;
     }
-    if(distanceValue_g[currentDirection_g]  < startPositionX_g + stepLength_g/2 + 80) //(stepLength_g/2 + halfPathWidth_g))
+    if(distanceValue_g[currentDirection_g]  < EMERGENCY_LOCKDOWN_DISTANCE)
     {
         return TRUE;
     }
@@ -1718,6 +1739,8 @@ int tooCloseToFrontWall()
 
 void emergencyStop()
 {
+    emergencyLockdown_g = TRUE;
+    emergencyDowntime_g = 12;
     returnToStartPosition();
     currentGait = standStill;
 }
@@ -1730,6 +1753,15 @@ void emergencyController()
     {
         emergencyLockdown_g = FALSE;
         directionHasChanged = TRUE; // För att roboten ska kunna börja gå igen
+        if (stopInTCrossing) // Roboten ska låta applyOrder ta extra steg innan den svänger
+        {
+            stopInTCrossing = FALSE;
+        }        
+        else // Roboten ska nu direkt gå i nästa riktning
+        {
+            currentDirection_g = nextDirection_g; 
+			currentOrder_g = noOrder;           
+        }
     }
     return;        
 }
@@ -1738,12 +1770,16 @@ void gaitController()
 
 	
     // tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
-	
-	
+    
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
-        applyOrder();
-	    calcRegulation(decideRegulationDirection(), TRUE);
+        
+        if (!emergencyLockdown_g)
+        {
+            applyOrder();
+	    }
+        //applyOrder();
+        calcRegulation(decideRegulationDirection(), TRUE);
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
@@ -1974,13 +2010,14 @@ void gaitController()
         {
             directionHasChanged = FALSE;
             needToCalcGait = TRUE;
-			if (currentGait == standStill)
+			if (currentGait == standStill && !emergencyLockdown_g)
 			{
 				transitionStartToTrot();
+                currentGait = trotGait;
 			}
-			currentGait = trotGait;
+			
             if(currentOrder_g == noOrder) // kan bara få en ny order om vi inte redan har någon
-		    {
+		    { 
 				if (nextDirection_g == noDirection)
 				{
 					returnToStartPosition();
@@ -2162,12 +2199,12 @@ void checkForLeak()
     {
         if (isLeakVisible_g)
         {
-          fetchDataFromSensorUnit(0b00010111);
+			fetchDataFromSensorUnit(0b00010111);
         }
         else
         {
-          fetchDataFromSensorUnit(0b00010000);
-          newLeak_g = TRUE;
+			fetchDataFromSensorUnit(0b00010000);
+			newLeak_g = TRUE;
         }
     }      
     
@@ -2191,8 +2228,9 @@ int main(void)
     directionHasChanged = FALSE;
     currentGait = standStill;
     optionsHasChanged_g = 0;
-    BlindStepsToTake_g = (int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
-	rangeToShortenStepLength_g = startPositionX_g + 2*stepLength_g + 50;
+    savedSteplength_g = stepLength_g;
+    BlindStepsToTake_g = 2;//(int)((halfPathWidth_g - 8)/stepLength_g + 0.5);
+	rangeToShortenStepLength_g = 0; //startPositionX_g + 2*stepLength_g + 50;
 	
     int nodeUpdated_g = FALSE;
 	int sendDataToPC = 1; // Används för att bara skicka varannan gång i commPeriodTimerEnd
@@ -2215,22 +2253,44 @@ int main(void)
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
 	sendAllRobotParameters();
-
-	int i = 0;
+    
+    // Släck lamporna på sensorenheten
+    fetchDataFromSensorUnit(0b00010000);
+    
+    int i = 0;
 
     // ---- Main-Loop ----
     while (1)
     {
 	    
+        
+                   
     	if (legTimerPeriodEnd())
     	{
+            //Test för att undersöka robotens order
+            /*switch (currentOrder_g) 
+            {
+                case noOrder:
+                {
+                    fetchDataFromSensorUnit(0b00010000);
+                    break;
+                }
+                case turnBlind:
+                {
+                    fetchDataFromSensorUnit(0b00010101);
+                    break;
+                }
+				case turnSeeing:
+                {
+                    fetchDataFromSensorUnit(0b00010010);
+                    break;
+                }    
+            }*/
+            
     	    resetLegTimer();
-            /*
             if (emergencyLockdown_g)
                 emergencyController();
-            */
             move();
-            //applyOrder(); // detta är endast test
             gaitController();
     	}
     	if (commTimerPeriodEnd())
@@ -2238,14 +2298,24 @@ int main(void)
             resetCommTimer();
 	        updateAllDistanceSensorData();            
             updateTotalAngle();
-            /*
+            
             if (tooCloseToFrontWall() && currentControlMode_g != manual && !emergencyLockdown_g)
             {
-                emergencyLockdown_g = TRUE;
-                emergencyDowntime_g = 12; 
-                emergencyStop();
+                if (tooCloseLastTime_g)
+                {
+                    emergencyStop();
+                }
+                else
+                {
+                    tooCloseLastTime_g = TRUE;
+                }
             }
-            */
+            else
+            {
+                tooCloseLastTime_g = FALSE;
+            }
+            
+            
             /*
             nodesAndControl sätter nextDirection och directionHasChanged om ett styrbeslut tas.
             Kan dessutom ändra på controlMode.

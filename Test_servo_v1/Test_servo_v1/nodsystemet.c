@@ -33,7 +33,7 @@ int deadEnds = 0;
 int currentPath = 0;
 int currentPathHome = 0;
 
-int DONE = FALSE;
+int done_g = FALSE;
 
 int wantedLeak = 0;
 
@@ -95,7 +95,8 @@ void fillNodeMemoryWithTemp()
 #define L_TWALL_LONG 490 //600
 #define L_TURN 500*/
 
-#define L_DEADEND 400
+#define L_FRONTWALL 350
+#define L_DEADEND 280
 #define L_SIDE 460
 #define L_WIDTH 430 //570
 #define L_TWALL 470
@@ -143,8 +144,8 @@ void updateTempDirections()
 		rightSide_ = distanceValue_g[NORTH];
 		leftSide_ = distanceValue_g[SOUTH];
 	}
-								  //// Ta kanske bort dessa två ////
-	if (frontDistance_ < 350)     //// om väst kort åtgärdas    ////
+								           //// Ta kanske bort dessa två ////
+	if (frontDistance_ < L_FRONTWALL)     //// om väst kort åtgärdas    ////
 	{                             //// söndag                   //// söndag       ///////// lördag
 		if ((rightSide_ > L_WIDTH - 20) && (leftSide_ > L_WIDTH - 20) &&    (backDistance_ > L_SIDE))
 		{
@@ -255,7 +256,7 @@ void updateTempDirections()
 			
 			
 			
-		} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+		} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE) && (frontDistance_ < L_DEADEND))
 		{
 		// Återvändsgränd
 		// Kolla summa av sidoavstånd + robotbredd, kan vara sväng eller
@@ -372,8 +373,8 @@ void updateTempDirections()
 			}
 			
 			
-		}
-	} else if ((rightSide_ < L_SIDE) && (leftSide_ < L_SIDE))
+		}                           //// 23/5                    //// 23/5
+	} else if ((rightSide_ < L_SIDE - 60) && (leftSide_ < L_SIDE - 60))
 	{
 		if (frontDistance_ > L_SIDE)
 		{
@@ -1285,7 +1286,7 @@ int westToNext()
 
 int decideDirection()      // Autonoma läget
 {
-	if (DONE == TRUE)
+	if (done_g == TRUE)
 	{
 		return noDirection;
 	}
@@ -1338,6 +1339,53 @@ void initNodeAndSteering()
 	currentPath = 0;
 }
 
+int currentNodeOpenInDirection(enum direction dir_)
+{
+    switch (dir_)
+    {
+        case north:
+        {
+            return currentNode_g.northAvailible;
+        }
+        case east:
+        {
+            return currentNode_g.eastAvailible;
+        }
+        case south:
+        {
+            return currentNode_g.southAvailible;
+        }
+        case west:
+        {
+            return currentNode_g.westAvailible;
+        }
+        case noDirection:
+        {
+            return FALSE;
+        }
+    }
+}
+
+simulateCorridor(enum direction dirBack_)   // Detta gör att i returnHome kan den upptäcka ny nod när den vänder
+{
+    if ((dirBack_ == north) || (dirBack_ == south))
+        {
+            tempNorthAvailible_g = TRUE;
+            tempSouthAvailible_g = TRUE;
+            tempWestAvailible_g = FALSE;
+            tempEastAvailible_g = FALSE;
+            updateCurrentNode();
+        }
+    else
+    {
+            tempNorthAvailible_g = FALSE;
+            tempSouthAvailible_g = FALSE;
+            tempWestAvailible_g = TRUE;
+            tempEastAvailible_g = TRUE;
+            updateCurrentNode();
+    }
+}
+
 int nodesAndControl()
 {
     int nodeUpdated = FALSE;
@@ -1360,6 +1408,14 @@ int nodesAndControl()
                 updateCurrentNode();
                 directionHasChanged = TRUE;
                 nextDirection_g = decideDirection();
+                // Detta gör så att roboten stannar så fort den ser en T-korsning där en turnblind ska göras. 
+                
+                if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
+                {
+                    stopInTCrossing = TRUE;
+                    emergencyStop();
+                }
+                
                 nodeUpdated = TRUE;
                 if (canMakeNew() == TRUE)
                 {
@@ -1384,6 +1440,7 @@ int nodesAndControl()
 					wantedLeak = 1;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
+                    //done_g = FALSE;
 					directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
@@ -1392,7 +1449,8 @@ int nodesAndControl()
                     wantedLeak = 2;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1400,7 +1458,8 @@ int nodesAndControl()
                     wantedLeak = 3;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1408,7 +1467,8 @@ int nodesAndControl()
                     wantedLeak = 4;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1416,7 +1476,8 @@ int nodesAndControl()
                     wantedLeak = 5;
                     makePathToLeakAndHome(wantedLeak);
                     currentControlMode_g = returnToLeak;
-					directionHasChanged = TRUE;
+					//done_g = FALSE;
+                    directionHasChanged = TRUE;
 					currentDirection_g = north;
 					nextDirection_g = north;
                     break;
@@ -1454,6 +1515,12 @@ int nodesAndControl()
 					directionHasChanged = TRUE;
 				}
 				
+				if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
+				{
+					stopInTCrossing = TRUE;
+					emergencyStop();
+				}
+				
 				nodeUpdated = TRUE;
 			}
 
@@ -1470,8 +1537,12 @@ int nodesAndControl()
 							if (currentDirection_g != noDirection)
 							{
 								directionHasChanged = TRUE;     // Läckan är nu hittad
-								// delay??
 								nextDirection_g = inverseThisDirection(currentDirection_g);
+                                simulateCorridor(nextDirection_g);
+                                // OBS!!! Här ändras currentDir!!! ----------------------------
+                                currentDirection_g = nextDirection_g; 
+                                // ------------------------------------------------------------
+                                nodeUpdated = TRUE;
 								currentPathHome = currentPath - 1;
 								currentControlMode_g = returnHome;
                                 switch(wantedLeak) // Tänd lampor på roboten
@@ -1490,7 +1561,7 @@ int nodesAndControl()
                                     {
                                         fetchDataFromSensorUnit(0b00010100);
                                         break;
-                                    }                                     
+                                    }
                                 }                                    
 							}
 						}
@@ -1511,25 +1582,45 @@ int nodesAndControl()
 				fillNodeMemoryWithTemp();
 				updateCurrentNode();
 
-				if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
+				if (currentPath == 0)
 				{
-					DONE = TRUE;
-					directionHasChanged = TRUE;
-					nextDirection_g = noDirection;
-					currentDirection_g = noDirection;
-					currentControlMode_g = waitForInput;
-					
+					if ((currentNode_g.whatNode == DEAD_END) || (currentNode_g.whatNode == END_OF_MAZE))
+					{
+						done_g = TRUE;
+						directionHasChanged = TRUE;
+						nextDirection_g = noDirection;
+						currentDirection_g = noDirection;
+                        
+               /*         currentPathHome = 0;                     // Dessa saker resettar, så roboten kan gå till en annan läcka
+                        for (int j = 0; j < 10; j++)
+                        {
+                            pathBackHome[j] = noDirection; 
+                            pathToLeak[j] = noDirection;
+                        }
+                        
+                        leaksToPass_g = 0; */
+                        
+						currentControlMode_g = waitForInput;
+					}
 				}
-				else if (currentNode_g.whatNode == T_CROSSING)
+				
+				if (currentNode_g.whatNode == T_CROSSING)
 				{
 					directionHasChanged = TRUE;
 					nextDirection_g = pathBackHome[currentPathHome];
 					currentPathHome --;
+					currentPath --;			// Fungerar här som en koll för att roboten veta vilken deadEnd som är home
 				}
 				else
 				{
 					directionHasChanged = TRUE;
 					nextDirection_g = decideDirection();					
+				}
+				
+				if (currentNode_g.whatNode == T_CROSSING && currentDirection_g != nextDirection_g && currentNodeOpenInDirection(currentDirection_g))
+				{
+					stopInTCrossing = TRUE;
+					emergencyStop();
 				}
 				
 				nodeUpdated = TRUE;

@@ -56,7 +56,8 @@ int sideDistance4; // Beror på sensor 7 och 8
 
 int leakFound_g = 0; // "Bool" 1=true, 0=false
 int potentialLeak_g = 0; // Håller koll på hur många gånger vi detekterat signal från IR-mottagaren
-int leakSensitivity_g = 5; // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+#define LEAK_LOWER_LIMIT 50 // Anger hur många meddelandebitar som måste detekteras från IR-ljus under varje huvudloop för att en läcka ska ha hittats.
+#define LEAK_UPPER_LIMIT 70
 int leakCounter_g = 0;
 int noLeakCounter_g = 0;
 
@@ -651,6 +652,7 @@ ISR(INT2_vect)
 
 int main(void)
 {	
+	int totalLeaks_ = 0;
 	initPorts();
     //MCUCR = 0b1111; // Stigande flank på INT1/0 genererar avbrott
     GICR = (GICR | 32); // Möjliggör externa avbrott på INT2
@@ -661,11 +663,46 @@ int main(void)
 	
 	makeAngleTable();
     sei();
-
+	int leakIterator = 0;
 
     while(1)
     {
-		if(potentialLeak_g > leakSensitivity_g)
+		if (leakIterator < 5)
+		{
+			leakIterator ++;
+		}
+		else
+		{
+			if (potentialLeak_g > LEAK_LOWER_LIMIT)
+			{
+				if (potentialLeak_g < LEAK_UPPER_LIMIT)
+				{
+					leakFound_g = 1;
+					noLeakCounter_g = 0;
+				}
+			}
+			else
+			{
+				if (noLeakCounter_g >= 3)
+				{
+					leakFound_g = 0;
+					noLeakCounter_g = 0;
+				}
+				else
+				{
+					if (leakFound_g == 1)
+					{
+						noLeakCounter_g++;
+					}
+				}
+			}
+			totalLeaks_ = potentialLeak_g;
+			potentialLeak_g = 0;
+			leakIterator = 0;
+		}
+		
+		/*
+		if(potentialLeak_g > LEAK_SENSITIVITY)
 		{
 			leakCounter_g ++;
 			noLeakCounter_g = 0;
@@ -690,6 +727,7 @@ int main(void)
 		}
 
 		potentialLeak_g = 0;
+		*/
 				
 		if (iteration >= 4) // iteration används så att det görs 5 mätningar per sensor
 		{
@@ -750,7 +788,7 @@ int main(void)
 
 			writeSensor(averageDistance2);
 			writeSensor(averageDistance5);
-			writeSensor(potentialLeak_g);
+			writeSensor(totalLeaks_);
 			writeSensor(leakFound_g);
 		
 			PORTB = (1<<displayE);
