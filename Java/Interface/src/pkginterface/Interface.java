@@ -147,7 +147,7 @@ public class Interface implements SerialPortEventListener{
             case 72: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
             case 64: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
             case 56: return ((recievedData_ >= 0)&&(recievedData_ <= 500));    
-            case 48: return ((recievedData_ >= -100) &&(recievedData_ <= 100));    
+            case 48: return ((recievedData_ >= -1000) &&(recievedData_ <= 1000));    
             case 40: return ((recievedData_ >= -100) &&(recievedData_ <= 100));
             
             default: return false;
