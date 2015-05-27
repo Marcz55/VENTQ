@@ -353,7 +353,8 @@ public class GUI extends Application
                     {
                         if (!leakAdded)
                         {
-                            nodeList.appendText("Läcka hittad!\n");
+                            nodeList.appendText("\nLäcka hittad!\n\n");
+                            decisionList.appendText("\nLäcka hittad!\n\n");
                             leakAdded = true;
                         }
                     }
@@ -687,7 +688,7 @@ public class GUI extends Application
                 root.requestFocus();
                 try
                 {
-                    if (autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
+                    if (true) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
                     {                   // värde till robot och ändra på text och knapp
                         switch(findLeak.getText())
                         {
@@ -736,7 +737,6 @@ public class GUI extends Application
                         autonomusMode = true;
                         autonomusButton.setText("Avaktivera");
                         autonomusText.setText("Autonomt\nläge på");
-                        findLeakButton.setDisable(false);
                         resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
                     }
                     else  // Om i autonomt läge, växla till manuellt
@@ -746,7 +746,6 @@ public class GUI extends Application
                         autonomusMode = false;
                         autonomusButton.setText(" Aktivera ");
                         autonomusText.setText("Autonomt\nläge av");
-                        findLeakButton.setDisable(true);
                         resetButtons(); // Nollställer allt och skickar det till robot så den ej fortsätter 
                     }
                 }

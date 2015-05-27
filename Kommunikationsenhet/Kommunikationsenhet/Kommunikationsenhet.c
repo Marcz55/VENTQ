@@ -2,7 +2,7 @@
  * Kommunikationsenhet.c
  *
  * Created: 3/25/2015 11:26:35 AM
- *  Author: marwa828
+ *  Author: marwa828, nicgr354
  */ 
 
 
@@ -18,7 +18,7 @@
 struct node_t* first_p_g;
 struct node_t* last_p_g;
 
-struct node_t
+struct node_t // De structs som kommer bygga upp den länkade listan (inbuffern från styrenheten)
 {
 	unsigned char data_;
 	struct node_t* next_;
@@ -31,7 +31,7 @@ void bluetoothInit()
     UCSRB = (1<<RXEN)|(1<<TXEN)|(1<<RXCIE); //Sätt på sändare och mottagare, samt sätt på interrupts vid recieve complete respektive tom buffer.
     UCSRC = (1<<URSEL)|(3<<UCSZ0)|(0<<UPM1)|(0<<UPM0); //Sätt 8-bit meddelanden samt ingen paritet
     DDRA = (0<<DDA1)|(1<<DDA0)|(1<<DDA2); //Definiera en input och en output
-    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    PORTA = (0<<PORTA0)|(1<<PORTA1)|(0<<PORTA2); //Skicka ut clear to send, samt skapa INTE avbrott i styrenhet
 }
 
 void spiInit(void)
@@ -40,23 +40,23 @@ void spiInit(void)
     SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI  
 }
 
-void bluetoothSend(unsigned char data)
+void bluetoothSend(unsigned char data) // Skicka något till datorn via Bluetooth
 {
     while ( !( UCSRA & (1<<UDRE)));
     UDR = data;
 }
 
-unsigned char bluetoothReceive(void)
+unsigned char bluetoothReceive(void) // Läs vad som tagits emot via Bluetooth
 {
     return UDR;
 }
 
-unsigned char spiReceive(void)
+unsigned char spiReceive(void) // Läs vad som skickats 
 {
     return SPDR;
 }
 
-void spiWrite(unsigned char data)
+void spiWrite(unsigned char data) // Skriv någonting via SPI (så att styrenheten kan hämta det vid nästa överföring)
 {
     SPDR = data;
 }
@@ -66,7 +66,7 @@ void spiReset()
     SPDR = 0;
 }
 
-void removeFirst ()
+void removeFirst () // Ta bort det första elementet i inbufferlistan
 {
     cli();
 	if (first_p_g == NULL)
@@ -82,7 +82,7 @@ void removeFirst ()
 	sei();
 }
 
-void processList()
+void processList() // Skicka iväg det som står först i inbuffern
 {
     if (first_p_g != NULL)
     {
@@ -91,7 +91,7 @@ void processList()
     }
 }
 
-void appendList (unsigned char data)
+void appendList (unsigned char data) // Lägg till ett nytt meddelande i inbuffern
 {
 	// Härifrån skapas en ny nod som sedan initialiseras
 	cli();
@@ -139,11 +139,6 @@ ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
 {
 	MCUCR = (0<<SE);
     PORTA = (0<<PORTA2);
-    //unsigned char plutt;
-    //plutt = bluetoothReceive();
-    //bluetoothSend(0x44);
-    //bluetoothSend(0x45);
-    //bluetoothSend(plutt);
     spiWrite(bluetoothReceive()); //Information som ska skickas överförs direkt till SPDR, där det är redo att föras över till masterenheten.
     PORTA = (1<<PORTA2); //Generera avbrott i styrenhet
     MCUCR = (1<<SE);
@@ -152,10 +147,8 @@ ISR(USART_RXC_vect) //Inkommet bluetoothmeddelande
 ISR(SPISTC_vect)//SPI-överföring klar
 {
 	MCUCR = (0<<SE);
-	//Send(SPDR); Lägg in i lista istället!
 	appendList(spiReceive());
 	spiReset(); //Återställ SPDR.
     MCUCR = (1<<SE);
 }
-//Kommer att behöva en lista där indata kan sparas tillfälligt.
 

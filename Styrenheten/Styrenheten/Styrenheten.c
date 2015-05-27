@@ -2,7 +2,8 @@
  * Styrenheten.c
  *
  * Created: 3/26/2015 11:50:32 AM
- *  Author: joamo950
+ * Author: Joakim Mörhed
+ * Version: 1.0
  */ 
 
 #include <avr/io.h>
@@ -251,8 +252,9 @@ void MoveToStartPosition()
     return;
 }
 
-// Rader är vinklar på servon. Kolumnerna innehåller positioner. Allokerar en extra rad minne 
-// här i matriserna bara för att få snyggare kod. 
+/* Rader är vinklar på servon. Kolumnerna innehåller positioner. Allokerar en extra rad minne 
+ * här i matriserna bara för att få snyggare kod. 
+ */
 long int actuatorPositions_g [13][20];
 float legPositions_g [13][20];
 int regulation_g[3];
@@ -261,8 +263,10 @@ int currentPos_g = 0;
 int nextPos_g = 1;
 int maxGaitCyclePos_g = 1;
 
-// Den här funktionen hanterar vilken position i gångcykeln roboten är i. Den går runt baserat på 
-// antalet positioner som finns i den givna gångstilen. 
+/* 
+ * Den här funktionen hanterar vilken position i gångcykeln roboten är i. Den går runt baserat på 
+ * antalet positioner som finns i den givna gångstilen. 
+ */ 
 void increasePositionIndexes()
 {
     if (currentPos_g >= maxGaitCyclePos_g)
@@ -285,8 +289,11 @@ void increasePositionIndexes()
     return;
 }
 
-
-
+/*
+ * Den här funktionen skapar en linjär rörelse för ett visst ben från punkt 1 till punkt 2.
+ * Antalet delpunkter som skapas bestäms av numberOfPositions.
+ * Startpositionen i positionsmatrisen anges av startIndex. 
+ */
 void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
@@ -310,23 +317,22 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
     float y = y1;
     float z = z1;
     
-  
-    
-    
     for (int i = startIndex; i < startIndex + numberOfPositions; i++)
     {
         x = x + deltaX;
         y = y + deltaY;
         z = z + deltaZ;
         
-        // lös inverskinematik för lederna.
+        // Lös inverskinematik för lederna.
         theta1 = atan2f(x,y)*180/PI;
         theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
         acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Anledningen till olika offset beroende på vilka ben servon det gäller är att de verkar vara olika 
+        // monterade.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
@@ -370,12 +376,9 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
                 break;
             }
         }
-        
-        
-        
-        
     }
 }
+
 void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
@@ -505,7 +508,9 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Anledningen till olika offset beroende på vilka ben servon det gäller är att de verkar vara olika 
+        // monterade.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
