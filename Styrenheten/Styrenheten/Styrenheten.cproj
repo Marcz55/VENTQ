@@ -12,9 +12,9 @@
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>Test_servo_v1</AssemblyName>
-    <Name>Test_servo_v1</Name>
-    <RootNamespace>Test_servo_v1</RootNamespace>
+    <AssemblyName>Styrenheten</AssemblyName>
+    <Name>Styrenheten</Name>
+    <RootNamespace>Styrenheten</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>

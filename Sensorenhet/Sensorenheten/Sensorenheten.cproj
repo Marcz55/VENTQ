@@ -12,9 +12,9 @@
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>GccApplication3</AssemblyName>
-    <Name>GccApplication3</Name>
-    <RootNamespace>GccApplication3</RootNamespace>
+    <AssemblyName>Sensorenheten</AssemblyName>
+    <Name>Sensorenheten</Name>
+    <RootNamespace>Sensorenheten</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
