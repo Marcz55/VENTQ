@@ -4,17 +4,17 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>6.2</ProjectVersion>
     <ToolchainName>com.Atmel.AVRGCC8.C</ToolchainName>
-    <ProjectGuid>{fd9d74f6-ed0e-4166-a222-4a035eda7783}</ProjectGuid>
-    <avrdevice>ATmega16A</avrdevice>
+    <ProjectGuid>{ee6e8ba2-b3fd-46f3-b2e0-b231050463fb}</ProjectGuid>
+    <avrdevice>ATmega1284P</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
     <Language>C</Language>
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
-    <AssemblyName>GccApplication3</AssemblyName>
-    <Name>GccApplication3</Name>
-    <RootNamespace>GccApplication3</RootNamespace>
+    <AssemblyName>Test_servo_v1</AssemblyName>
+    <Name>Test_servo_v1</Name>
+    <RootNamespace>Test_servo_v1</RootNamespace>
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
@@ -39,31 +39,18 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
-    <com_atmel_avrdbg_tool_simulator>
-      <ToolOptions>
-        <InterfaceProperties>
-        </InterfaceProperties>
-        <InterfaceName>
-        </InterfaceName>
-      </ToolOptions>
-      <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
-      <ToolNumber>
-      </ToolNumber>
-      <ToolName>Simulator</ToolName>
-    </com_atmel_avrdbg_tool_simulator>
-    <avrtoolinterface>JTAG</avrtoolinterface>
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
         <InterfaceProperties>
-          <JtagDbgClock>200000</JtagDbgClock>
           <JtagEnableExtResetOnStartSession>false</JtagEnableExtResetOnStartSession>
-          <JtagInChain>false</JtagInChain>
-          <JtagDevicesBefore>0</JtagDevicesBefore>
+          <JtagInChain>true</JtagInChain>
+          <JtagDevicesBefore>1</JtagDevicesBefore>
           <JtagDevicesAfter>0</JtagDevicesAfter>
-          <JtagInstrBitsBefore>0</JtagInstrBitsBefore>
+          <JtagInstrBitsBefore>4</JtagInstrBitsBefore>
           <JtagInstrBitsAfter>0</JtagInstrBitsAfter>
           <JtagSelectedDeviceIndexInChain>
           </JtagSelectedDeviceIndexInChain>
+          <JtagDbgClock>200000</JtagDbgClock>
           <JtagDaisyChainDevices>
           </JtagDaisyChainDevices>
         </InterfaceProperties>
@@ -73,10 +60,12 @@
       <ToolNumber>J41800005155</ToolNumber>
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
+    <avrtoolinterface>JTAG</avrtoolinterface>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
       <AvrGcc>
+        <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
         <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
         <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
         <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
@@ -104,6 +93,7 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ToolchainSettings>
       <AvrGcc>
+        <avrgcc.common.optimization.RelaxBranches>True</avrgcc.common.optimization.RelaxBranches>
         <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
         <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
         <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
@@ -131,12 +121,47 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="detection.c">
+    <Compile Include="Definitions.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="GccApplication3.c">
+    <Compile Include="nodsystemet.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="nodsystemet.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Styrenheten.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Timer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="USART.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPI.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPI.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="USART.c">
+      <SubType>compile</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="vsix\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vsix\extension.xdkmanifest">
+      <SubType>Code</SubType>
+    </None>
+    <None Include="vsix\License.txt">
+      <SubType>compile</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
