@@ -20,11 +20,11 @@
 int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
-int closeEnoughToTurn = 0;
+int closeEnoughToTurn = 340;
 int rangeToShortenStepLength_g = 0;	
 
 // Emergency lockdown
-#define EMERGENCY_LOCKDOWN_DISTANCE 240
+#define EMERGENCY_LOCKDOWN_DISTANCE 280
 int tooCloseLastTime_g = FALSE;
 int emergencyDowntime_g = 0;
 int emergencyLockdown_g = FALSE;
@@ -36,7 +36,7 @@ int startPositionZ_g = -90;
 int stepHeight_g =  16;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 60;
-int newGaitResolutionTime = INCREMENT_PERIOD_50; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_40; // tid i timerloopen för benstyrningen i ms
 
 
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
@@ -947,6 +947,11 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset_g);
 					break;
 				}
+                case eastWest:
+                {
+                    translationRegulationError = distanceValue_g[east] - distanceValue_g[west];
+                    break;
+                }                    
 				case noDirection:
 				{
 					translationRegulationError = 0;
@@ -972,6 +977,12 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset_g);
 					break;
 				}
+                
+                case northSouth:
+                {
+                    translationRegulationError = distanceValue_g[south] - distanceValue_g[north];
+                    break;
+                }
 
 				case noDirection:
 				{
@@ -999,6 +1010,12 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					break;
 				}
 
+                case eastWest:
+                {
+                    translationRegulationError = distanceValue_g[west] - distanceValue_g[east];
+                    break;
+                }
+                 
 				case noDirection:
 				{
 					translationRegulationError = 0;
@@ -1024,6 +1041,12 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset_g);
 					break;
 				}
+                
+                case northSouth:
+                {
+                    translationRegulationError = distanceValue_g[north] - distanceValue_g[south];
+                    break;
+                }
 
 				case noDirection:
 				{
@@ -1058,15 +1081,15 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	int leftSideStepLengthAdjust = (kProportionalAngle_g * (-angleRegulationError))/20; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
 	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/20; // eftersom angleRegulationError avser hur mycket vridet åt höger om mittlinjen roboten är  
 		
-	if (translationRight > 60)
+	if (translationRight > 40)
 	{
-		translationRight = 60;
+		translationRight = 40;
 	}
 		
 		
-	if (translationRight < -60)
+	if (translationRight < -40)
 	{
-		translationRight = -60;
+		translationRight = -40;
 	}
 		
 	if (leftSideStepLengthAdjust > 40)
@@ -1197,7 +1220,18 @@ int decideRegulationDirection()
 
     if(currentDirection_g != noDirection)
     {
-        if(distanceValue_g[directionToRight] < closeEnoughToRegulate)
+        if(distanceValue_g[directionToRight] < closeEnoughToRegulate && distanceValue_g[directionToLeft] < closeEnoughToRegulate)
+            {
+                if(directionToRight == east || directionToRight == west)
+                {
+                    tempRegulationDirection = eastWest;
+                }
+                else
+                {
+                    tempRegulationDirection = northSouth;
+                }
+            } 
+        else if(distanceValue_g[directionToRight] < closeEnoughToRegulate)
         {
             tempRegulationDirection = directionToRight;
         }
@@ -1241,8 +1275,8 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
-		closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
-		if (closeEnoughToTurn)
+		//closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
+		if ((distanceValue_g[currentDirection_g]) < closeEnoughToTurn)
 		{
 			currentOrder_g = noOrder;
 			currentDirection_g = nextDirection_g;
@@ -1784,7 +1818,7 @@ void gaitController()
             applyOrder();
 	    }
         //applyOrder();
-        calcRegulation(decideRegulationDirection(), TRUE);
+        calcRegulation(decideRegulationDirection(), currentNode_g.whatNode != T_CROSSING); // Använd ej rotationsreglering i T-korsningar
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))
