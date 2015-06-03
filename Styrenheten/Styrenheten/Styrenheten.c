@@ -36,7 +36,7 @@ int startPositionZ_g = -90;
 int stepHeight_g =  16;
 int gaitResolution_g = 12; // MÅSTE VARA DELBART MED 4 vid trot, 8 vid creep
 int stepLengthRotationAdjust = 60;
-int newGaitResolutionTime = INCREMENT_PERIOD_40; // tid i timerloopen för benstyrningen i ms
+int newGaitResolutionTime = INCREMENT_PERIOD_50; // tid i timerloopen för benstyrningen i ms
 
 
 int currentDirectionInstruction = 0; // Nuvarande manuell styrinstruktion
@@ -1081,15 +1081,15 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	int leftSideStepLengthAdjust = (kProportionalAngle_g * (-angleRegulationError))/20; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
 	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/20; // eftersom angleRegulationError avser hur mycket vridet åt höger om mittlinjen roboten är  
 		
-	if (translationRight > 40)
+	if (translationRight > 30)
 	{
-		translationRight = 40;
+		translationRight = 30;
 	}
 		
 		
-	if (translationRight < -40)
+	if (translationRight < -30)
 	{
-		translationRight = -40;
+		translationRight = -30;
 	}
 		
 	if (leftSideStepLengthAdjust > 40)
