@@ -20,7 +20,7 @@ int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
 int closeEnoughToTurn_g = 0;
-int allowedToMove_g = 0;
+int sensortest = 0;
 
 
 int stepLength_g = 80;
@@ -44,6 +44,7 @@ int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
 int BlindStepsToTake_g = 0;
+int allowedToMove_g = 0;
 
 // ------ Inställningar för robot-datorkommunikation ------
 int newCommUnitUpdatePeriod = INCREMENT_PERIOD_200;
@@ -59,7 +60,6 @@ int stepLengthShortened_g = FALSE;
 int diagonalMovement_g = FALSE;
 
 // avstånd ifrån sensorera till mitten av roboten (mm)
-int sensorOffset_g = 60;
 /*
 // Joakims coola gångstil,
 int stepLength_g = 40;
@@ -724,16 +724,18 @@ ISR(INT1_vect)
     
 	if (toggleMania)
     {
-		allowedToMove_g = 0;
         currentControlMode_g = manual;
+		allowedToMove_g = 0;
         sendStuff = TRUE;
         toggleMania = FALSE;
     }
     else
     {
-		allowedToMove_g = 1;
         currentControlMode_g = exploration;
-        toggleMania = TRUE;        
+		allowedToMove_g = 1;
+        toggleMania = TRUE;
+		sensortest = 0;
+        
     }
 	
 	/*
@@ -1210,7 +1212,6 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
-
 		closeEnoughToTurn_g = distanceValue_g[currentDirection_g] < (stepLength_g/2 + halfPathWidth_g);	
 		if (closeEnoughToTurn_g)
 		{
@@ -2169,7 +2170,7 @@ int main(void)
     sei();
     MoveToStartPosition();
     //moveToCreepStartPosition();
-    _delay_ms(1000);
+    _delay_ms(2000);
     //currentDirection_g = east;
     //makeCreepGait(gaitResolution_g);
     standStillGait();
@@ -2196,13 +2197,24 @@ int main(void)
 		}
     	if (commTimerPeriodEnd())
     	{
-
             resetCommTimer();
 			updateAllDistanceSensorData();
+			sensortest ++;
 			if(tooCloseToFrontWall() && currentControlMode_g == exploration && allowedToMove_g) // Kollar om roboten kommit för nära väggen framåt och avbryter rörelsen framåt
 			{
 				emergencyStop();
 			}
+            updateTotalAngle();
+			checkForLeak();
+            sendChangedRobotParameters();
+            if (sendDataToPC)
+			{
+				transmitDataToCommUnit(NODE_INFO, makeNodeData(&currentNode_g));
+				transmitDataToCommUnit(CONTROL_DECISION,nextDirection_g);
+				transmitAllDataToCommUnit();
+				sendDataToPC = FALSE;
+			}
+			sei();
             updateTotalAngle();
 
 	    
