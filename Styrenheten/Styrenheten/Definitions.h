@@ -206,7 +206,9 @@ enum direction{
     east,
     south,
     west,
-    noDirection
+    noDirection,
+    eastWest,
+    northSouth
 };
 
 enum direction currentDirection_g;

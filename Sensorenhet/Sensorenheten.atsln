@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
-Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "GccApplication3", "GccApplication3\GccApplication3.cproj", "{FD9D74F6-ED0E-4166-A222-4A035EDA7783}"
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Sensorenheten", "Sensorenheten/Sensorenheten.cproj", "{FD9D74F6-ED0E-4166-A222-4A035EDA7783}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

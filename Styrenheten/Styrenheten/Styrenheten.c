@@ -1,8 +1,9 @@
 /*
- * Test_servo_v1.c
+ * Styrenheten.c
  *
  * Created: 3/26/2015 11:50:32 AM
- *  Author: joamo950
+ * Author: Joakim Mörhed
+ * Version: 1.0
  */ 
 
 #include <avr/io.h>
@@ -19,11 +20,11 @@
 int halfPathWidth_g = 570/2; // Avståndet mellan väggar
 int regulation_g[3]; // array som regleringen sparas i
 
-int closeEnoughToTurn = 0;
+int closeEnoughToTurn = 340;
 int rangeToShortenStepLength_g = 0;	
 
 // Emergency lockdown
-#define EMERGENCY_LOCKDOWN_DISTANCE 240
+#define EMERGENCY_LOCKDOWN_DISTANCE 280
 int tooCloseLastTime_g = FALSE;
 int emergencyDowntime_g = 0;
 int emergencyLockdown_g = FALSE;
@@ -251,8 +252,9 @@ void MoveToStartPosition()
     return;
 }
 
-// Rader är vinklar på servon. Kolumnerna innehåller positioner. Allokerar en extra rad minne 
-// här i matriserna bara för att få snyggare kod. 
+/* Rader är vinklar på servon. Kolumnerna innehåller positioner. Allokerar en extra rad minne 
+ * här i matriserna bara för att få snyggare kod. 
+ */
 long int actuatorPositions_g [13][20];
 float legPositions_g [13][20];
 int regulation_g[3];
@@ -261,8 +263,10 @@ int currentPos_g = 0;
 int nextPos_g = 1;
 int maxGaitCyclePos_g = 1;
 
-// Den här funktionen hanterar vilken position i gångcykeln roboten är i. Den går runt baserat på 
-// antalet positioner som finns i den givna gångstilen. 
+/* 
+ * Den här funktionen hanterar vilken position i gångcykeln roboten är i. Den går runt baserat på 
+ * antalet positioner som finns i den givna gångstilen. 
+ */ 
 void increasePositionIndexes()
 {
     if (currentPos_g >= maxGaitCyclePos_g)
@@ -285,8 +289,11 @@ void increasePositionIndexes()
     return;
 }
 
-
-
+/*
+ * Den här funktionen skapar en linjär rörelse för ett visst ben från punkt 1 till punkt 2.
+ * Antalet delpunkter som skapas bestäms av numberOfPositions.
+ * Startpositionen i positionsmatrisen anges av startIndex. 
+ */
 void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
@@ -310,23 +317,22 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
     float y = y1;
     float z = z1;
     
-  
-    
-    
     for (int i = startIndex; i < startIndex + numberOfPositions; i++)
     {
         x = x + deltaX;
         y = y + deltaY;
         z = z + deltaZ;
         
-        // lös inverskinematik för lederna.
+        // Lös inverskinematik för lederna.
         theta1 = atan2f(x,y)*180/PI;
         theta2 = 180/PI*(acosf(-z/sqrt(z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1))) +
         acosf((z*z + (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1) + a2Square - a3Square)/(2*sqrt(z*z + (sqrt((x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)))*a2)));
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Anledningen till olika offset beroende på vilka ben servon det gäller är att de verkar vara olika 
+        // monterade.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
@@ -370,12 +376,9 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
                 break;
             }
         }
-        
-        
-        
-        
     }
 }
+
 void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
@@ -505,7 +508,9 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
         
         theta3 = acosf((a2Square + a3Square - z*z - (sqrt(x*x + y*y) - a1)*(sqrt(x*x + y*y) - a1)) / (2*a2*a3))*180/PI;
         
-        // spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Spara resultatet i global array. Korrigera så att koordinaterna som sparas kan användas för nya anrop.
+        // Anledningen till olika offset beroende på vilka ben servon det gäller är att de verkar vara olika 
+        // monterade.
         switch(currentLeg.legNumber)
         {
             case FRONT_LEFT_LEG:
@@ -942,6 +947,11 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					translationRegulationError = halfPathWidth_g - (distanceValue_g[west] + sensorOffset_g);
 					break;
 				}
+                case eastWest:
+                {
+                    translationRegulationError = distanceValue_g[east] - distanceValue_g[west];
+                    break;
+                }                    
 				case noDirection:
 				{
 					translationRegulationError = 0;
@@ -967,6 +977,12 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					translationRegulationError = halfPathWidth_g - (distanceValue_g[north] + sensorOffset_g);
 					break;
 				}
+                
+                case northSouth:
+                {
+                    translationRegulationError = distanceValue_g[south] - distanceValue_g[north];
+                    break;
+                }
 
 				case noDirection:
 				{
@@ -994,6 +1010,12 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					break;
 				}
 
+                case eastWest:
+                {
+                    translationRegulationError = distanceValue_g[west] - distanceValue_g[east];
+                    break;
+                }
+                 
 				case noDirection:
 				{
 					translationRegulationError = 0;
@@ -1019,6 +1041,12 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 					translationRegulationError = halfPathWidth_g - (distanceValue_g[south] + sensorOffset_g);
 					break;
 				}
+                
+                case northSouth:
+                {
+                    translationRegulationError = distanceValue_g[north] - distanceValue_g[south];
+                    break;
+                }
 
 				case noDirection:
 				{
@@ -1053,15 +1081,15 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 	int leftSideStepLengthAdjust = (kProportionalAngle_g * (-angleRegulationError))/20; // om roboten ska rotera åt höger så låter vi benen på vänster sida ta längre steg och benen på höger sida ta kortare steg
 	int rightSideStepLengthAdjust = kProportionalAngle_g * (angleRegulationError)/20; // eftersom angleRegulationError avser hur mycket vridet åt höger om mittlinjen roboten är  
 		
-	if (translationRight > 60)
+	if (translationRight > 30)
 	{
-		translationRight = 60;
+		translationRight = 30;
 	}
 		
 		
-	if (translationRight < -60)
+	if (translationRight < -30)
 	{
-		translationRight = -60;
+		translationRight = -30;
 	}
 		
 	if (leftSideStepLengthAdjust > 40)
@@ -1192,7 +1220,18 @@ int decideRegulationDirection()
 
     if(currentDirection_g != noDirection)
     {
-        if(distanceValue_g[directionToRight] < closeEnoughToRegulate)
+        if(distanceValue_g[directionToRight] < closeEnoughToRegulate && distanceValue_g[directionToLeft] < closeEnoughToRegulate)
+            {
+                if(directionToRight == east || directionToRight == west)
+                {
+                    tempRegulationDirection = eastWest;
+                }
+                else
+                {
+                    tempRegulationDirection = northSouth;
+                }
+            } 
+        else if(distanceValue_g[directionToRight] < closeEnoughToRegulate)
         {
             tempRegulationDirection = directionToRight;
         }
@@ -1236,8 +1275,8 @@ void applyOrder()
 	}
 	if(currentOrder_g == turnSeeing)	
 	{
-		closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
-		if (closeEnoughToTurn)
+		//closeEnoughToTurn = (distanceValue_g[currentDirection_g] + sensorOffset_g) < (stepLength_g/2 + halfPathWidth_g);	
+		if ((distanceValue_g[currentDirection_g]) < closeEnoughToTurn)
 		{
 			currentOrder_g = noOrder;
 			currentDirection_g = nextDirection_g;
@@ -1779,7 +1818,7 @@ void gaitController()
             applyOrder();
 	    }
         //applyOrder();
-        calcRegulation(decideRegulationDirection(), TRUE);
+        calcRegulation(decideRegulationDirection(), currentNode_g.whatNode != T_CROSSING); // Använd ej rotationsreglering i T-korsningar
     }
 
     if((currentPos_g == posToCalcGait) && (needToCalcGait))

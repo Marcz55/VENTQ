@@ -1,5 +1,5 @@
 /*
- * GccApplication3.c
+ * Sensorenheten.c
  *
  * Created: 3/26/2015 1:17:55 PM
  *  Author: rasvi146
