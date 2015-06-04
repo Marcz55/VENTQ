@@ -80,15 +80,6 @@ int noLeakCounter_g = 0;
 									//	   00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160
 	const int distanceTable8[] PROGMEM = {800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,800,780,750,735,720,690,670,650,600,580,560,540,520,510,500,490,460,440,430,420,410,390,380,370,360,350,340,330,320,310,304,297,291,278,272,270,268,258,255,252,238,135,232,228,225,223,220,215,208,205,203,201,199,194,192,190,184,182,180,178,175,173,171,169,167,164,161,160,158,157,155,153,152,149,147,145,143,141,140,139,137,135,134,133,132,130,129,128,127,125,123,122,121,120,119,119,118,116,115,114,113,112,111,110,109,108,107,106,105,104,103,102,101,100, 99, 98, 97, 96, 95, 94, 94, 93, 92, 91, 91, 90, 90, 89, 89, 87, 86, 86, 85, 85, 84, 83, 82, 82}; // Minus en konstant, (14mm för mycket i tabellerna)
 
-//-------------------------------
-//-------------------------------
-// Ställ in rätt sidoavstånd!!!!!
-
-//-------------------------------
-//-------------------------------
-
-// Tabell för att omvandla differens i sensoravstånd till vinkel	
-//int angleTable[] = {0, (180/3.141592)*asin(1/(sqrt(1 + 15*15))), (180/3.141592)*asin(2/(sqrt(4 + 15*15))), (180/3.141592)*asin(3/(sqrt(9 + 15*15))), (180/3.141592)*asin(4/(sqrt(16 + 15*15))), (180/3.141592)*asin(5/(sqrt(25 + 15*15))), (180/3.141592)*asin(6/(sqrt(36 + 15*15))), (180/3.141592)*asin(7/(sqrt(49 + 15*15))), (180/3.141592)*asin(8/(sqrt(64 + 15*15))), (180/3.141592)*asin(9/(sqrt(81 + 15*15))), (180/3.141592)*asin(10/(sqrt(100 + 15*15))), (180/3.141592)*asin(11/(sqrt(121 + 15*15))), (180/3.141592)*asin(12/(sqrt(144 + 15*15))), (180/3.141592)*asin(13/(sqrt(169 + 15*15))), (180/3.141592)*asin(14/(sqrt(196 + 15*15)))};
 
 #define differentAngles 150 // Hur många vinklar som finns i look-up-table
 #define sidelenght	118U	// Sidan mellan två sensorer, 175 millimeter, U för att undvika overflow för värden större än 46
@@ -105,7 +96,11 @@ int noLeakCounter_g = 0;
 
 int angleTable[differentAngles];
 
-void makeAngleTable() // Skapar angleTable med 150 element som motsvarar differens (millimeter), lägger på varje plats motsvarande vinkel
+/*
+* Skapar angleTable med 150 element som motsvarar differens 
+* (millimeter), lägger på varje plats motsvarande vinkel
+*/
+void makeAngleTable() 
 {
 	int i;
 	for (i=0; i<differentAngles; i++)
@@ -115,6 +110,9 @@ void makeAngleTable() // Skapar angleTable med 150 element som motsvarar differe
 	}
 }
 
+/*
+* Skriver ut en bokstav eller siffra på displayen
+*/
 void writeDisplay(int asciiCode)
 {
 	PORTB = (1<< displayE) | (1<< displayRS);
@@ -123,9 +121,12 @@ void writeDisplay(int asciiCode)
 	_delay_ms(1); // Väntar på att instruktion utförs
 }
 
-void initPorts() // Initierar display och slave
+/*
+* Initierar display och slave
+*/
+void initPorts() 
 {
-	DDRD = 0xFF; // Sätter PD till outport, tror jag
+	DDRD = 0xFF; // Sätter PD till outport
 	DDRB = (1<<PORTB0)|(1<<PORTB1)|(1<<PORTB6); // Sätter PB0,1,6 till ut PB0= RS, PB1 = E PB6 = MISO
     SPCR = (1<<SPE)|(1<<SPIE); //Sätt på SPI    
 	
@@ -160,6 +161,10 @@ void initPorts() // Initierar display och slave
 	
 };
 
+
+/*
+* Tar in ett tresiffrigt tal och skriver ut siffrorna en i taget
+*/
 void writeSensor(int whatSensor)
 {
 		int number1;
@@ -185,19 +190,18 @@ void writeSensor(int whatSensor)
 		writeDisplay(number3 + 48);
 }
 
+/*
+* Jämförelse som används i qsort
+*/
 int compareFunction (const void * firstValue, const void * secondValue)
 {
    return ( *(int*)firstValue - *(int*)secondValue ); // Sorterar i stigande ordning
 }
 
-/*
-int median(int medianSensor[5])
-{
-	qsort(medianSensor, 5, sizeof(int), compareFunction); // Sorterar alla sensorvärden
-	return medianSensor[2]; // Returnerar medianen
-}
-*/
 
+/*
+* Tar fem värden, sorterar bort de två mest avvikande och returnerar medelvärdet av resterande
+*/
 int average(int averageSensor[5])
 {
 	qsort(averageSensor, 5, sizeof(int), compareFunction); // Sorterar alla sensorvärden
@@ -216,13 +220,19 @@ int average(int averageSensor[5])
 	}
 }
 
+/*
+* Påbörjar A/D-omvandling
+*/
 void startAD(int muxBit2, int muxBit1, int muxBit0)
 {
 	ADMUX = (muxBit2<<MUX2) | (muxBit1<<MUX1) | (muxBit0<<MUX0); // Väljer port som ska AD-omvandlas
 	ADCSRA = (1<<ADEN) | (1<<ADSC) | (1<<ADPS1) | (1<<ADPS0); // Startar AD-omvandling
 }
 
-
+/*
+* Returnerar genomsnittet av två sensorevärden om differensen mellan dem är tillräckligt liten,
+* annars returneras det kortaste
+*/
 int sideValue(int firstSensor, int secondSensor)
 {
 	if (abs(firstSensor - secondSensor) > 100) // Om differensen mellan sensorerna är större än 10 returneras kortaste avståndet
@@ -242,7 +252,10 @@ int sideValue(int firstSensor, int secondSensor)
 	}
 }
 
-
+/*
+* Om differensen mellan två sensorer är tillräckligt liten skapas en vinkel med
+* angleTable, annars blir vinkeln noll
+*/
 int getAngle(int firstLength, int secondLength)
 {
 	int diffLength = firstLength - secondLength;
@@ -263,6 +276,10 @@ int getAngle(int firstLength, int secondLength)
 	}
 }
 
+/*
+* Efter att en A/D-omvandling påbörjats används denna fuunktion för att
+* vänta på att den blir klar
+*/
 void waitForConversionComplete()
 {
 	while (ADC_notComplete) {} // Loopar tills ADIF=1 dvs ADC klar
@@ -272,6 +289,10 @@ void waitForConversionComplete()
 	ADCSRA = (1<<ADIF); // Clearar ADIF
 }
 
+/*
+* Omvandlar ett A/D-omvandlat värde till avstånd med hjälp av det
+* lookaptable som kalibrerats för sensorn
+*/
 int convertADtoDistance(int ADreading, int sensorNumber)
 {
 	if (ADreading > 160) // Returnerar ungefärligt värde om AD-omvandlat värde hamnar utanför tabell, i praktiken borde inget komma så nära sensorn
@@ -313,6 +334,12 @@ int convertADtoDistance(int ADreading, int sensorNumber)
 	}
 }
 
+
+/*
+* Skapar för varje sensor ett medelvärde av de senaste A/D-omvandlade värden
+* och omvandlar sedan dessa till avstånd. Dessa avstånd används sedan för att
+* skapa sidoavstånd
+*/
 void calculateAvarageDistance() // Räknar ut medelvärdet av 5 senaste mätningarna och avståndet från varje sida
 {
 	
@@ -331,6 +358,9 @@ void calculateAvarageDistance() // Räknar ut medelvärdet av 5 senaste mätningarn
 			sideDistance4 = sideValue(averageDistance2, averageDistance5);
 }
 
+/*
+* Skapar vinklar för varje sida och sedan en total vinkel av de som kunde beräknas
+*/
 void calculateAngle() // Räknar ut vinklar hos varje sida, och ett genomsnitt av nollskillda vinklar
 {
 			int angleDivisor = 0;
@@ -370,102 +400,15 @@ void calculateAngle() // Räknar ut vinklar hos varje sida, och ett genomsnitt av
 			}
 }
 
+/*
+* När en header tas emot från styrenheten ska två byte skickas, en i taget. Denna
+* funktion identifierar vad som ska skickas och skapar två separata bytes.
+* Specialfall är om headern säger att lampor ska tändas, då skickas två bytes
+* med nollor tillbaka och lamporna tänds.
+*/
 void splitDataBytes(int recievedHeader)
 {
     int dataToSplit = 0;
-    /*switch(recievedHeader)
-    {
-        case DISTANCE_NORTH:
-        {
-            dataToSplit = sideDistance1;
-            break;
-        }
-        case DISTANCE_EAST:
-        {
-            dataToSplit = sideDistance2;
-            break;
-        }
-        case DISTANCE_SOUTH:
-        {
-            dataToSplit = sideDistance3;
-            break;
-        }
-        case DISTANCE_WEST:
-        {
-            dataToSplit = sideDistance4;
-            break;
-        }
-        case ANGLE_NORTH:
-        {
-            dataToSplit = sideAngle1;
-            break;
-        }
-        case ANGLE_EAST:
-        {
-            dataToSplit = sideAngle2;
-            break;
-        }
-        case ANGLE_SOUTH:
-        {
-            dataToSplit = sideAngle3;
-            break;
-        }
-        case ANGLE_WEST:
-        {
-            dataToSplit = sideAngle4;
-            break;
-        }
-        case TOTAL_ANGLE:
-        {
-            dataToSplit = totalAngle;
-            break;
-        }
-        case LEAK_HEADER:
-        {
-            dataToSplit = leakFound;
-            break;
-        }
-		case SENSOR_1:
-		{
-			dataToSplit = averageDistance1;
-			break;
-		}
-		case SENSOR_2:
-		{
-			dataToSplit = averageDistance2;
-			break;
-		}
-		case SENSOR_3:
-		{
-			dataToSplit = averageDistance3;
-			break;
-		}
-		case SENSOR_4:
-		{
-			dataToSplit = averageDistance4;
-			break;
-		}
-		case SENSOR_5:
-		{
-			dataToSplit = averageDistance5;
-			break;
-		}
-		case SENSOR_6:
-		{
-			dataToSplit = averageDistance6;
-			break;
-		}
-		case SENSOR_7:
-		{
-			dataToSplit = averageDistance7;
-			break;
-		}
-		case SENSOR_8:
-		{
-			dataToSplit = averageDistance8;
-			break;
-		}
-    }*/
 	if (recievedHeader < 184)
 	{
 		if (recievedHeader < 136)
@@ -599,6 +542,9 @@ void splitDataBytes(int recievedHeader)
     transmitDataByte2 = (dataToSplit & 0b0000000011111111);
 }
 
+/*
+* Sätter portar så att rätt lampor tänds
+*/
 void toggleLamps(int lamp1_, int lamp2_, int lamp3_)
 {
     if((lamp1_ == 1 || lamp1_ == 0) && (lamp2_ == 1 || lamp2_ == 0) && (lamp3_ == 1 || lamp3_ == 0))
@@ -607,6 +553,10 @@ void toggleLamps(int lamp1_, int lamp2_, int lamp3_)
     } 
 }
 
+/*
+* Avbrottsvektor som sker när en byte förts över vid kommunikation. Det finns variabler som
+* lagrar sensorenhetens "status", det vill säga hur många bytes som förts över.
+*/
 ISR(SPISTC_vect)//SPI-överföring klar
 {
     switch(transmitStatus)
@@ -645,11 +595,18 @@ ISR(SPISTC_vect)//SPI-överföring klar
     }    
 }
 
+/*
+* Denna avbrottsrutin används för att detektera läckor. Den räknar antalet pulser
+* som IR-mottagaren skickar ut.
+*/
 ISR(INT2_vect)
 {
 	potentialLeak_g += 1;
 }
 
+/*
+* Programmets huvudloop som körs ungefär var 40:e millisekund
+*/
 int main(void)
 {	
 	int totalLeaks_ = 0;
@@ -701,33 +658,6 @@ int main(void)
 			leakIterator = 0;
 		}
 		
-		/*
-		if(potentialLeak_g > LEAK_SENSITIVITY)
-		{
-			leakCounter_g ++;
-			noLeakCounter_g = 0;
-		} 
-		else 
-		{
-			leakCounter_g = 0;
-			noLeakCounter_g ++;
-		}
-		
-		if (leakCounter_g >= 3)
-		{
-			leakFound_g = 1;
-			leakCounter_g = 0;
-			//PORTC = ((1 << PORTC0) | (1 << PORTC1) | (1 << PORTC6));
-			
-		} 
-		else if(noLeakCounter_g >= 3)
-		{
-			leakFound_g = 0;
-			//PORTC = ((0 << PORTC0) | (0 << PORTC1) | (0 << PORTC6));		
-		}
-
-		potentialLeak_g = 0;
-		*/
 				
 		if (iteration >= 4) // iteration används så att det görs 5 mätningar per sensor
 		{
@@ -770,8 +700,7 @@ int main(void)
 		waitForConversionComplete();
 		sensor8[iteration] = tempReading;				
 		
-		/*if (iteration == 4)
-		{*/
+
 			
 			calculateAvarageDistance();
 			
@@ -798,10 +727,6 @@ int main(void)
 
 
 			_delay_ms(6); // Väntar på att sensorerna uppdateras, väntar bara i 6 ms eftersom delayer för utskrift summeras till 34 ms
-		/*}
-		else
-		{
-			_delay_ms(40); // Väntar på att sensorerna uppdateras vilket tar ca 40 ms.
-		}*/
+
 	}
 }
