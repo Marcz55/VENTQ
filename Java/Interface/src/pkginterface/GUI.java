@@ -112,6 +112,7 @@ public class GUI extends Application
     final LineChart<Number,Number> angleAllGraph = new LineChart<Number,Number>(angleAllXAxis,angleAllYAxis);
     final LineChart<Number,Number> sideAllGraph = new LineChart<Number,Number>(sideAllXAxis,sideAllYAxis);
     
+    // Färger som kan användas
     Background grayBackground = new Background(new BackgroundFill(Paint.valueOf("808080"),CornerRadii.EMPTY,Insets.EMPTY));
     Background redBackground = new Background(new BackgroundFill(Paint.valueOf("F00000"),CornerRadii.EMPTY,Insets.EMPTY));
     Background greenBackground = new Background(new BackgroundFill(Paint.valueOf("00F000"),CornerRadii.EMPTY,Insets.EMPTY));
@@ -134,6 +135,7 @@ public class GUI extends Application
     
     public String portConnected = "Ej ansluten";
     
+    // Bilder av noder
     public Image[] nodeImageArray = 
     {new Image(getClass().getResourceAsStream("0.png")),
     new Image(getClass().getResourceAsStream("1.png")),
@@ -230,60 +232,52 @@ public class GUI extends Application
                 break;
         }
         mainInterface.sendData((byte)movementByte_);
-        //System.out.println(movementByte_);
         
     }
     
-    void sendChanges()
+    void sendChanges() // Skapar en byte som säger vilken parameter som ska ändras och hur
     {
         byte changeParameterByte = (byte)0b10000000;
         if (parameterChange == 1)
         {
-            changeParameterByte += (byte)0b00000001;
+            changeParameterByte += (byte)0b00000001; // Etta eller nolla på denna bit betyder att parametern ska ökas respektive sänkas.
         }
         
-        if (parameterChange != 0)
+        if (parameterChange != 0) // Här sätts tre bitar utifrån vilken parameter som ska ändras-
         {
             if (tPressed)
             {
-                //xyWidthText.setText("A/t\nUtbredning:\n" + Integer.toString(xyWidthOffset));
                 mainInterface.sendData(changeParameterByte);
             }
             else if (yPressed)
             {
-                //heightText.setText("B/y\nHöjd:\n" + Integer.toString(heightOffset));
                 changeParameterByte += (byte)0b00000010;
                 mainInterface.sendData(changeParameterByte);
             }
             else if (uPressed)
             {
-                //stepLengthText.setText("X/u\nSteglängd:\n" + Integer.toString(stepLengthOffset));
                 changeParameterByte += (byte)0b00000100;
                 mainInterface.sendData(changeParameterByte);
             }
             
             else if (iPressed)
             {
-                //stepHeightText.setText("Y/i\nSteghöjd:\n" + Integer.toString(stepHeightOffset));
                 changeParameterByte += (byte)0b00000110;
                 mainInterface.sendData(changeParameterByte);
             }
             
             else if (oPressed)
             {
-                //timeIncrementText.setText("Upp/o\nStegtid:\n" + Integer.toString(timeOffset));
                 changeParameterByte += (byte)0b00001000;
                 mainInterface.sendData(changeParameterByte);
             }
             else if (gPressed)
             {
-                //kDistanceText.setText("Vänster/g\nkDistance:\n" + Double.toString((double)kDistance/10));
                 changeParameterByte += (byte)0b00001010;
                 mainInterface.sendData(changeParameterByte);
             }
             else if (hPressed)
             {
-                //kAngleText.setText("Höger/h\nkAngle:\n" + Double.toString((double)kAngle/10));
                 changeParameterByte += (byte)0b00001100;
                 mainInterface.sendData(changeParameterByte);
             }
@@ -368,14 +362,6 @@ public class GUI extends Application
                 case "connection":
                 {
                     connectedText.setText("Seriell port: \n" + portConnected);
-                    /*if(mainInterface.portConnected == "Ansluten")
-                    {
-                        connectedText.setTextFill(Paint.valueOf("00F000"));
-                    }
-                    else
-                    {
-                        connectedText.setTextFill(Paint.valueOf("F00000"));
-                    }*/
                     break;
                 }
                 case "decision":
@@ -434,7 +420,7 @@ public class GUI extends Application
         }
     }
     
-    public void getGraphData(double dataIterations_)
+    public void getGraphData(double dataIterations_) // Uppdaterar grafernas data
     {
         try
         {
@@ -463,7 +449,7 @@ public class GUI extends Application
         }
     }
     
-    public void resetGraphs() //Fungerar, men skapar ett exception. Helt ok för mig, men Axel skulle aldrig acceptera det.
+    public void resetGraphs() // Rensar alla grafer. Intabil, använd med försiktighet.
     {
       
         side1Data.getData().clear();
@@ -498,7 +484,7 @@ public class GUI extends Application
     public void start(Stage stage)
     {
         
-        Task<Integer> graphTask = new Task<Integer>()
+        Task<Integer> graphTask = new Task<Integer>() // Denna tråd uppdaterar grafer med jämna mellanrum.
         {
             @Override protected Integer call() throws Exception
             {
@@ -528,8 +514,8 @@ public class GUI extends Application
         graphThread.setDaemon(true);
         
         
-        Task<Integer> connectTask = new Task<Integer>()
-        {
+        Task<Integer> connectTask = new Task<Integer>() // Denna tråd undersöker med jämna mellanrum om den ska ansluta till 
+        {                                               // eller koppla ifrån Bluetoothenheten.
             @Override protected Integer call() throws Exception
             {
                 while (true)
@@ -633,7 +619,6 @@ public class GUI extends Application
         
         
         Group graphics = new Group();
-        //Rectangle rektangel1 = new Rectangle(100,100,);
         
         GridPane root = new GridPane(); // Skapar en grid
         Scene mainScene = new Scene(root,1350,700); // Storlek är 1000x500 pixlar
@@ -657,29 +642,17 @@ public class GUI extends Application
                 {
                     setConnect = "Connect";
                     connectButton.setText("Koppla bort");
- 
-                    /*if (comPort != null)  // Notera att COM** är olika på olika datorer
-                    {
-                        System.out.println();
-                        mainInterface.connect();
-                        graphThread.start();
-                    }
-                    if(portConnected == "Ansluten") // Ändra knapp om anslutning lyckas
-                    {
-                        connectButton.setText("Koppla bort");
-                    }*/
                 }
                 else
                 {
                     resetButtons(); // Om ansluten, koppla från och ändra knapp, nollställ alla knapptryck
-                    //mainInterface.flush(); // och skicka till roboten så den inte fortsätter okontrollerat
                     connectButton.setText("    Anslut    ");
                     setConnect = "Disconnect";
                 }
             }
         });
         
-        findLeakButton.setText(" Gå till läcka ");
+        findLeakButton.setText(" Gå till läcka "); // När denna knapp trycks skickas ett meddelande till robot om att gå rill läcka
         findLeakButton.setOnAction(new EventHandler<ActionEvent>()
         {
             @Override
@@ -688,12 +661,12 @@ public class GUI extends Application
                 root.requestFocus();
                 try
                 {
-                    if (true) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
-                    {                   // värde till robot och ändra på text och knapp
+                    if (true)
+                    {                   
                         switch(findLeak.getText())
                         {
                             case "1":
-                            mainInterface.sendData((byte)0b11000000);
+                            mainInterface.sendData((byte)0b11000000); // Skickar olika värden beroende på vald läcka
                             break;
                             case "2":
                             mainInterface.sendData((byte)0b11000001);
@@ -733,7 +706,6 @@ public class GUI extends Application
                     if (!autonomusMode) // Om ej i autonomt läge, växla till autonomt läge genom att skicka rätt
                     {                   // värde till robot och ändra på text och knapp
                         mainInterface.sendData((byte)0b11010000); 
-                        //System.out.println((byte)0b10000000);
                         autonomusMode = true;
                         autonomusButton.setText("Avaktivera");
                         autonomusText.setText("Autonomt\nläge på");
@@ -742,7 +714,6 @@ public class GUI extends Application
                     else  // Om i autonomt läge, växla till manuellt
                     {
                         mainInterface.sendData((byte)0b11001000);
-                       // System.out.println((byte)0b11000000);
                         autonomusMode = false;
                         autonomusButton.setText(" Aktivera ");
                         autonomusText.setText("Autonomt\nläge av");
@@ -775,7 +746,7 @@ public class GUI extends Application
             }
         });
         
-        Button resetListButton = new Button();
+        Button resetListButton = new Button(); // Rensar alla beslutslistor
         resetListButton.setText("Reset");
         resetListButton.setOnAction(new EventHandler<ActionEvent>()
         {
@@ -807,8 +778,6 @@ public class GUI extends Application
                 {                                    // toLowerCase gör att capslock ej påverkar
                     resetButtons();
                 }
-                //if (true) // Knapptryck för styrning registreras bara om roboten är i manuellt läge
-                //{
                     switch (e.getText().toLowerCase()) // Ändra up- och rightMovement samt turnDirection när
                     {                                  // knappar trycks ned
                                                        // w och s ökar respektive minskar upMovement, d och a ökar
@@ -923,7 +892,6 @@ public class GUI extends Application
                         default:
                             break;
                     }
-                //}
             }
         });
         
@@ -1055,7 +1023,6 @@ public class GUI extends Application
                 root.requestFocus();
             }
         });
-        //root.setGridLinesVisible(true);
         root.setBackground(grayBackground);
         
         side1Text.setMinHeight(80);
@@ -1213,15 +1180,12 @@ public class GUI extends Application
         root.add(autonomusText,8,6);
         root.add(autonomusButton,8,7);
         
-        //root.add(cleanButton,8,16); // Att använda denna kommer att ge nullpointerexception vid ett senare tillfälle.
         
         root.add(resetListButton,11,15);
         
         root.add(findLeakButton,8,15);
-        //findLeakButton.setDisable(true);
         root.add(findLeak,9,15);
         
-        //root.add(comXX,7,13); // Lägger till textfält för att välja comport
         
         root.add(leftArrow,9,3); // Lägger till symboler för att visa rörelseriktning
         root.add(rightArrow,11,3);
