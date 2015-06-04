@@ -59,7 +59,7 @@ public class Interface implements SerialPortEventListener{
         }
     } // slut på hittaport*/
     
-    void connect(String comPortName)
+    void connect(String comPortName) // Ansluter till en comport
     {
         mainSerialPort = new SerialPort(comPortName); 
         //Anslut till porten
@@ -203,7 +203,7 @@ public class Interface implements SerialPortEventListener{
             currentNode = "T-korsning" + directionString_ + "\nID: " + Integer.toString(nodeID_);
             if(north_ == 0)
             {
-                currentNodeType = "T-korsning S";
+                currentNodeType = "T-korsning S"; // Undersöker åt vilket håll T-korsningen är riktad
             } else if(east_ == 0)
             {
                 currentNodeType = "T-korsning V";
@@ -265,7 +265,7 @@ public class Interface implements SerialPortEventListener{
         }
         if (sumDirections_ == 4)
         {
-            currentNodeType = "Instängd";
+            currentNodeType = "Instängd"; // Specialfall, dessa två ska inte kunna ske, existerar för felsökningssyften
         }
         if (sumDirections_ == 0)
         {
@@ -331,7 +331,7 @@ public class Interface implements SerialPortEventListener{
                 int westBit_ = (recievedData_ & 0b00000001);
                 int direction_ = (recievedData_ & 0b0000000100000000)/64 + (recievedData_ & 0b00100000)/16 + (recievedData_ & 0b00010000)/16; // Bitarna 4 och 5 är ett tal mellan 0 och 3 som
                                                                                                     // motsvarar åt vilket håll  roboten gick in i noden
-                int IDbyte_ = (recievedData_ & 0b0011111100000000)/512;                             // Bitarna 8 till 13 är ett tal som motsvarar nodens Id
+                int IDbyte_ = (recievedData_ & 0b0011111000000000)/512;                             // Bitarna 8 till 13 är ett tal som motsvarar nodens Id
                 setNodeInfo(northBit_,eastBit_,southBit_,westBit_,direction_,IDbyte_); // Beräknar vad det är för nod osv.
                 mainGUI.setText("node");
                 mainGUI.nodeImageView.setImage(mainGUI.nodeImageArray[recievedData_ & 0b00001111]);
@@ -418,10 +418,9 @@ public class Interface implements SerialPortEventListener{
             //Gör det som ska göras vid inläsnign av data
             try
             {
-                //response = (mainSerialPort.readBytes(1)[0] & 0b11111111); //Kolla så att kommunikationsenheten fått tillbaka samma meddelande
                 if (event.getEventValue() > 20)
                 {
-                    int recievedArray[] = mainSerialPort.readIntArray();
+                    int recievedArray[] = mainSerialPort.readIntArray(); // Sparar undan arrayen och rensar den
                     mainSerialPort.purgePort(PURGE_RXCLEAR);
                     for (int arrayIterator = 0; arrayIterator < recievedArray.length; arrayIterator ++)
                     {
@@ -439,11 +438,6 @@ public class Interface implements SerialPortEventListener{
                                 combinedData = convertToSignedInt(dataBuffer[1], dataBuffer[2]);
                                 if (validHeader(dataBuffer[0]) && validData(dataBuffer[0],combinedData))
                                 {
-                                    /*System.out.print(dataBuffer[0]);
-                                    System.out.print(" ");
-                                    System.out.print(dataBuffer[1]);
-                                    System.out.print(" ");
-                                    System.out.println(dataBuffer[2]);*/
                                     setAllData(dataBuffer[0],combinedData);
                                 }
                                 else
@@ -479,7 +473,6 @@ public class Interface implements SerialPortEventListener{
         {
             System.err.println("Något gick fel med att skicka data.");
         }
-        //waitForAcknowledge(dataByte);
     }
     
     public void waitForAcknowledge (byte dataByte)
