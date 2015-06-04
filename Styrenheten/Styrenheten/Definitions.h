@@ -2,7 +2,7 @@
  * Definitions.h
  *
  * Created: 4/25/2015 2:57:20 PM
- *  Author: isawi527
+ *  Author: Isak Wiberg
  */ 
 
 

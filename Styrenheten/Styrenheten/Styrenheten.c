@@ -50,7 +50,6 @@ int BlindStepsTaken_g = 0;
 //int BlindStepsToTake_g = 5; // Avstånd från sensor till mitten av robot ~= 8 cm.
 // BlindStepsToTake ska vara ungefär (halfPathWidth - 8)/practicalStepLength
 int BlindStepsToTake_g = 2;
-int allowedToMove_g = 0;
 int savedSteplength_g;
 int hasSavedSteplength_g = FALSE;
 #define BLIND_STEP_LENGTH 80
@@ -70,16 +69,7 @@ int diagonalMovement_g = FALSE;
 
 // avstånd ifrån sensorera till mitten av roboten (mm)
 int sensorOffset_g = 60;
-/*
-// Joakims coola gångstil,
-int stepLength_g = 40;
-int startPositionX_g = 20;
-int startPositionY_g = 140;
-int startPositionZ_g = -110;
-int stepHeight_g = 20;
-int gaitResolution_g = 12;
-int gaitResolutionTime_g = INCREMENT_PERIOD_60;
-*/
+
 
 int sendLegWidth = FALSE;
 int sendStepHeight = FALSE;
@@ -88,8 +78,6 @@ int sendStepLength = FALSE;
 int sendKPAngle = FALSE;
 int sendKPTrans = FALSE;
 int sendGaitResTime = FALSE;
-
-// currentDirection_g-deklaration samt controlMode flyttade till Definitions.h
 
 typedef struct leg leg;
 struct leg {
@@ -110,7 +98,9 @@ enum gait currentGait = standStill;
 int standardSpeed_g = 20;
 int statusPackEnabled = 0;
 
-
+/*
+ * Skickar robotparametrarna till kommunikationsenheten. 
+ */
 void sendAllRobotParameters()
 {
     transmitDataToCommUnit(STEP_INCREMENT_TIME_HEADER, gaitResolutionTime_g);
@@ -122,8 +112,11 @@ void sendAllRobotParameters()
     transmitDataToCommUnit(K_P_TRANS_HEADER, 100*kProportionalTranslation_g);
 }
 
-// calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
-// hastighet som gör att slutpositionen uppnås på periodtiden.
+
+/*
+ * calcDynamixelSpeed använder legIncrementPeriod_g och förflyttningssträckan för att beräkna en 
+ * hastighet som gör att slutpositionen uppnås på periodtiden.
+ */
 long int calcDynamixelSpeed(long int deltaAngle)
 {
     long int calculatedSpeed = (1000 * deltaAngle) / (6 * gaitResolutionTime_g);
@@ -139,7 +132,9 @@ long int calcDynamixelSpeed(long int deltaAngle)
 
 
 
-
+/*
+ * Flyttar ett specifikt servo till en given vinkel med en specifik hastighet.
+ */
 void MoveDynamixel(int ID,long int Angle,long int RevolutionsPerMinute)
 {
     if ((Angle <= 300) & (Angle >= 0)) // Tillåtna grader är 0-300
@@ -169,6 +164,11 @@ void MoveDynamixel(int ID,long int Angle,long int RevolutionsPerMinute)
     return;
 }
 
+/*
+ * Flyttar benet till en kartesisk punkt med en viss hastighet. 
+ * Anledningen till att det finns olika funktioner för de olika benen är att servona är
+ * monterade på olika håll samt att servoaxeln har olika "offset".
+ */
 void MoveFrontLeftLeg(float x, float y, float z, int speed)
 {
     long int theta1 = atan2f(-x,y)*180/PI;
@@ -188,6 +188,11 @@ void MoveFrontLeftLeg(float x, float y, float z, int speed)
     return;
 }
 
+/*
+ * Flyttar benet till en kartesisk punkt med en viss hastighet. 
+ * Anledningen till att det finns olika funktioner för de olika benen är att servona är
+ * monterade på olika håll samt att servoaxeln har olika "offset".
+ */
 void MoveFrontRightLeg(float x, float y, float z, int speed)
 {
     long int theta1 = atan2f(-x,y)*180/PI;
@@ -206,6 +211,12 @@ void MoveFrontRightLeg(float x, float y, float z, int speed)
     MoveDynamixel(frontRightLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
+
+/*
+ * Flyttar benet till en kartesisk punkt med en viss hastighet. 
+ * Anledningen till att det finns olika funktioner för de olika benen är att servona är
+ * monterade på olika håll samt att servoaxeln har olika "offset".
+ */
 void MoveRearLeftLeg(float x, float y, float z, int speed)
 {
     long int theta1 = atan2f(x,-y)*180/PI;
@@ -224,6 +235,12 @@ void MoveRearLeftLeg(float x, float y, float z, int speed)
     MoveDynamixel(rearLeftLeg.tibiaJoint,ActuatorAngle3,speed);
     return;
 }
+
+/*
+ * Flyttar benet till en kartesisk punkt med en viss hastighet. 
+ * Anledningen till att det finns olika funktioner för de olika benen är att servona är
+ * monterade på olika håll samt att servoaxeln har olika "offset".
+ */
 void MoveRearRightLeg(float x, float y, float z, int speed)
 {
     long int theta1 = atan2f(x,-y)*180/PI;
@@ -243,6 +260,9 @@ void MoveRearRightLeg(float x, float y, float z, int speed)
     return;
 }
 
+/*
+ * Flyttar alla fyra ben till sina startpositioner med hastigheten som anges av standardSpeed_g.
+ */
 void MoveToStartPosition()
 {
     MoveFrontLeftLeg(-startPositionX_g,startPositionY_g,startPositionZ_g,standardSpeed_g);
@@ -379,6 +399,11 @@ void CalcStraightPath(leg currentLeg, int numberOfPositions, int startIndex, flo
     }
 }
 
+
+/*
+ * En alternativ funktion för att skapa en annan lyftrörelse. Används inte på roboten i version 1.0
+ * Den funktion som används istället är CalcCurvedPath().
+ */
 void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     long int theta1;
@@ -469,6 +494,12 @@ void CalcParabelPath(leg currentLeg, int numberOfPositions, int startIndex, floa
     }
 }
 
+/*
+ * Den här funktionen skapar en triangulär rörelse för ett visst ben från punkt 1 till punkt 2. 
+ * Benet kommer att lyftas upp en steghöjd i mitten av rörelsen. 
+ * Antalet delpunkter som skapas bestäms av numberOfPositions.
+ * Startpositionen i positionsmatrisen anges av startIndex. 
+ */
 void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float x1, float y1, float z1, float x2, float y2, float z2)
 {
     int topPosition = startIndex + numberOfPositions / 2 - 1;
@@ -616,10 +647,11 @@ void CalcCurvedPath(leg currentLeg, int numberOfPositions, int startIndex, float
     }
 }
 
+/*
+ * Flyttar ett ben till sin nästa position i positionsmatrisen actuatorPositions_g. 
+ */
 void MoveLegToNextPosition(leg Leg)
 {
-    // test
-    //long int speed = 32;
     // CoxaJoint
     long int currentAngle = actuatorPositions_g[Leg.coxaJoint][currentPos_g];
     long int nextAngle = actuatorPositions_g[Leg.coxaJoint][nextPos_g];
@@ -639,7 +671,9 @@ void MoveLegToNextPosition(leg Leg)
 
 }
 
-
+/*
+ * Flyttar alla ben till sina nästa positioner i positionsmatrisen actuatorPositions_g. 
+ */
 void move()
 {
     MoveLegToNextPosition(frontLeftLeg);
@@ -649,7 +683,10 @@ void move()
     increasePositionIndexes();
 }
 
-
+/*
+ * Undersöker om en instruktion är en rörelseinstruktion. Instruktionerna som behandlar mottas
+ * från PC:n. En rörelseinstruktion kännetäcknas av att den börjar med två nollor. 
+ */
 int isMovementInstruction(int instruction)
 {
 	if ((0b11000000 & instruction) == 0b00000000)
@@ -659,6 +696,10 @@ int isMovementInstruction(int instruction)
 	return FALSE;
 }
 
+/*
+ * Undersöker om en instruktion är en inställningsinstruktion. Instruktionerna som behandlar mottas
+ * från PC:n. En inställningsinstruktion kännetäcknas av att den börjar med en etta följd av en nolla. 
+ */
 int isOptionInstruction(int instruction)
 {
 	if ((0b11000000 & instruction) == 0b10000000)
@@ -668,6 +709,10 @@ int isOptionInstruction(int instruction)
 	return FALSE;
 }
 
+/*
+ * Undersöker om en instruktion är en styrlägesinstruktion. Instruktionerna som behandlar mottas
+ * från PC:n. En styrlägesinstruktion kännetäcknas av att den börjar med två ettor.
+ */
 int isControlModeInstruction(int instruction)
 {
 	if ((0b11000000 & instruction) == 0b11000000)
@@ -677,7 +722,12 @@ int isControlModeInstruction(int instruction)
 	return FALSE;
 }
 
-ISR(INT0_vect) // avbrott från kommunikationsenheten
+/*
+ * Avbrott från kommunikationsenheten.
+ * Här behandlas kommunikationen mellan styr och kommunikationsenheten. 
+ * Körs kommunikationsenheten vill överföra något till styrenheten. Detta tolkas då som en instruktion.
+ */
+ISR(INT0_vect) 
 {
     
     spiTransmitToCommUnit(TRASH); // Skicka iväg skräp för att kunna ta emot det som finns i kommunikationsenhetens SPDR
@@ -738,70 +788,38 @@ ISR(INT0_vect) // avbrott från kommunikationsenheten
 
 int toggleMania = FALSE;
 int sendStuff = FALSE;
+/*
+ * Avbrott från tryckknapp. Startar det autonoma läget.
+ * Vid en andra tryckning skickar roboten information till PC:n om noderna den hittat.
+ */
 ISR(INT1_vect) 
 { 
     
 	if (toggleMania)
     {
-        allowedToMove_g = FALSE;
         
         emergencyLockdown_g = TRUE;
         emergencyDowntime_g = 12;
         emergencyStop();
         
-        //currentControlMode_g = manual;
         sendStuff = TRUE;
         toggleMania = FALSE;
     }
     else
     {
-        allowedToMove_g = TRUE;
         currentControlMode_g = exploration;
         toggleMania = TRUE;
         
     }
-	
-	/*
-    directionHasChanged = 1;
-    switch(currentDirection_g)
-    {
-        case north:
-        {
-           currentDirectionInstruction = EAST_HEADER;
-           break;
-        }
-        case east:
-        {
-            currentDirectionInstruction = SOUTH_HEADER;
-            break;
-        }
-        case south:
-        {
-            currentDirectionInstruction = WEST_HEADER;
-            break;
-        }
-        case west:
-        {
-            currentDirectionInstruction = NORTH_HEADER;
-            break;
-        }
-        case noDirection:
-        {
-            currentDirectionInstruction = NORTH_HEADER;
-            break;
-        }
-    }*/
-    
-    
-    
-    
 } 
 
 
 
 
 
-
+/*
+ * Skickar alla sensorvärden till kommunikationsenheten.
+ */
 void transmitAllDataToCommUnit()
 {
     transmitDataToCommUnit(DISTANCE_NORTH, distanceValue_g[NORTH]);
@@ -817,6 +835,9 @@ void transmitAllDataToCommUnit()
     return;
 }
 
+/*
+ * Hämtar alla sensorvärden från sensorenheten och lägger dessa i sensorvärdesmatrisen. 
+ */
 void updateAllDistanceSensorData()
 {
     distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
@@ -849,30 +870,19 @@ void updateAllDistanceSensorData()
 	}
 }
 
+/*
+ * Hämtar totalvinkeln från sensorenheten och lägger den i vinkelmatrisen.
+ */
 void updateTotalAngle()
 {
     angleValue_g[TOTAL] = fetchDataFromSensorUnit(TOTAL_ANGLE);
 }
 
+/*
+ * Hämtar endast sensorvärden från en viss riktning. Används EJ i version 1.0
+ */
 void getSensorData(enum direction regulationDirection)
 {
-    /*
-    * Sensordata fyller de globala arrayerna distanceValue_g, angleValue_g
-    */
-    /* Kommenterar ut för att testa om det är fel på datahämtningen eller ej
-    distanceValue_g[NORTH] = fetchDataFromSensorUnit(DISTANCE_NORTH);
-    distanceValue_g[EAST] = fetchDataFromSensorUnit(DISTANCE_EAST);
-    distanceValue_g[SOUTH] = fetchDataFromSensorUnit(DISTANCE_SOUTH);
-    distanceValue_g[WEST] = fetchDataFromSensorUnit(DISTANCE_WEST);
-
-    angleValue_g[NORTH] = fetchDataFromSensorUnit(ANGLE_NORTH);
-    angleValue_g[EAST] = fetchDataFromSensorUnit(ANGLE_EAST);
-    angleValue_g[SOUTH] = fetchDataFromSensorUnit(ANGLE_SOUTH);
-    angleValue_g[WEST] = fetchDataFromSensorUnit(ANGLE_WEST);
-	*/
-	
-	
-	// test för att inte hämta så mycket sensordata
 	switch(regulationDirection)
 	{
 		case north:
@@ -906,7 +916,11 @@ void getSensorData(enum direction regulationDirection)
 	return;
 }
 
-
+/*
+ * Beräknar reglering för roboten och sparar denna i regleringsmatrisen. 
+ * Riktningen är anger hur många sidor som roboten kan titta på. Man kan 
+ * välja om vinkelreglering ska användas eller ej.
+ */
 void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 {
     // regulationDirection motsvarar den sida som regleringen ska titta på.
@@ -1149,70 +1163,6 @@ void calcRegulation(enum direction regulationDirection, int useRotateRegulation)
 */
 int decideRegulationDirection() 
 {
-    /*
-    enum direction tempRegulationDirection = noDirection;
-    int northAvailable = currentNode_g.northAvailible;
-    int eastAvailable = currentNode_g.eastAvailible;
-    int southAvailable = currentNode_g.southAvailible;
-    int westAvailable = currentNode_g.westAvailible;
-    switch(currentDirection_g)
-    {
-        case north:
-        {
-            if (!eastAvailable) // det finns en vägg åt öster
-            {
-                tempRegulationDirection = east;
-            }                
-            else if (!westAvailable)
-            {
-                tempRegulationDirection = west;
-            }              
-            break;
-        }
-        case east:
-        {
-            if (!southAvailable)
-            {
-                tempRegulationDirection = south;
-            }
-            else if (!northAvailable)
-            {
-                tempRegulationDirection = north;
-            }
-            break;
-        }
-        case south:
-        {
-            if (!eastAvailable)
-            {
-                tempRegulationDirection = east;
-            }
-            else if (!westAvailable)
-            {
-                tempRegulationDirection = west;
-            }
-            break;
-        }
-        case west:
-        {
-            if (!northAvailable)
-            {
-                tempRegulationDirection = north;
-            }
-            else if (!southAvailable)
-            {
-                tempRegulationDirection = south;
-            }
-            break;
-        }
-        case noDirection:
-        {
-            tempRegulationDirection = noDirection;
-            break;
-        }
-    }
-    return tempRegulationDirection;
-    */
     int closeEnoughToRegulate = 300;
     enum direction tempRegulationDirection = noDirection;
     enum direction directionToRight = ((currentDirection_g + 1) % 4);
@@ -1286,10 +1236,11 @@ void applyOrder()
 	return;
 }
 /*
-/ 
-/ ej klar och fungerar ej just nu. Kolla upp vad som finns i legPositions
-/
-*/
+ * Flyttar robotens ben till startpositionen från en godtycklig position i ett steg. 
+ * Läser av benens nuvarande position ifrån undansparade (x,y,z)-koordinater i legpositions_g.
+ * En framtida utveckling av denna funktion är att ändra så att man faktiskt läser av servonas vinklar genom
+ * läsfunktioner i dem och sedan omvandla detta till koordinater med hjälp av framåtkinematik.
+ */
 void returnToStartPosition()
 {
     int tempRes = 12;
@@ -1301,7 +1252,7 @@ void returnToStartPosition()
         copy[i] = legPositions_g[i][currentPos_g];
     }
     // flytta ner alla benen till marknivå
-    CalcStraightPath(frontLeftLeg, 4, 0, -copy[FRONT_LEFT_LEG_X],copy[FRONT_LEFT_LEG_Y], copy[FRONT_LEFT_LEG_Z],
+    CalcStraightPath(frontLeftLeg, 4, 0, -copy[FRONT_LEFT_LEG_X], copy[FRONT_LEFT_LEG_Y], copy[FRONT_LEFT_LEG_Z],
                                         -copy[FRONT_LEFT_LEG_X], copy[FRONT_LEFT_LEG_Y], startPositionZ_g);
     CalcStraightPath(frontRightLeg, 4, 0, copy[FRONT_RIGHT_LEG_X], copy[FRONT_RIGHT_LEG_Y], copy[FRONT_RIGHT_LEG_Z],
                                         copy[FRONT_RIGHT_LEG_X], copy[FRONT_RIGHT_LEG_Y], startPositionZ_g);
@@ -1331,6 +1282,10 @@ void returnToStartPosition()
     nextPos_g = 1;
 }
 
+/*
+ * Utför en övergång från startpositionen till travgångstilens beräkningspunkt.
+ * Upplösningen på denna funktion beror på den globala upplösningen på gångstilen.
+ */
 void transitionStartToTrot()
 {
     int gaitRes = gaitResolution_g/4;
@@ -1345,6 +1300,10 @@ void transitionStartToTrot()
     nextPos_g = 1;
 }
 
+/*
+ * Utför en övergång från startpositionen till krypgångstilens startposition för rörelse norrut. 
+ * Använder EJ positionsmatrisen. Detta är en direkt rörelse. Används ej på roboten i version 1.0
+ */
 void moveToCreepStartPosition()
 {
     long int sixth = stepLength_g/6;
@@ -1355,7 +1314,10 @@ void moveToCreepStartPosition()
     MoveFrontLeftLeg(-startPositionX_g, startPositionY_g+half, startPositionZ_g, 20);
 }
 
-// cycleResolution måste vara delbart med 8
+/*
+ * Krypgångstil skapas utifrån en viss upplösning. Rörelsen fungerar i alla fyra riktningar men 
+ * reglering finns inte ännu inbyggt här. Används ej på roboten i version 1.0
+ */
 void makeCreepGait(int cycleResolution)
 {
     int res = cycleResolution/4;
@@ -1437,7 +1399,9 @@ void makeCreepGait(int cycleResolution)
     
 }
 
-
+/*
+ * "Gångstil" som har upplösningen 2 och endast innehåller startpositionen.
+ */
 void standStillGait()
 {
     maxGaitCyclePos_g = 2;
@@ -1451,7 +1415,9 @@ void standStillGait()
 
 }
 
-// gör rörelsemönstret för travet, beror på vilken direction som är satt på currentDirection_g
+/* 
+ * Gör rörelsemönstret för travet, beror på vilken direction som är satt på currentDirection_g.
+ */
 void MakeTrotGait(int cycleResolution)
 {
     // cycleResolution är antaletpunkter på kurvan som benen följer. Måste vara jämnt tal!
@@ -1556,7 +1522,9 @@ void MakeTrotGait(int cycleResolution)
     }
 }
 
-// funktioner som används för att optimera gångstilen
+/* 
+ * funktioner som används för att ändra gångstilsparametrar
+ */
 void increaseLegWidth()
 {
 	if ((startPositionX_g < 150) && (startPositionY_g < 150))
@@ -1700,6 +1668,10 @@ void decreaseKRotation()
 }
 
 
+/*
+ * Skapar en övergång till en ny gångstil från den nuvarande. 
+ * Används ej på roboten i version 1.0
+ */
 void makeGaitTransition(enum gait newGait)
 {
     switch(newGait)
@@ -1719,6 +1691,9 @@ void makeGaitTransition(enum gait newGait)
     }
 }
 
+/*
+ * Tittar i nuvarande nod och returnerar om det finns en vägg framåt eller ej. 
+ */
 int frontAvailable()
 {
 	int northAvailable = currentNode_g.northAvailible;
@@ -1760,6 +1735,9 @@ int frontAvailable()
 	}
 }
 
+/*
+ * Jämför avståndet framåt med EMERGENCY_LOCKDOWN_DISTANCE
+ */
 int tooCloseToFrontWall()
 {
     if(currentDirection_g == noDirection)
@@ -1776,6 +1754,9 @@ int tooCloseToFrontWall()
     }
 }
 
+/*
+ * Tvingar roboten till ett abrupt stop med hjälp av returnToStartPosition()
+ */
 void emergencyStop()
 {
     emergencyLockdown_g = TRUE;
@@ -1784,6 +1765,9 @@ void emergencyStop()
     currentGait = standStill;
 }
 
+/*
+ * Hjälper roboten att vara i emergencyläge tillräckligt länge för att stoppet ska kunna utföras.
+ */
 void emergencyController()
 {
     if (emergencyDowntime_g > 0)
@@ -1804,12 +1788,13 @@ void emergencyController()
     }
     return;        
 }
+
+/*
+ * Den huvudsakliga funktionen som hanterar robotens gångstil och övergångar mellan olika riktningar. 
+ * Beter sig olika i olika control-modes.
+ */
 void gaitController()
 {
-
-	
-    // tillfälligt eftersom dessa var lokala i en annan funktion, borde flyttas ut och göras globala och uppdateras bra
-    
     if ((currentPos_g == posToCalcGait) && (currentControlMode_g != manual)) // hämtar information från sensorenheten varje gång det är dags att beräkna gången
     {
         
@@ -2191,6 +2176,9 @@ void gaitController()
     }
 }
 
+/*
+ * Tittar om någon parameter har ändrats och värdet på denna till kommunikationsenheten i så fall.
+ */
 void sendChangedRobotParameters()
 {
     if (sendLegWidth)
@@ -2230,6 +2218,11 @@ void sendChangedRobotParameters()
     }
 }
 
+/*
+ * Frågar sensorenheten om en läcka är synlig eller ej.
+ * Om roboten är i utforskningsläge skickas kommando till sensorenheten om att 
+ * tända lamporna när en läcka är synlig och släcka dem om den ej är synlig.
+ */
 void checkForLeak()
 {
 	isLeakVisible_g = fetchDataFromSensorUnit(LEAK_HEADER);
@@ -2248,6 +2241,7 @@ void checkForLeak()
     }      
     
 }
+
 int main(void)
 {
     newLeak_g = TRUE;
@@ -2278,16 +2272,9 @@ int main(void)
     timer2Init();
     sei();
     MoveToStartPosition();
-    //moveToCreepStartPosition();
     _delay_ms(1000);
-    //currentDirection_g = east;
-    //makeCreepGait(gaitResolution_g);
     standStillGait();
 
-    //currentGait = creepGait;
-
-    //moveToCreepStartPosition();
-    //makeCreepGait(gaitResolution_g);
     setTimerPeriod(TIMER_0, newGaitResolutionTime);
     setTimerPeriod(TIMER_2, newCommUnitUpdatePeriod);
     
@@ -2300,32 +2287,9 @@ int main(void)
 
     // ---- Main-Loop ----
     while (1)
-    {
-	    
-        
-                   
+    {    
     	if (legTimerPeriodEnd())
     	{
-            //Test för att undersöka robotens order
-            /*switch (currentOrder_g) 
-            {
-                case noOrder:
-                {
-                    fetchDataFromSensorUnit(0b00010000);
-                    break;
-                }
-                case turnBlind:
-                {
-                    fetchDataFromSensorUnit(0b00010101);
-                    break;
-                }
-				case turnSeeing:
-                {
-                    fetchDataFromSensorUnit(0b00010010);
-                    break;
-                }    
-            }*/
-            
     	    resetLegTimer();
             if (emergencyLockdown_g)
                 emergencyController();
@@ -2386,15 +2350,8 @@ int main(void)
 	        else
 	        {
 			    sendDataToPC++;
-	        }
-            
-	        
-            
-            
-    	}
-        
-        
-        
+	        } 
+    	} 
     }
 }
 

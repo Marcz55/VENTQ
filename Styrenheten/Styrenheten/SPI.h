@@ -1,8 +1,10 @@
 ﻿/*
  * SPI.h
  *
- * Created: 4/20/2015 11:26:43 AM
- *  Author: marwa828
+ * Skapad: 4/20/2015 11:26:24 AM
+ * Author: Marcus Wälivaara
+ * Version: 1.0
+ *
  */ 
 
 

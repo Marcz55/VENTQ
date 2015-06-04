@@ -1,8 +1,8 @@
 ﻿/*
  * nodsystemet.h
  *
- * Created: 5/7/2015 2:37:09 PM
- *  Author: isawi527
+ *  Created: 5/7/2015 2:37:09 PM
+ *  Author: Isak Wiberg
  */ 
 
 

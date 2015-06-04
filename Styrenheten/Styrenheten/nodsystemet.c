@@ -1,5 +1,11 @@
-// Rasmus
-// Kartnavigeringsnodvägvalssystem
+/*
+ * nodsystemet.c
+ *
+ * Skapad: 4/20/2015 
+ * Author: Rasmus Vilhelmsson
+ * Version: 1.0
+ *
+ */ 
 
 #include <stdio.h>
 #include "Definitions.h"
@@ -37,7 +43,10 @@ int done_g = FALSE;
 
 int wantedLeak = 0;
 
-
+/*
+ * Denna funktion omvandlar ett nodobjekt till en int som kan skickas via bluetooth till 
+ * PC:n enligt ett gränssnitt som finns dokumenterat i den tekniska dokumentationen.
+ */
 int makeNodeData(node* nodeToSend)
 {
     int data = 0;
@@ -52,12 +61,18 @@ int makeNodeData(node* nodeToSend)
     return data;
 }
 
-// Ringbuffer functions
+/*
+ * Hämtar ut en specifik nod ur buffern.
+ */
 simpleNode getNode(NodeRingBuffer* buffer, uint8_t elementID)
 {
     return buffer->array[elementID];
 }
 
+/*
+ * Lägger in en nod i buffern. Observera att det alltid finns exakt 5 noder i buffern. 
+ * Den äldsta noden i buffern skrivs alltså över. 
+ */
 void addNode(NodeRingBuffer* buffer, simpleNode newNode)
 {
     buffer->array[buffer->writeIndex] = newNode;
@@ -67,6 +82,10 @@ void addNode(NodeRingBuffer* buffer, simpleNode newNode)
         buffer->writeIndex = 0;
 }
 
+/*
+ * Fyller den globalt definierade buffern med återvändsgränder. 
+ * Anledningen till detta är att roboten inte skall ta konstiga beslut vid uppstart.
+ */
 void initNodeRingBuffer()
 {
 	simpleNode dummyDeadEnd = {1,0,0,0};
@@ -77,6 +96,11 @@ void initNodeRingBuffer()
 	addNode(&nodeRingBuffer, dummyDeadEnd);
 }
 
+/*
+ * Skapar en simpleNode av den senast avlästa sensordatan och fyller ringbuffern med denna data.
+ * Används endast då vi lagt in en ny nod i listan. Syftet med detta är att minsta osäkerheten vid 
+ * övergångar mellan två nodtyper.
+ */
 void fillNodeMemoryWithTemp()
 {
 	simpleNode simpleTempNode = {tempNorthAvailible_g, tempEastAvailible_g, tempSouthAvailible_g, tempWestAvailible_g};

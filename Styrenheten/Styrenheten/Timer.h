@@ -2,7 +2,7 @@
  * Timer.h
  *
  * Created: 4/25/2015 2:51:40 PM
- *  Author: isawi527
+ *  Author: Isak Wiberg
  */ 
 
 

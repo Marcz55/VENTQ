@@ -2,7 +2,7 @@
  * USART.h
  *
  * Created: 4/21/2015 8:31:14 AM
- *  Author: isawi527
+ *  Author: Isak Wiberg
  */ 
 
 

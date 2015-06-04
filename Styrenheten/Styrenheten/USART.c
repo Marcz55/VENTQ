@@ -2,7 +2,7 @@
  * USART.c
  *
  * Created: 4/15/2015 10:24:52 AM
- *  Author: isawi527
+ *  Author: Isak Wiberg
  */ 
 
 #include <avr/io.h>
@@ -18,38 +18,36 @@
 #define TXD0_DATA (UDR0)
 #define RXD0_DATA (UDR0)
 
+/*
+ * Styr tristatebuffern till mottagningsläge med hjälp av portD4.
+ */
 void USART0RecieveMode() 
 {
     PORTD = (0<<PORTD4);
 }
 
+/*
+ * Styr tristatebuffern till sändningsläge med hjälp av portD4.
+ */
 void USART0SendMode()
 {
     PORTD = (1<<PORTD4);
 }
 
+
 void initUSART()
 {
     DDRD = (1<<PORTD4); // Styrsignal för sändning/mottagning, PD2
-//  DDRA = (0<<PORTA0); // Signal från extern knapp, kan användas till diverse saker
     USART0RecieveMode();
     UBRR0H = 0x00;
     UBRR0L = 0x00; // Sätter baudraten till fosc/16(UBRR0 + 1) = 1Mhz
-    
     UCSR0B = (1<<RXEN0)|(1<<TXEN0); // Aktiverar sändare och mottagare
-    
-//  USBS0 = 0; // En stoppbit
-    //UPM01 = 0; // Ingen paritetsbit
-    
-    UCSR0C = (0<<USBS0) | (3<<UCSZ00) | (0<<UPM01);
-    /*
-    UCSZ00 = 1;
-    UCSZ01 = 1;
-    UCSZ02 = 0; // Sätter antalet databitar i varje paket till 8.
-    */
-
-    
+    UCSR0C = (0<<USBS0) | (3<<UCSZ00) | (0<<UPM01);    
 }
+
+/*
+ * Delfunktion som används för att skriva en char till USART-buffern.
+ */
 void USARTWriteChar(char data)
 {
     // vänta tills sändaren är redo
@@ -59,6 +57,10 @@ void USARTWriteChar(char data)
     }
     TXD0_DATA = data;
 }
+
+/*
+ * Skickar en instruktion till ett servo med rätt ID. Antalet parametrar är 0
+ */
 void USARTSendInstruction0(int ID, int instruction)
 {
     
@@ -82,6 +84,9 @@ void USARTSendInstruction0(int ID, int instruction)
     
 }
 
+/*
+ * Skickar en instruktion till ett servo med rätt ID. Antalet parametrar är 1
+ */
 void USARTSendInstruction1(int ID, int instruction, int parameter0)
 {
     // sätt USART till sändläge
@@ -104,6 +109,9 @@ void USARTSendInstruction1(int ID, int instruction, int parameter0)
     
 }
 
+/*
+ * Skickar en instruktion till ett servo med rätt ID. Antalet parametrar är 2
+ */
 void USARTSendInstruction2(int ID, int instruction, int parameter0, int parameter1)
 {
     // sätt USART till sändläge
@@ -127,6 +135,9 @@ void USARTSendInstruction2(int ID, int instruction, int parameter0, int paramete
     
 }
 
+/*
+ * Skickar en instruktion till ett servo med rätt ID. Antalet parametrar är 3
+ */
 void USARTSendInstruction3(int ID, int instruction, int parameter0, int parameter1, int parameter2)
 {
     // sätt USART till sändläge
@@ -151,6 +162,9 @@ void USARTSendInstruction3(int ID, int instruction, int parameter0, int paramete
     
 }
 
+/*
+ * Skickar en instruktion till ett servo med rätt ID. Antalet parametrar är 4
+ */
 void USARTSendInstruction4(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3)
 {
     // sätt USART till sändläge
@@ -175,6 +189,10 @@ void USARTSendInstruction4(int ID, int instruction, int parameter0, int paramete
     sei(); // Tillåt interrupts igen
     
 }
+
+/*
+ * Skickar en instruktion till ett servo med rätt ID. Antalet parametrar är 5
+ */
 void USARTSendInstruction5(int ID, int instruction, int parameter0, int parameter1, int parameter2, int parameter3, int parameter4)
 {
     // sätt USART till sändläge
@@ -203,7 +221,9 @@ void USARTSendInstruction5(int ID, int instruction, int parameter0, int paramete
     
 }
 
-
+/*
+ * Läser en char från USART-buffern.
+ */
 char USARTReadChar()
 {
     //Vänta tills data är tillgänglig
@@ -214,6 +234,9 @@ char USARTReadChar()
     return RXD0_DATA;
 }
 
+/*
+ * Läser ett helt statuspaket från USART-buffern och skapar en int av detta. 
+ */
 int USARTReadStatusPacket()
 {   
     int ValueOfParameters = 0;

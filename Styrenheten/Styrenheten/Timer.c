@@ -20,9 +20,6 @@ int timer0RemainingTicks_g = 62;
 int timer2OverflowMax_g = 73;
 int timer2RemainingTicks_g = 62;
 
-
-
-
 volatile uint8_t timer0TotOverflow_g;
 volatile uint8_t timer2TotOverflow_g;
 
@@ -62,7 +59,9 @@ void timer2Init()
 
 
 
-// timerPeriod ska väljas från fördefinierade tider
+/*
+ * timerPeriod ska väljas från fördefinierade tider
+ */
 void setTimerPeriod(int timer, int newPeriod)
 {
     
@@ -191,6 +190,9 @@ void setTimerPeriod(int timer, int newPeriod)
     return;
 }
 
+/*
+ * Ser efter om timer0 har fått overflow tillräckligt många gånger.
+ */
 int legTimerPeriodEnd()
 {
     if (timer0TotOverflow_g >= timer0OverflowMax_g)
@@ -203,6 +205,9 @@ int legTimerPeriodEnd()
     return FALSE;
 }
 
+/*
+ * Ser efter om timer2 har fått overflow tillräckligt många gånger.
+ */
 int commTimerPeriodEnd()
 {
     if (timer2TotOverflow_g >= timer2OverflowMax_g)
@@ -215,12 +220,18 @@ int commTimerPeriodEnd()
     return FALSE;
 }
 
+/*
+ * Nollställer timer0 och sätter antalet uppmätta overflows till 0.
+ */
 void resetLegTimer()
 {
     TCNT0 = 0;
     timer0TotOverflow_g = 0;
 }
 
+/*
+ * Nollställer timer2 och sätter antalet uppmätta overflows till 0.
+ */
 void resetCommTimer()
 {
     TCNT2 = 0;
